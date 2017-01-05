@@ -74,6 +74,8 @@
 
 
 (deftest test-army?
+  ;; (is      (army? {:unit-type :army  :country :italy}))
+  ;; (is (not (army? {:unit-type :fleet :country :italy})))
   (is (army? english-army-wal-holds))
   (is (army? english-army-lvp-supports-wal-hold))
   (is (army? french-army-bre-to-lon))
@@ -81,6 +83,8 @@
   (is (not (army? french-fleet-eng-convoys-bre-to-lon))))
 
 (deftest test-fleet?
+  ;; (is (not (fleet? {:unit-type :army  :country :italy})))
+  ;; (is      (fleet? {:unit-type :fleet :country :italy}))
   (is (not (fleet? english-army-wal-holds)))
   (is (not (fleet? english-army-lvp-supports-wal-hold)))
   (is (not (fleet? french-army-bre-to-lon)))

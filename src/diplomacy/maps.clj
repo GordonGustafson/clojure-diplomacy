@@ -1,7 +1,8 @@
-(ns diplomacy.maps
-  (:require [diplomacy.datatypes :refer [map->DiplomacyMap
-                                         map->GameState map->GameTime]])
-  (:import (diplomacy.datatypes Unit)))
+(ns diplomacy.maps)
+
+(defn make-unit
+  [unit-type country]
+  {:unit-type unit-type :country country})
 
 (def classic-map
   (let [land #{:army}
@@ -80,8 +81,8 @@
          :tri    coast
          :tun    coast
          :tus    coast
-         :tyn    land
-         :tys    sea
+         :tyn    sea
+         :tyr    land
          :ukr    land
          :ven    coast
          :vie    land
@@ -118,11 +119,11 @@
          :fin    {:nwy land, :bot sea, :swe coast, :stp land, :stp-sc sea}
          :gal    {:boh land, :sil land, :war land, :ukr land, :rum land, :bud land, :vie land}
          :gas    {:mid sea, :bre coast, :par land, :bur land, :mar land, :spa land, :spa-nc sea}
-         :gol    {:spa-sc sea, :mar sea, :pie sea, :tus sea, :tys sea, :wes sea}
+         :gol    {:spa-sc sea, :mar sea, :pie sea, :tus sea, :tyn sea, :wes sea}
          :gre    {:ion sea, :alb coast, :ser land, :bul land, :bul-sc sea, :aeg sea}
          :hel    {:nth sea, :den sea, :kie sea, :hol sea}
          :hol    {:nth sea, :hel sea, :kie coast, :ruh land, :bel coast}
-         :ion    {:apu sea, :adr sea, :tun sea, :tys sea, :nap sea, :alb sea, :gre sea, :aeg sea, :eas sea}
+         :ion    {:apu sea, :adr sea, :tun sea, :tyn sea, :nap sea, :alb sea, :gre sea, :aeg sea, :eas sea}
          :iri    {:nat sea, :lvp sea, :wal sea, :eng sea, :mid sea}
          :kie    {:hol coast, :hel sea, :den coast, :bal sea, :ber coast, :mun land, :ruh land}
          :lon    {:wal coast, :yor coast, :nth sea, :eng sea}
@@ -133,7 +134,7 @@
          :mos    {:stp land, :sev land, :ukr land, :war land, :lvn land}
          :mun    {:bur land, :ruh land, :kie land, :ber land, :sil land, :boh land, :tyr land}
          :naf    {:mid sea, :wes sea, :tun coast}
-         :nap    {:tys sea, :rom coast, :apu coast, :ion sea}
+         :nap    {:tyn sea, :rom coast, :apu coast, :ion sea}
          :nat    {:nrg sea, :cly sea, :lvp sea, :iri sea, :mid sea}
          :nrg    {:nat sea, :bar sea, :nwy sea, :nth sea, :edi sea, :cly sea}
          :nth    {:eng sea, :edi sea, :nrg sea, :nwy sea, :ska sea, :den sea, :hel sea, :hol sea, :bel sea, :lon sea, :yor sea}
@@ -143,7 +144,7 @@
          :pie    {:mar coast, :tyr land, :ven land, :tus coast, :gol sea}
          :por    {:mid sea, :spa-nc sea, :spa land, :spa-sc sea}
          :pru    {:ber coast, :bal sea, :lvn coast, :war land, :sil land}
-         :rom    {:tys sea, :tus coast, :ven land, :apu land, :nap coast}
+         :rom    {:tyn sea, :tus coast, :ven land, :apu land, :nap coast}
          :ruh    {:bel land, :hol land, :kie land, :mun land, :bur land}
          :rum    {:bla sea, :bud land, :gal land, :ukr land, :sev coast, :bul-ec sea, :bul land, :ser land}
          :ser    {:tri land, :bud land, :rum land, :bul land, :gre land, :alb land}
@@ -160,18 +161,18 @@
          :swe    {:ska sea, :nwy coast, :fin coast, :bot sea, :bal sea, :den coast}
          :syr    {:eas sea, :smy coast, :arm land}
          :tri    {:adr sea, :ven coast, :tyr land, :vie land, :bud land, :ser land, :alb coast}
-         :tun    {:naf coast, :wes sea, :tys sea, :ion sea}
-         :tus    {:gol sea, :pie coast, :ven land, :rom coast, :tys sea}
+         :tun    {:naf coast, :wes sea, :tyn sea, :ion sea}
+         :tus    {:gol sea, :pie coast, :ven land, :rom coast, :tyn sea}
          :tyr    {:mun land, :boh land, :vie land, :tri land, :ven land, :pie land}
-         :tys    {:wes sea, :gol sea, :tus sea, :rom sea, :nap sea, :ion sea, :tun sea}
+         :tyn    {:wes sea, :gol sea, :tus sea, :rom sea, :nap sea, :ion sea, :tun sea}
          :ukr    {:war land, :mos land, :sev land, :rum land, :gal land}
          :ven    {:tus land, :pie land, :tyr land, :tri coast, :adr sea, :apu coast, :rom land}
          :vie    {:tyr land, :boh land, :gal land, :bud land, :tri land}
          :wal    {:iri sea, :lvp coast, :yor land, :lon coast, :eng sea}
          :war    {:sil land, :pru land, :lvn land, :mos land, :ukr land, :gal land}
-         :wes    {:mid sea, :spa-sc sea, :gol sea, :tys sea, :tun sea, :naf sea}
+         :wes    {:mid sea, :spa-sc sea, :gol sea, :tyn sea, :tun sea, :naf sea}
          :yor    {:lvp land, :edi coast, :nth sea, :lon coast, :wal land}}
-        colocated-locations
+        colocation-sets
         #{#{:bud :bul-ec :bul-sc}
           #{:spa :spa-nc :spa-sc}
           #{:stp :stp-nc :stp-sc}}
@@ -188,21 +189,19 @@
          :russia  #{:mos :sev :war :stp}
          :turkey  #{:ank :con :smy}}
         starting-unit-positions
-        {:vie (Unit. :army  :austria) :bud (Unit. :army  :austria) :tri (Unit. :fleet :austria)
-         :lon (Unit. :fleet :england) :edi (Unit. :fleet :england) :lvp (Unit. :army  :england)
-         :par (Unit. :army  :france ) :mar (Unit. :army  :france ) :bre (Unit. :fleet :france )
-         :ber (Unit. :army  :german ) :mun (Unit. :army  :german ) :kie (Unit. :fleet :german )
-         :rom (Unit. :army  :italy  ) :ven (Unit. :army  :italy  ) :nap (Unit. :fleet :italy  )
-         :mos (Unit. :army  :russia ) :sev (Unit. :fleet :russia ) :war (Unit. :army  :russia ) :stp-sc (Unit. :fleet :russia)
-         :ank (Unit. :fleet :turkey ) :con (Unit. :army  :turkey ) :smy (Unit. :army  :turkey )}]
-     (map->DiplomacyMap
-      {:location-accessibility location-accessibility
-       :edge-accessibility     edge-accessibility
-       :colocated-locations    colocated-locations
-       :supply-centers         supply-centers
-       :home-supply-centers    home-supply-centers
-       :initial-game-state (map->GameState
-                            {:unit-positions starting-unit-positions
-                             :supply-center-ownership home-supply-centers
-                             :game-time (map->GameTime {:year 1901
-                                                        :season :spring})})})))
+        {:vie (make-unit :army  :austria) :bud (make-unit :army  :austria) :tri (make-unit :fleet :austria)
+         :lon (make-unit :fleet :england) :edi (make-unit :fleet :england) :lvp (make-unit :army  :england)
+         :par (make-unit :army  :france ) :mar (make-unit :army  :france ) :bre (make-unit :fleet :france )
+         :ber (make-unit :army  :german ) :mun (make-unit :army  :german ) :kie (make-unit :fleet :german )
+         :rom (make-unit :army  :italy  ) :ven (make-unit :army  :italy  ) :nap (make-unit :fleet :italy  )
+         :mos (make-unit :army  :russia ) :sev (make-unit :fleet :russia ) :war (make-unit :army  :russia ) :stp-sc (make-unit :fleet :russia)
+         :ank (make-unit :fleet :turkey ) :con (make-unit :army  :turkey ) :smy (make-unit :army  :turkey )}]
+    {:location-accessibility location-accessibility
+     :edge-accessibility     edge-accessibility
+     :colocation-sets        colocation-sets
+     :supply-centers         supply-centers
+     :home-supply-centers    home-supply-centers
+     :initial-game-state {:unit-positions starting-unit-positions
+                          :supply-center-ownership home-supply-centers
+                          :game-time {:year 1901
+                                      :season :spring}}}))

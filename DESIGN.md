@@ -1,7 +1,7 @@
 diplomacy.maps
 ==============
 
-## :colocated-locations
+## :colocation-sets
 
 Locations with north and south coasts need to be special-cased somehow.
 There are two options:
