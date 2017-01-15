@@ -1,7 +1,8 @@
-(ns diplomacy.maps
-  (:require [diplomacy.datatypes :refer [map->DiplomacyMap
-                                         map->GameState map->GameTime]])
-  (:import (diplomacy.datatypes Unit)))
+(ns diplomacy.maps)
+
+(defn make-unit
+  [unit-type country]
+  {:unit-type unit-type :country country})
 
 (def classic-map
   (let [land #{:army}
@@ -171,7 +172,7 @@
          :war    {:sil land, :pru land, :lvn land, :mos land, :ukr land, :gal land}
          :wes    {:mid sea, :spa-sc sea, :gol sea, :tyn sea, :tun sea, :naf sea}
          :yor    {:lvp land, :edi coast, :nth sea, :lon coast, :wal land}}
-        colocated-locations
+        colocation-sets
         #{#{:bud :bul-ec :bul-sc}
           #{:spa :spa-nc :spa-sc}
           #{:stp :stp-nc :stp-sc}}
@@ -188,21 +189,19 @@
          :russia  #{:mos :sev :war :stp}
          :turkey  #{:ank :con :smy}}
         starting-unit-positions
-        {:vie (Unit. :army  :austria) :bud (Unit. :army  :austria) :tri (Unit. :fleet :austria)
-         :lon (Unit. :fleet :england) :edi (Unit. :fleet :england) :lvp (Unit. :army  :england)
-         :par (Unit. :army  :france ) :mar (Unit. :army  :france ) :bre (Unit. :fleet :france )
-         :ber (Unit. :army  :german ) :mun (Unit. :army  :german ) :kie (Unit. :fleet :german )
-         :rom (Unit. :army  :italy  ) :ven (Unit. :army  :italy  ) :nap (Unit. :fleet :italy  )
-         :mos (Unit. :army  :russia ) :sev (Unit. :fleet :russia ) :war (Unit. :army  :russia ) :stp-sc (Unit. :fleet :russia)
-         :ank (Unit. :fleet :turkey ) :con (Unit. :army  :turkey ) :smy (Unit. :army  :turkey )}]
-     (map->DiplomacyMap
-      {:location-accessibility location-accessibility
-       :edge-accessibility     edge-accessibility
-       :colocated-locations    colocated-locations
-       :supply-centers         supply-centers
-       :home-supply-centers    home-supply-centers
-       :initial-game-state (map->GameState
-                            {:unit-positions starting-unit-positions
-                             :supply-center-ownership home-supply-centers
-                             :game-time (map->GameTime {:year 1901
-                                                        :season :spring})})})))
+        {:vie (make-unit :army  :austria) :bud (make-unit :army  :austria) :tri (make-unit :fleet :austria)
+         :lon (make-unit :fleet :england) :edi (make-unit :fleet :england) :lvp (make-unit :army  :england)
+         :par (make-unit :army  :france ) :mar (make-unit :army  :france ) :bre (make-unit :fleet :france )
+         :ber (make-unit :army  :german ) :mun (make-unit :army  :german ) :kie (make-unit :fleet :german )
+         :rom (make-unit :army  :italy  ) :ven (make-unit :army  :italy  ) :nap (make-unit :fleet :italy  )
+         :mos (make-unit :army  :russia ) :sev (make-unit :fleet :russia ) :war (make-unit :army  :russia ) :stp-sc (make-unit :fleet :russia)
+         :ank (make-unit :fleet :turkey ) :con (make-unit :army  :turkey ) :smy (make-unit :army  :turkey )}]
+    {:location-accessibility location-accessibility
+     :edge-accessibility     edge-accessibility
+     :colocation-sets        colocation-sets
+     :supply-centers         supply-centers
+     :home-supply-centers    home-supply-centers
+     :initial-game-state {:unit-positions starting-unit-positions
+                          :supply-center-ownership home-supply-centers
+                          :game-time {:year 1901
+                                      :season :spring}}}))
