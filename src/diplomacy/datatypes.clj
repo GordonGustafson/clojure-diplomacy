@@ -195,3 +195,15 @@
                :attack #{(:destination order)}
                :support (locations-used-by-order (:assisted-order order))
                :convoy  (locations-used-by-order (:assisted-order order)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                            validating and resolving orders ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (s/def ::validation-failure-reason keyword?)
+;; (s/def ::interfering-order ::order)
+;; (s/def ::failure-reason (s/or ::validation-failure-reason
+;;                               ::order))
+;; keyword representing why an order did not succeed
+(s/def ::failure-reason keyword?)
+(s/def ::failure-reasons (s/coll-of ::failure-reasons))
