@@ -14,7 +14,7 @@
 (defmacro multi-pred
   "A version of `clojure.core.logic/pred` for predicates that take multiple
   arguments"
- [f & args]
+  [f & args]
   (let [list-name (gensym)]
     `(fresh [~list-name]
        (== ~list-name [~@args])
@@ -37,7 +37,7 @@
        ~@raw-order-constraints
        ~@body)))
 
-;; Core.logic stores actives databases in `(def ^:dynamic *logic-dbs* [])`,
+;; Core.logic stores active databases in `(def ^:dynamic *logic-dbs* [])`,
 ;; which `pldb/with-db` sets using `binding`. This means that code only has
 ;; access to the db from `with-db` when it is **executed** 'inside' the
 ;; `with-db`. `run` generates a lazy sequence, so code inside `run` will not be
@@ -133,7 +133,15 @@
      [(attacko interfering-order to from)]    ; swap places
      [(fresh [other-from]                     ; different attack on same place
         (!= other-from from)
-        (attacko interfering-order other-from to))])
+        (attacko interfering-order other-from to))]
+     ;; An attack tried to leave our destination but failed
+     [(fresh [other-to]
+        ;; This is handled in the 'swap places' case. Avoiding it in this case
+        ;; may not be necessary???
+        (!= other-to from)
+        (attacko interfering-order to other-to)
+        (attack-failso interfering-order
+                       (lvar 'interfering-order-for-interfering-order)))])
     (multi-pred has-fewer-or-equal-supporters
                 attack-order
                 interfering-order)))
@@ -150,38 +158,5 @@
     ;; TODO: will duplicate results cause problems here???
     (into {}
           (run-db*-with-nested-runs orders-db
-            [attack interfering]
-            (attack-failso attack interfering)))))
-
-(def test-orders (map (partial apply dt/create-order)
-                      [[:italy :army :ven :attack :tri]
-                       ;; [:italy :army :pie :support
-                       ;;  :italy :army :ven :attack :tri]
-                       [:austria :army :tri :hold]
-                       #_[:austria :army :alb :support
-                        :austria :army :tri :hold]
-                       #_[:turkey :army :gre :attack :alb]]))
-
-
-;; (defn supporter-counto [supported-order num-supporters]
-;;   "Relation where `num-supporters` is the number of units that successfully
-;;   support `supported-order`"
-;;   (fresh [supporters]
-
-
-;; (defn voterso [all-voters voters-so-far candidate]
-;;   (distincto all-voters)
-;;   (distincto voters-so-far)
-;;   (fresh [voter rest-of-voters]
-;;     (votes-for voter candidate)
-;;     (conso voter rest-of-voters voters)
-;;     (voterso rest-of-voters candidate)))
-
-
-;; (defn failso [from to]
-;;   (fresh [other-from other-to]
-;;     (conde
-;;      ((holds to))              ; can't attack a space where someone's holding
-;;      ((attacks to from))       ; two units can't swap places
-;;      ((attacks other-from to)) ; two units can't attack into the same place
-;;      ((supports to other-from other-to)) ; can't attack a space where someone's supporting
+                                    [attack interfering]
+                                    (attack-failso attack interfering)))))

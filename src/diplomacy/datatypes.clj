@@ -200,10 +200,10 @@
 ;;                                            validating and resolving orders ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (s/def ::validation-failure-reason keyword?)
-;; (s/def ::interfering-order ::order)
-;; (s/def ::failure-reason (s/or ::validation-failure-reason
-;;                               ::order))
-;; keyword representing why an order did not succeed
-(s/def ::failure-reason keyword?)
+;; keyword representing why an order was invalid
+(s/def ::validation-failure-reason keyword?)
+;; conflicting order that caused the order to fail
+(s/def ::interfering-order ::order)
+(s/def ::failure-reason (s/or ::validation-failure-reason
+                              ::interfering-order))
 (s/def ::failure-reasons (s/coll-of ::failure-reasons))

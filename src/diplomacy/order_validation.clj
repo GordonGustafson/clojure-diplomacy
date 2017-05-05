@@ -26,6 +26,14 @@
   (and (dt/support? order)
        (not (or (dt/attack? assisted-order) (dt/hold? assisted-order)))))
 
+;; (defn convoys-wrong-order-type? [{:keys [assisted-order] :as order}]
+;;   (and (dt/convoy? order)
+;;        (not (dt/attack? assisted-order))))
+
+;; (defn convoy-with-wrong-unit-types? [{:keys [assisted-order] :as order}]
+;;   (and (dt/convoy? order)
+;;        (not (and (fleet? order) (army? assisted-order)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                orders invalid in SOME maps ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -63,6 +71,10 @@
                                             %
                                             unit-type)
                    coloc-set))))
+
+;; (defn convoys-from-coast? [diplomacy-map {:keys [location] :as order}]
+;;   (and (dt/convoy? order)
+;;        (dt/location-accessible-to? diplomacy-map location :army)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                            aggregating validity predicates ;;

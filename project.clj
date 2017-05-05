@@ -5,6 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [org.clojure/core.match "0.3.0-alpha4"]
+                 [org.clojure/core.logic "0.8.11"]
                  ;; TODO: make this a :dev or :test dependency
                  [org.clojure/test.check "0.9.0"]]
   :main ^:skip-aot diplomacy.core
