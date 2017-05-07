@@ -1,5 +1,6 @@
 (ns diplomacy.util
-  (:require [clojure.spec :as s]))
+  (:require [clojure.spec :as s]
+            [clojure.set]))
 
 ;; TODO: see if we can make this a function instead of a macro
 (defmacro fn-spec
@@ -18,3 +19,7 @@
   "Defines `func` to have spec `(fn-spec arg-specs ret-spec)`"
   [func arg-specs ret-spec]
   `(s/def ~func (fn-spec ~arg-specs ~ret-spec)))
+
+(defn map-difference [lhs rhs]
+  "A map of all the key-value pairs that are in `lhs` but not `rhs`"
+  (into {} (clojure.set/difference (set lhs) (set rhs))))

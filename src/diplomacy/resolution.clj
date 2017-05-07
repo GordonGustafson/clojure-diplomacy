@@ -5,6 +5,7 @@
             [diplomacy.datatypes :as dt]
             [diplomacy.maps :refer [classic-map]]
             [diplomacy.util :refer [defn-spec]]
+            [clojure.set]
             [clojure.spec :as s]))
 
 ;; TODO: convoys, dislodging convoys
@@ -147,16 +148,19 @@
                 interfering-order)))
 
 (defn-spec failed-attacks
-  [(s/coll-of ::dt/order)] (s/map-of ::dt/order ::dt/order))
+  [(s/coll-of ::dt/order)]
+  (s/map-of ::dt/order (s/coll-of ::dt/order)))
 (defn failed-attacks
-  "A map from each element of `orders` to its failure reason (the order that
-  prevented it from succeeding or `nil` if it succeeded)"
+  "A map from each element of `orders` to the set of orders that conflicted with
+  it (empty-set if the order succeeded)"
   [orders]
   (let [orders-db (->> orders
                        (map (fn [order] [raw-order order]))
                        (apply pldb/db))]
-    ;; TODO: will duplicate results cause problems here???
-    (into {}
-          (run-db*-with-nested-runs orders-db
-                                    [attack interfering]
-                                    (attack-failso attack interfering)))))
+    (->>
+     (run-db*-with-nested-runs orders-db
+                               [attack interfering]
+                               (attack-failso attack interfering))
+     (map (fn [[k v]] {k #{v}}))
+     (apply merge-with clojure.set/union))))
+
