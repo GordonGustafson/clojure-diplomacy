@@ -82,17 +82,33 @@
                     :location from
                     :destination to})))
 
+(defn supported-order-matcheso
+  "Relation where supporting `supported-order` would support `order`. This is
+  more complex than whether they unify because supporting a hold can also
+  indicate supporting a unit that's supporting or convoying."
+  [supported-order order]
+  (conde
+   [(== supported-order order)]
+   [(fresh [location]
+      (featurec supported-order {:order-type :hold
+                                 :location location})
+      (conde
+       [(featurec order {:order-type :support
+                         :location location})]
+       [(featurec order {:order-type :convoy
+                         :location location})]))]))
+
 (defn supporto
   "Relation where `order` attempts to remain at `location` while supporting
   `supported-order`"
   [order location supported-order]
-  (all
-   (raw-order order)
-   (raw-order supported-order)
-   (featurec order {:order-type :support
-                    :location location
-                    :assisted-order supported-order})))
-
+  (fresh [actual-order-supported-by-order]
+    (raw-order order)
+    (raw-order supported-order)
+    (featurec order {:order-type :support
+                     :location location
+                     :assisted-order actual-order-supported-by-order})
+    (supported-order-matcheso actual-order-supported-by-order supported-order)))
 
 (defn support-succeedso
   "Relation where `supporting-order` successfully supports `supported-order`"
@@ -132,17 +148,24 @@
      [(holdo    interfering-order to)]        ; attack occupied location
      [(supporto interfering-order to (lvar 'supported-order))]
      [(attacko interfering-order to from)]    ; swap places
-     [(fresh [other-from]                     ; different attack on same place
-        (!= other-from from)
-        (attacko interfering-order other-from to))]
      ;; An attack tried to leave our destination but failed
      [(fresh [other-to]
-        ;; This is handled in the 'swap places' case. Avoiding it in this case
-        ;; may not be necessary???
         (!= other-to from)
         (attacko interfering-order to other-to)
         (attack-failso interfering-order
-                       (lvar 'interfering-order-for-interfering-order)))])
+                       (lvar 'interfering-order-for-interfering-order)))]
+     [(fresh [other-from]                     ; different attack on same place
+        (!= other-from from)
+        (attacko interfering-order other-from to)
+        ;; If we're evaluating this case and there was an attack out of `to`,
+        ;; the attack must have succeeded (if the attack failed the previous
+        ;; goal would have succeeded and we wouldn't be evaluating this case).
+        ;; If there was a successful attack from `to` to `other-from`, then the
+        ;; attack from `other-from` to `to` doesn't cause `attack-order` to
+        ;; fail.
+        ;; TODO: see if assuming that the last goal in this conde failed is
+        ;; safe. Do we need to use conda or condu instead?
+        (fail-if (attacko (lvar 'vacating-to) to other-from)))])
     (multi-pred has-fewer-or-equal-supporters
                 attack-order
                 interfering-order)))
