@@ -113,11 +113,22 @@
 (defn support-succeedso
   "Relation where `supporting-order` successfully supports `supported-order`"
   [supporting-order supported-order]
-  (fresh [supporter-location]
+  (fresh [supporter-location
+          supported-location]
     (supporto supporting-order supporter-location supported-order)
-    (fail-if (attacko (lvar 'cutting-attack)
-                      (lvar 'cutting-attack-from)
-                      supporter-location))))
+    (conde
+     [(holdo supported-order supported-location)]
+     [(attacko supported-order
+                (lvar 'supported-attack-from)
+                supported-location)])
+    ;; pg 10: Support is cut if the unit giving support is attacked from any
+    ;; province except the one where support is being given
+    (fail-if
+     (fresh [cutting-attack-from]
+      (!= cutting-attack-from supported-location)
+      (attacko (lvar 'cutting-attack)
+               cutting-attack-from
+               supporter-location)))))
 
 (defn supporter-count
   "Number of units that successfully support `supported-order`. Non-relational."
