@@ -30,7 +30,7 @@
           [succeed]))
 
 (defmacro fresh-order
-  "Like fresh, but all of the fresh variables are constrained with `raw-order` "
+  "Like fresh, but all of the fresh variables are constrained with `raw-order`"
   [name-vector & body]
   (let [raw-order-constraints (map (fn [name] `(raw-order ~name))
                                    name-vector)]
@@ -88,7 +88,11 @@
   indicate supporting a unit that's supporting or convoying."
   [supported-order order]
   (conde
+   ;; pg 7: A unit ordered to move can only be supported by a support order that
+   ;; matches the move the unit is trying to make..
    [(== supported-order order)]
+   ;; pg 7: A unit not ordered to move can be supported by a support order that
+   ;; only mentions its province.
    [(fresh [location]
       (featurec supported-order {:order-type :hold
                                  :location location})
@@ -102,13 +106,13 @@
   "Relation where `order` attempts to remain at `location` while supporting
   `supported-order`"
   [order location supported-order]
-  (fresh [actual-order-supported-by-order]
+  (fresh [actual-order-supported]
     (raw-order order)
     (raw-order supported-order)
     (featurec order {:order-type :support
                      :location location
-                     :assisted-order actual-order-supported-by-order})
-    (supported-order-matcheso actual-order-supported-by-order supported-order)))
+                     :assisted-order actual-order-supported})
+    (supported-order-matcheso actual-order-supported supported-order)))
 
 (defn support-succeedso
   "Relation where `supporting-order` successfully supports `supported-order`"
@@ -116,11 +120,6 @@
   (fresh [supporter-location
           supported-location]
     (supporto supporting-order supporter-location supported-order)
-    (conde
-     [(holdo supported-order supported-location)]
-     [(attacko supported-order
-                (lvar 'supported-attack-from)
-                supported-location)])
     ;; pg 10: Support is cut if the unit giving support is attacked from any
     ;; province except the one where support is being given
     (fail-if
@@ -150,36 +149,53 @@
   (<= (supporter-count order-a)
       (supporter-count order-b)))
 
+(defn has-no-supporters
+  "Whether `order` has no successful supporters. Non-relational."
+  [order]
+  (zero? (supporter-count order)))
+
 (defn attack-failso
   "Relation where `attack-order` failed due to `interfering-order`"
   [attack-order interfering-order]
   (fresh [from to]
     (attacko attack-order from to)
     (conde
-     [(holdo    interfering-order to)]        ; attack occupied location
-     [(supporto interfering-order to (lvar 'supported-order))]
-     [(attacko interfering-order to from)]    ; swap places
-     ;; An attack tried to leave our destination but failed
-     [(fresh [other-to]
-        (!= other-to from)
-        (attacko interfering-order to other-to)
-        (attack-failso interfering-order
-                       (lvar 'interfering-order-for-interfering-order)))]
-     [(fresh [other-from]                     ; different attack on same place
-        (!= other-from from)
-        (attacko interfering-order other-from to)
-        ;; If we're evaluating this case and there was an attack out of `to`,
-        ;; the attack must have succeeded (if the attack failed the previous
-        ;; goal would have succeeded and we wouldn't be evaluating this case).
-        ;; If there was a successful attack from `to` to `other-from`, then the
-        ;; attack from `other-from` to `to` doesn't cause `attack-order` to
-        ;; fail.
-        ;; TODO: see if assuming that the last goal in this conde failed is
-        ;; safe. Do we need to use conda or condu instead?
-        (fail-if (attacko (lvar 'vacating-to) to other-from)))])
-    (multi-pred has-fewer-or-equal-supporters
-                attack-order
-                interfering-order)))
+     [(all
+       (conde
+        [(holdo    interfering-order to)]        ; attack occupied location
+        [(supporto interfering-order to (lvar 'supported-order))]
+        [(attacko interfering-order to from)]    ; swap places
+        [(fresh [other-from]                     ; different attack on same place
+           (!= other-from from)
+           (attacko interfering-order other-from to)
+           ;; pg 9: A dislodged unit, even with support, has no effect on the
+           ;; province that dislodged it.
+           ;;
+           ;; If we're evaluating this case and there was an attack out of `to`,
+           ;; the attack must have succeeded (if the attack failed the previous
+           ;; goal would have succeeded and we wouldn't be evaluating this
+           ;; case). If there was a successful attack from `to` to `other-from`,
+           ;; then the attack from `other-from` to `to` doesn't cause
+           ;; `attack-order` to fail.
+           ;; TODO: see if assuming that the last goal in this conde failed is
+           ;; safe. Do we need to use conda or condu instead?
+           (fail-if (attacko (lvar 'vacating-to) to other-from)))])
+       (multi-pred has-fewer-or-equal-supporters
+                   attack-order
+                   interfering-order))]
+
+        ;; An attack tried to leave our destination but failed
+     [(all
+       (fresh [other-to]
+         (!= other-to from)
+         (attacko interfering-order to other-to)
+         (attack-failso interfering-order
+                        (lvar 'interfering-order-for-interfering-order)))
+       ;; Since the attack out of our destination failed, it's support doesn't
+       ;; help it maintain its original position. We will only fail to dislodge
+       ;; it if we have no support (1v1).
+       (pred attack-order
+             has-no-supporters))])))
 
 (defn-spec failed-attacks
   [(s/coll-of ::dt/order)]

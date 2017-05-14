@@ -112,41 +112,39 @@
    {:year 1902 :season :fall}
    (create-orders
     {
-     ;; [:austria :army :vie :attack :gal] #{[:russia :army :gal :support :russia :fleet :rum :hold]}
-     ;; [:austria :army :tri :attack :bud] #{}
-     ;; [:austria :army :ser :support :turkey :army :bul :attack :rum] #{}
-     ;; [:austria :fleet :gre :hold] #{}
-     ;; [:england :army :nwy :attack :stp] #{}
-     ;; [:england :fleet :bar :support :england :army :nwy :attack :stp] #{}
-     ;; [:england :fleet :nth :attack :nwy] #{}
-     ;; [:england :fleet :edi :attack :nth] #{}
-     ;; [:france :army :bur :attack :bel] #{[:germany :army :bel :support :germany :army :ruh :attack :bur]}
-     [:france :army :bur :attack :bel] #{[:germany :army :bel :hold]}
+     [:austria :army :vie :attack :gal] #{[:russia :army :gal :support :russia :fleet :rum :hold]}
+     [:austria :army :tri :attack :bud] #{}
+     [:austria :army :ser :support :turkey :army :bul :attack :rum] #{}
+     [:austria :fleet :gre :hold] #{}
+     [:england :army :nwy :attack :stp] #{}
+     [:england :fleet :bar :support :england :army :nwy :attack :stp] #{}
+     [:england :fleet :nth :attack :nwy] #{}
+     [:england :fleet :edi :attack :nth] #{}
+     [:france :army :bur :attack :bel] #{[:germany :army :bel :support :germany :army :ruh :attack :bur]}
      [:france :fleet :pic :support :france :army :bur :attack :bel] #{}
-     ;; [:france :army :spa :support :france :fleet :mar :hold] #{}
-     ;; [:france :fleet :mar :support :france :army :spa :hold] #{}
+     [:france :army :spa :support :france :fleet :mar :hold] #{}
+     [:france :fleet :mar :support :france :army :spa :hold] #{}
      [:germany :army :ruh :attack :bur] #{}
      [:germany :army :mun :support :germany :army :ruh :attack :bur] #{}
-     ;; [:germany :army :bel :support :germany :army :ruh :attack :bur] #{}
-     [:germany :army :bel :hold] #{}
-     ;; [:germany :fleet :den :attack :swe] #{[:russia :fleet :swe :support :russia :army :stp :attack :nwy]}
+     [:germany :army :bel :support :germany :army :ruh :attack :bur] #{}
+     [:germany :fleet :den :attack :swe] #{[:russia :fleet :swe :support :russia :army :stp :attack :nwy]}
      [:germany :fleet :hol :support :germany :army :bel :hold] #{}
      ;; backed up
-     ;; [:italy :army :ven :attack :pie] #{[:italy :army :pie :attack :mar]}
-     ;; [:italy :army :pie :attack :mar] #{[:france :fleet :mar :support :france :army :spa :hold]}
-     ;; [:italy :fleet :wes :attack :naf] #{}
-     ;; [:italy :fleet :tyn :attack :gol] #{}
-     ;; [:russia :army :stp :attack :nwy] #{[:england :army :nwy :attack :stp]
-     ;;                                     [:england :fleet :nth :attack :nwy]}
-     ;; [:russia :fleet :swe :support :russia :army :stp :attack :nwy] #{}
-     ;; [:russia :fleet :rum :support :russia :army :sev :hold] #{}
-     ;; [:russia :army :sev :support :russia :fleet :rum :hold] #{}
-     ;; [:russia :army :gal :support :russia :fleet :rum :hold] #{}
-     ;; [:russia :army :ukr :support :russia :army :sev :hold] #{}
-     ;; [:turkey :army :bul :attack :rum] #{}
-     ;; [:turkey :army :con :attack :bul] #{}
-     ;; [:turkey :army :arm :attack :sev] #{[:russia :army :sev :support :russia :fleet :rum :hold]}
-     ;; [:turkey :fleet :bla :support :turkey :army :bul :attack :rum] nil
+     [:italy :army :ven :attack :pie] #{[:italy :army :pie :attack :mar]}
+     [:italy :army :pie :attack :mar] #{[:france :fleet :mar :support :france :army :spa :hold]}
+     [:italy :fleet :wes :attack :naf] #{}
+     [:italy :fleet :tyn :attack :gol] #{}
+     [:russia :army :stp :attack :nwy] #{[:england :army :nwy :attack :stp]
+                                         [:england :fleet :nth :attack :nwy]}
+     [:russia :fleet :swe :support :russia :army :stp :attack :nwy] #{}
+     [:russia :fleet :rum :support :russia :army :sev :hold] #{}
+     [:russia :army :sev :support :russia :fleet :rum :hold] #{}
+     [:russia :army :gal :support :russia :fleet :rum :hold] #{}
+     [:russia :army :ukr :support :russia :army :sev :hold] #{}
+     [:turkey :army :bul :attack :rum] #{}
+     [:turkey :army :con :attack :bul] #{}
+     [:turkey :army :arm :attack :sev] #{[:russia :army :sev :support :russia :fleet :rum :hold]}
+     [:turkey :fleet :bla :support :turkey :army :bul :attack :rum] nil
      })})
 
 
