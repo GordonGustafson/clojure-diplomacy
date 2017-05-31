@@ -171,17 +171,27 @@
         [(supporto interfering-order to (lvar 'supported-order))]
         [(attacko interfering-order to from)]    ; swap places
         [(fresh [other-from]                     ; different attack on same place
-           (!= other-from from)
+           (!= other-from from)  ; make sure we don't fail because we're
+                                 ; attacking the same place as ourselves.
            (attacko interfering-order other-from to)
-           ;; pg 9: A dislodged unit, even with support, has no effect on the
-           ;; province that dislodged it.
+           ;; pg 9: "A dislodged unit, even with support, has no effect on the
+           ;; province that dislodged it" (see Diagram 13).
            ;;
-           ;; If we're evaluating this case and there was an attack out of `to`,
-           ;; the attack must have succeeded (if the attack failed the previous
-           ;; goal would have succeeded and we wouldn't be evaluating this
-           ;; case). If there was a successful attack from `to` to `other-from`,
-           ;; then the attack from `other-from` to `to` doesn't cause
-           ;; `attack-order` to fail.
+           ;; from                    to                             other-from
+           ;; ------------------------------------------------------------------
+           ;; A_rus --attack-order--> B_rus ---vacating-to---1sup--> C_tur
+           ;;                               <--interfering-order----
+           ;;
+           ;; B_rus (has 1 support) dislodges C_tur (has 0 support). The fact
+           ;; that C_tur attacked where B_rus came from does not prevent A_rus
+           ;; from moving into where B_rus came from.
+           ;;
+           ;; If we're evaluating this goal and there was an attack out of `to`,
+           ;; the attack must have succeeded, because if it failed the previous
+           ;; goal would have succeeded and we wouldn't be evaluating this goal.
+           ;; If there was a successful attack from `to` to `other-from`, then
+           ;; the attack from `other-from` to `to` doesn't cause `attack-order`
+           ;; to fail.
            ;; TODO: see if assuming that the last goal in this conde failed is
            ;; safe. Do we need to use conda or condu instead?
            (fail-if (attacko (lvar 'vacating-to) to other-from)))])
