@@ -126,6 +126,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                 Resolving Diplomacy Orders ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 'bounced': attack failed due to conflict with another unit.
+;; 'advanced': attack succeeded
 
 (defn support-succeedso
   "Relation where `supporting-order` successfully supports `supported-order`"
@@ -167,13 +169,14 @@
   [order]
   (zero? (supporter-count order)))
 
-(defn attack-failso
-  "Relation where `attack-order` failed due to `interfering-order`, under the
-  assumption that every attack in `attacks-assumed-successful` succeeds."
+(defn attack-bounceso
+  "Relation where `attack-order` failed because it conflicted with
+  `interfering-order`, under the assumption that every attack in
+  `attacks-assumed-successful` advanced."
   ;; `attacks-assumed-successful` is necessary to allow three or more units to
   ;; 'rotate' in a cycle (each move to the next unit's position). Without it,
-  ;; each attack in the cycle tries to fail if the attack leaving its
-  ;; destination fails, which results in an infinite loop.
+  ;; each `attack-bounceso` goal in the cycle tries to fail if the attack
+  ;; leaving its destination bounces, which results in an infinite loop.
   [attack-order interfering-order attacks-assumed-successful]
   (fresh [from to]
     (attacko attack-order from to)
@@ -186,13 +189,13 @@
          ;; Fail if we assumed `interfering-order` successfully vacated our
          ;; destination.
          (fail-if (membero interfering-order attacks-assumed-successful))
-         ;; Assume this attack was successful
+         ;; Assume this attack advanced
          (conso attack-order attacks-assumed-successful
                 new-attacks-assumed-successful)
-         (attack-failso interfering-order
+         (attack-bounceso interfering-order
                         (lvar 'interfering-order-for-interfering-order)
                         new-attacks-assumed-successful))
-       ;; Since the attack out of our destination failed, it's support doesn't
+       ;; Since the attack out of our destination bounced, it's support doesn't
        ;; help it maintain its original position. We will only fail to dislodge
        ;; it if we have no support (1v1).
        (pred attack-order
@@ -204,8 +207,8 @@
         [(supporto interfering-order to (lvar 'supported-order))]
         [(attacko interfering-order to from)]    ; swap places
         [(fresh [other-from]                     ; different attack on same place
-           (!= other-from from)  ; make sure we don't fail because we're
-                                 ; attacking the same place as ourselves.
+           (!= other-from from)  ; make sure we don't bounce ourselves because
+                                 ; we're attacking the same place as ourselves.
            (attacko interfering-order other-from to)
            ;; pg 9: "A dislodged unit, even with support, has no effect on the
            ;; province that dislodged it" (see Diagram 13).
@@ -220,11 +223,11 @@
            ;; from moving into where B_rus came from.
            ;;
            ;; If we're evaluating this goal and there was an attack out of `to`,
-           ;; the attack must have succeeded, because if it failed the previous
+           ;; the attack must have advanced, because if it bounced the previous
            ;; goal would have succeeded and we wouldn't be evaluating this goal.
-           ;; If there was a successful attack from `to` to `other-from`, then
-           ;; the attack from `other-from` to `to` doesn't cause `attack-order`
-           ;; to fail.
+           ;; If the attack from `to` to `other-from` advanced, then the attack
+           ;; from `other-from` to `to` doesn't bounce `attack-order`.
+           ;;
            ;; TODO: see if assuming that the last goal in this conde failed is
            ;; safe. Do we need to use conda or condu instead?
            (fail-if (attacko (lvar 'vacating-to) to other-from)))])
@@ -248,7 +251,7 @@
                                ;; Doesn't work when I tried an empty set instead
                                ;; of an empty vector, but maybe I can change
                                ;; something to fix that?
-                               (attack-failso attack interfering []))
+                               (attack-bounceso attack interfering []))
      (map (fn [[k v]] {k #{v}}))
      (apply merge-with clojure.set/union))))
 
