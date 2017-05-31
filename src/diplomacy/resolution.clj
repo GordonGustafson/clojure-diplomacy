@@ -178,6 +178,26 @@
   (fresh [from to]
     (attacko attack-order from to)
     (conde
+     ;; An attack tried to leave our destination but failed
+     [(all
+       (fresh [other-to new-attacks-assumed-successful]
+         (!= other-to from)
+         (attacko interfering-order to other-to)
+         ;; Fail if we assumed `interfering-order` successfully vacated our
+         ;; destination.
+         (fail-if (membero interfering-order attacks-assumed-successful))
+         ;; Assume this attack was successful
+         (conso attack-order attacks-assumed-successful
+                new-attacks-assumed-successful)
+         (attack-failso interfering-order
+                        (lvar 'interfering-order-for-interfering-order)
+                        new-attacks-assumed-successful))
+       ;; Since the attack out of our destination failed, it's support doesn't
+       ;; help it maintain its original position. We will only fail to dislodge
+       ;; it if we have no support (1v1).
+       (pred attack-order
+             has-no-supporters))]
+
      [(all
        (conde
         [(holdo    interfering-order to)]        ; attack occupied location
@@ -210,27 +230,7 @@
            (fail-if (attacko (lvar 'vacating-to) to other-from)))])
        (multi-pred has-fewer-or-equal-supporters
                    attack-order
-                   interfering-order))]
-
-        ;; An attack tried to leave our destination but failed
-     [(all
-       (fresh [other-to new-attacks-assumed-successful]
-         (!= other-to from)
-         (attacko interfering-order to other-to)
-         ;; Fail if we assumed `interfering-order` successfully vacated our
-         ;; destination.
-         (fail-if (membero interfering-order attacks-assumed-successful))
-         ;; Assume this attack was successful
-         (conso attack-order attacks-assumed-successful
-                new-attacks-assumed-successful)
-         (attack-failso interfering-order
-                        (lvar 'interfering-order-for-interfering-order)
-                        new-attacks-assumed-successful))
-       ;; Since the attack out of our destination failed, it's support doesn't
-       ;; help it maintain its original position. We will only fail to dislodge
-       ;; it if we have no support (1v1).
-       (pred attack-order
-             has-no-supporters))])))
+                   interfering-order))])))
 
 (defn-spec failed-attacks
   [(s/coll-of ::dt/order)]
