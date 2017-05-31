@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [deftest is]]
             [diplomacy.datatypes :as dt :refer [create-order]]
             [diplomacy.order-validation :refer [validation-failure-reasons]]
-            [diplomacy.rulebook-sample-game :refer [rulebook-sample-game-cases]]
+            [diplomacy.rulebook-diagrams]
+            [diplomacy.rulebook-sample-game]
             [diplomacy.maps]
             [diplomacy.util :refer [defn-spec fn-spec]]
             [clojure.spec :as s]))
@@ -22,6 +23,10 @@
 
 (def validation-failure-reasons-in-classic-map
   (partial validation-failure-reasons diplomacy.maps/classic-map))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                          Custom Test Cases ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest test-attacks-current-location?
   (run-test-cases validation-failure-reasons-in-classic-map
@@ -94,14 +99,26 @@
     [(create-order :france :army :por :support
                    :france :fleet :wes :attack :mid)]}))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                Rulebook Test Cases (orders that are valid) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(deftest test-rulebook-sample-game-validation
+;; TODO: document what these mean
+(defn orders-map-to-validation-test-cases
+  [orders-map]
   ;; Use `(apply concat ...)` instead of `(flatten ...)` because `flatten`
   ;; creates one giant order by flattening *all* the layers!
-  (let [rulebook-sample-game-orders
-        (->> rulebook-sample-game-cases
-             (vals)      ; the keys are the turn times
-             (map keys)  ; the values are the failure-reason for the order
-             (apply concat))]
-    (run-test-cases validation-failure-reasons-in-classic-map
-                              {#{} rulebook-sample-game-orders})))
+  {#{} (->> orders-map
+            (vals)      ; the keys are the turn times or diagram numbers
+            (map keys)  ; the values are the failure-reason for the order
+            (apply concat))})
+
+(deftest test-rulebook-sample-game-validation
+  (run-test-cases validation-failure-reasons-in-classic-map
+                  (orders-map-to-validation-test-cases
+                   diplomacy.rulebook-diagrams/rulebook-diagrams)))
+
+(deftest test-rulebook-diagrams-validation
+  (run-test-cases validation-failure-reasons-in-classic-map
+                  (orders-map-to-validation-test-cases
+                   diplomacy.rulebook-sample-game/rulebook-sample-game-cases)))

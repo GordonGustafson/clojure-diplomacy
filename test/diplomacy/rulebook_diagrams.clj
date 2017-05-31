@@ -1,10 +1,7 @@
-(ns diplomacy.rulebook-sample-game
-  (:require [diplomacy.datatypes :refer [create-order]]))
+(ns diplomacy.rulebook-diagrams
+  (:require [diplomacy.test-utils]))
 
-(defn- create-orders [& orders]
-  (map #(apply create-order %) orders))
-
-(def rulebook-diagrams
+(def ^:private rulebook-diagrams-raw
   {4 {[:germany :army :ber :attack :sil] #{[:russia  :army :war :attack :sil]}
       [:russia  :army :war :attack :sil] #{[:germany :army :ber :attack :sil]}}
    5 {[:germany :fleet :kie :attack :ber] #{[:germany :army :ber :attack :pru]}
@@ -64,6 +61,10 @@
        [:russia :army :boh :attack :mun] #{}
        [:russia :army :tyr :support :russia :army :boh :attack :mun] #{}}
    })
+
+(def rulebook-diagrams
+  (into {} (for [[k v] rulebook-diagrams-raw]
+             [k (diplomacy.test-utils/create-orders v)])))
 
    ;; have checked up to this line
 

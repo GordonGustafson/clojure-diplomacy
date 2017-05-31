@@ -3,17 +3,15 @@
             [clojure.data]
             [diplomacy.datatypes :as dt :refer [create-order]]
             [diplomacy.resolution :refer [failed-attacks]]
-            [diplomacy.rulebook-sample-game :refer [rulebook-sample-game-cases]]
+            [diplomacy.rulebook-sample-game]
+            [diplomacy.rulebook-diagrams]
             [diplomacy.util :refer [defn-spec map-difference]]
+            [clojure.spec :as s]
             [diplomacy.maps]))
 
-;; Spring 1901 in the sample game has no supports or convoys, and only failures
-;; due to both units moving to the same place.
 (defn run-test-case [orders-map message]
   (let [actual-fails (failed-attacks (keys orders-map))
         expected-fails (into {} (filter (comp not empty? second) orders-map))
-        ;; [incorrect-fails missing-fails _] (clojure.data/diff actual-fails
-        ;;                                                      expected-fails)]
         ;; We *cannot* use `clojure.data/diff` here because "Maps are subdiffed
         ;; where keys match and values differ". We want to output exactly what
         ;; orders failed, and not do any sort of analysis on how the failing
@@ -24,10 +22,16 @@
     (test/is (empty? missing-fails) message)))
 
 (test/deftest test-rulebook-sample-game
-  (doseq [[time orders-map] rulebook-sample-game-cases]
+  (doseq [[time orders-map]
+          diplomacy.rulebook-sample-game/rulebook-sample-game-cases]
     (run-test-case orders-map (str "Rulebook sample game, "
                                    (pr-str time)))))
 
+(test/deftest test-rulebook-diagrams
+  (doseq [[diagram-number orders-map]
+          diplomacy.rulebook-diagrams/rulebook-diagrams]
+    (run-test-case orders-map (str "Rulebook diagram "
+                                   (pr-str diagram-number)))))
 
  ;; (def test-orders (map (partial apply dt/create-order)
  ;;                       [[:italy :army :ven :attack :tri]
