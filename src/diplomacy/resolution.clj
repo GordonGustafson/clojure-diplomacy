@@ -155,8 +155,13 @@
   (zero? (supporter-count order)))
 
 (defn attack-failso
-  "Relation where `attack-order` failed due to `interfering-order`"
-  [attack-order interfering-order]
+  "Relation where `attack-order` failed due to `interfering-order`, under the
+  assumption that every attack in `attacks-assumed-successful` succeeds."
+  ;; `attacks-assumed-successful` is necessary to allow three or more units to
+  ;; 'rotate' in a cycle (each move to the next unit's position). Without it,
+  ;; each attack in the cycle tries to fail if the attack leaving its
+  ;; destination fails, which results in an infinite loop.
+  [attack-order interfering-order attacks-assumed-successful]
   (fresh [from to]
     (attacko attack-order from to)
     (conde
@@ -186,11 +191,18 @@
 
         ;; An attack tried to leave our destination but failed
      [(all
-       (fresh [other-to]
+       (fresh [other-to new-attacks-assumed-successful]
          (!= other-to from)
          (attacko interfering-order to other-to)
+         ;; Fail if we assumed `interfering-order` successfully vacated our
+         ;; destination.
+         (fail-if (membero interfering-order attacks-assumed-successful))
+         ;; Assume this attack was successful
+         (conso attack-order attacks-assumed-successful
+                new-attacks-assumed-successful)
          (attack-failso interfering-order
-                        (lvar 'interfering-order-for-interfering-order)))
+                        (lvar 'interfering-order-for-interfering-order)
+                        new-attacks-assumed-successful))
        ;; Since the attack out of our destination failed, it's support doesn't
        ;; help it maintain its original position. We will only fail to dislodge
        ;; it if we have no support (1v1).
@@ -210,7 +222,10 @@
     (->>
      (run-db*-with-nested-runs orders-db
                                [attack interfering]
-                               (attack-failso attack interfering))
+                               ;; Doesn't work when I tried an empty set instead
+                               ;; of an empty vector, but maybe I can change
+                               ;; something to fix that?
+                               (attack-failso attack interfering []))
      (map (fn [[k v]] {k #{v}}))
      (apply merge-with clojure.set/union))))
 
