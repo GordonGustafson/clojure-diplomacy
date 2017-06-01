@@ -169,15 +169,48 @@
   [order]
   (zero? (supporter-count order)))
 
-(defn attack-bounceso
-  "Relation where `attack-order` failed because it conflicted with
-  `interfering-order`, under the assumption that every attack in
-  `attacks-assumed-successful` advanced."
+(declare attack-bounce-rulingo-impl)
+
+(defn attack-bounce-rulingo
+  "Relation where:
+  - `attack-order` is an attack whose outcome we would like to evaluate.
+  - `interfering-order` is an order that *could potentially* bounce the attack
+    due to a rule for conflicting orders.
+  - `bounced-by-interfering-order?` is a boolean indicating whether the attack
+    *actually was* bounced by `interfering-order`.
+  - `rules-used` contains keywords representing the rules used to decide the
+    value of `bounced-by-interfering-order?`.
+
+  The following are 'input parameters' that must be ground when they are passed:
+  - `attack-order`
+
+  The following are 'output parameters' that must be fresh when they are passed,  and will be constrained by this relation:
+  - `interfering-order`
+  - `bounced-by-interfering-order?`
+  - `rules-used`
+
+  The resulting values of `interfering-order` and `rules-used` are only useful
+  for explaining *why* `attack-order` bounced; `attack-order` bounced
+  if-and-only-if this relation unifies with `bounced-by-interfering-order? ==
+  true` for some values of `interfering-order` and `rules-used`. If
+  `attack-order` bounced, it may also unify with `bounced-by-interfering-order?
+  == false`, because an attack that is bounced by one bounce-candidate and
+  bounced by another is still bounced.
+  "
+  [attack-order interfering-order bounced-by-interfering-order? rules-used]
+  ;; Doesn't work when I tried passing an empty set instead of an empty vector,
+  ;; but maybe I can change something to fix that?
+  (attack-bounce-rulingo-impl attack-order interfering-order
+                               bounced-by-interfering-order? rules-used []))
+
+(defn ^:private attack-bounce-rulingo-impl
+  "Backing function for `attack-bounce-rulingo`"
   ;; `attacks-assumed-successful` is necessary to allow three or more units to
-  ;; 'rotate' in a cycle (each move to the next unit's position). Without it,
-  ;; each `attack-bounceso` goal in the cycle tries to fail if the attack
-  ;; leaving its destination bounces, which results in an infinite loop.
-  [attack-order interfering-order attacks-assumed-successful]
+  ;; 'rotate' in a cycle (all move to the next unit's position). Without it,
+  ;; each `attack-bounce-rulingo-impl` goal in the cycle depends on whether the
+  ;; attack leaving its destination bounces, causing an infinite loop.
+  [attack-order interfering-order bounced-by-interfering-order? rules-used
+   attacks-assumed-successful]
   (fresh [from to]
     (attacko attack-order from to)
     (conde
@@ -192,9 +225,16 @@
          ;; Assume this attack advanced
          (conso attack-order attacks-assumed-successful
                 new-attacks-assumed-successful)
-         (attack-bounceso interfering-order
-                        (lvar 'interfering-order-for-interfering-order)
-                        new-attacks-assumed-successful))
+         ;; We bounce if the order vacating our destination bounced, so we pass
+         ;; our own `bounced-by-interfering-order?` here. We don't care why the
+         ;; vacating order bounced, so we pass lvars that are never used
+         ;; anywhere else.
+         (attack-bounce-rulingo-impl
+          interfering-order
+          bounced-by-interfering-order?
+          (lvar 'rules-used-for-interfering-order)
+          (lvar 'interfering-order-for-interfering-order)
+          new-attacks-assumed-successful))
        ;; Since the attack out of our destination bounced, it's support doesn't
        ;; help it maintain its original position. We will only fail to dislodge
        ;; it if we have no support (1v1).
@@ -246,12 +286,16 @@
                        (map (fn [order] [raw-order order]))
                        (apply pldb/db))]
     (->>
-     (run-db*-with-nested-runs orders-db
-                               [attack interfering]
-                               ;; Doesn't work when I tried an empty set instead
-                               ;; of an empty vector, but maybe I can change
-                               ;; something to fix that?
-                               (attack-bounceso attack interfering []))
-     (map (fn [[k v]] {k #{v}}))
+     (run-db*-with-nested-runs
+      orders-db
+      [attack interfering bounced-by-interfering?]
+      ;; TODO: incorporate `rules-used` in test cases.
+      (fresh [rules-used]
+        (attack-bounce-rulingo attack interfering bounced-by-interfering?
+                               rules-used)))
+     ;; TODO: add test cases for which rules were used for succeeding orders
+     ;; instead of removing all succeeding orders.
+     (filter #(nth % 2))
+     (map (fn [[k v _]] {k #{v}}))
      (apply merge-with clojure.set/union))))
 
