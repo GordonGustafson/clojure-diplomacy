@@ -137,6 +137,15 @@
     (supporto supporting-order supporter-location supported-order)
     ;; pg 10: Support is cut if the unit giving support is attacked from any
     ;; province except the one where support is being given
+    ;;
+    ;; TODO: pg 12: Support is cut if the unit giving support is dislodged (even
+    ;; if it is dislodged from the province into which it's giving support).
+    ;;
+    ;; TODO: pg 15: A country can't support the dislodgement of one of its own
+    ;; units.
+    ;;
+    ;; TODO: pg 16: An attack by a country on one of its own units doesn't cut
+    ;; support.
     (fail-if
      (fresh [cutting-attack-from]
       (!= cutting-attack-from supported-location)
