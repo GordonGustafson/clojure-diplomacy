@@ -173,7 +173,7 @@
   (<= (supporter-count order-a)
       (supporter-count order-b)))
 
-(defn has-no-supporters
+(defn has-no-supporters?
   "Whether `order` has no successful supporters. Non-relational."
   [order]
   (zero? (supporter-count order)))
@@ -266,36 +266,28 @@
            ;; failed to leave our destination.
            (== rule :failed-to-leave-destination))])))
 
-;; TODO: should this be a regular function instead of a relation?
-(defn attack-bounced-based-on-determining-ruleo
-  [attack-order interfering-order rule bounces?]
-  (conde
-   [(membero rule [:destination-occupied
-                   :attacked-same-destination
-                   :swapped-places-without-convoy])
+(defn attack-bounced-based-on-determining-rule?
+  [attack-order interfering-order rule]
+  (condp contains? rule
+    #{:destination-occupied
+      :attacked-same-destination
+      :swapped-places-without-convoy}
     ;; In a direct conflict, `attack-order` is bounced if it has equal or fewer
     ;; supporters.
-   (conda [(multi-pred has-fewer-or-equal-supporters
-                       attack-order
-                       interfering-order)
-           (== bounces? true)]
-          [(== bounces? false)])]
+    (has-fewer-or-equal-supporters attack-order interfering-order)
 
-   [(== rule :failed-to-leave-destination)
+    #{:failed-to-leave-destination}
     ;; Since the attack out of our destination failed to leave, it's support
     ;; doesn't help it maintain its original position. It will only bounce us if
     ;; we have no support (1v1).
-    (conda [(pred attack-order
-                  has-no-supporters)
-            (== bounces? true)]
-           [(== bounces? false)])]
+    (has-no-supporters? attack-order)
 
-   ;; If `interfering-order` was dislodged and `attack-order` moves to the
-   ;; dislodger's province, `attack-order` succeeds regardless of how much
-   ;; support `interfering-order` has.
-   [(conda [(== rule :no-effect-on-dislodgers-province)
-            (== bounces? false)]
-           [(== bounces? true)])]))
+    #{:no-effect-on-dislodgers-province}
+    ;; If `interfering-order` was dislodged and `attack-order` moves to the
+    ;; dislodger's province, `interfering-order` can't bounce `attack-order`.
+    false
+
+    (assert false (str "Unknown rule: " rule))))
 
 ;; TODO: should this be a regular function instead of a relation?
 (defn attack-rulingo
@@ -303,8 +295,13 @@
   (all
    (determining-rule-for-conflicto attack-order interfering-order rule
                                    attacks-assumed-successful)
-   (attack-bounced-based-on-determining-ruleo attack-order interfering-order
-                                              rule bounces?)))
+   (conda
+    [(multi-pred attack-bounced-based-on-determining-rule?
+                 attack-order
+                 interfering-order
+                 rule)
+     (== bounces? true)]
+    [(== bounces? false)])))
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
 (defn ^:private attack-advanced?
