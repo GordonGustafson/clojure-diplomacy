@@ -268,26 +268,34 @@
 
 ;; TODO: should this be a regular function instead of a relation?
 (defn attack-bounced-based-on-determining-ruleo
-  [attack-order interfering-order rule]
+  [attack-order interfering-order rule bounces?]
   (conde
    [(membero rule [:destination-occupied
                    :attacked-same-destination
                    :swapped-places-without-convoy])
     ;; In a direct conflict, `attack-order` is bounced if it has equal or fewer
     ;; supporters.
-    (multi-pred has-fewer-or-equal-supporters
-                attack-order
-                interfering-order)]
+   (conda [(multi-pred has-fewer-or-equal-supporters
+                       attack-order
+                       interfering-order)
+           (== bounces? true)]
+          [(== bounces? false)])]
+
    [(== rule :failed-to-leave-destination)
     ;; Since the attack out of our destination failed to leave, it's support
     ;; doesn't help it maintain its original position. It will only bounce us if
     ;; we have no support (1v1).
-    (pred attack-order
-          has-no-supporters)]
+    (conda [(pred attack-order
+                  has-no-supporters)
+            (== bounces? true)]
+           [(== bounces? false)])]
+
    ;; If `interfering-order` was dislodged and `attack-order` moves to the
    ;; dislodger's province, `attack-order` succeeds regardless of how much
    ;; support `interfering-order` has.
-   [(== rule :no-effect-on-dislodgers-province)]))
+   [(conda [(== rule :no-effect-on-dislodgers-province)
+            (== bounces? false)]
+           [(== bounces? true)])]))
 
 ;; TODO: should this be a regular function instead of a relation?
 (defn attack-rulingo
@@ -295,10 +303,8 @@
   (all
    (determining-rule-for-conflicto attack-order interfering-order rule
                                    attacks-assumed-successful)
-   (conda [(attack-bounced-based-on-determining-ruleo
-            attack-order interfering-order rule)
-           (== bounces? true)]
-          [(== bounces? false)])))
+   (attack-bounced-based-on-determining-ruleo attack-order interfering-order
+                                              rule bounces?)))
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
 (defn ^:private attack-advanced?
