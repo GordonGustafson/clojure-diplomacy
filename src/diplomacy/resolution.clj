@@ -178,7 +178,7 @@
   [order]
   (zero? (supporter-count order)))
 
-(declare attack-advanced?)
+(declare attack-advancedo)
 
 (defn ^:private determining-rule-for-conflicto
   "Relation where:
@@ -228,11 +228,9 @@
            (conda
             [(fresh [vacating-to]
                (attacko vacating-to to other-from)
-               (pred vacating-to
-                     ;; I don't think we should pass
-                     ;; `attacks-assumed-successful` here because this
-                     ;; `attack-advanced?` can do its job without our help.
-                     #(attack-advanced? % [])))
+               ;; I don't think we should pass `attacks-assumed-successful` here
+               ;; because this `attack-rulingo` can do its job without our help.
+               (attack-advancedo vacating-to []))
              (== rule :no-effect-on-dislodgers-province)]
             ;; Otherwise, this is a normal conflict.
             [(== rule :attacked-same-destination)]))]
@@ -260,8 +258,8 @@
            ;; identify and resolve, so it's not worth having the rules engine
            ;; explain what happened).
            (fail-if (membero interfering-order attacks-assumed-successful))
-           (fail-if (pred interfering-order
-                          #(attack-advanced? % new-attacks-assumed-successful)))
+           (fail-if (attack-advancedo interfering-order
+                                      new-attacks-assumed-successful))
            ;; If the `fail-if` goals didn't fail, `interfering-order` must have
            ;; failed to leave our destination.
            (== rule :failed-to-leave-destination))])))
@@ -304,18 +302,13 @@
     [(== bounces? false)])))
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
-(defn ^:private attack-advanced?
-  "For internal use only."
+(defn ^:private attack-advancedo
   [attack-order attacks-assumed-successful]
-  ;; If there is no interfering order that bounces the attack, then the attack
-  ;; succeeds.
-  (empty?
-   (run 1 [q]
-     (attack-rulingo attack-order
-                     (lvar 'interfering-order)
-                     (lvar 'rule)
-                     attacks-assumed-successful
-                     true))))
+  (fail-if (attack-rulingo attack-order
+                           (lvar 'interfering-order)
+                           (lvar 'rule)
+                           attacks-assumed-successful
+                           true)))
 
 (defn-spec failed-attacks
   [(s/coll-of ::dt/order)]
