@@ -8,7 +8,7 @@
             [clojure.set]
             [clojure.spec :as s]))
 
-;; TODO: convoys, dislodging convoys
+;; TODO: convoys, dislodging convoys, attacks on self
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                       core.logic Utilities ;;
@@ -178,86 +178,40 @@
   [order]
   (zero? (supporter-count order)))
 
-(declare attack-bounce-rulingo-impl)
+(declare attack-advanced?)
 
-(defn attack-bounce-rulingo
+(defn ^:private determining-rule-for-conflicto
   "Relation where:
   - `attack-order` is an attack whose outcome we would like to evaluate.
-  - `interfering-order` is an order that *could potentially* bounce the attack
-    due to a rule for conflicting orders.
-  - `bounced-by-interfering-order?` is a boolean indicating whether the attack
-    *actually was* bounced by `interfering-order`.
-  - `rules-used` contains keywords representing the rules used to decide the
-    value of `bounced-by-interfering-order?`.
-
-  The following are 'input parameters' that must be ground when they are passed:
-  - `attack-order`
-
-  The following are 'output parameters' that must be fresh when they are passed,  and will be constrained by this relation:
-  - `interfering-order`
-  - `bounced-by-interfering-order?`
-  - `rules-used`
-
-  The resulting values of `interfering-order` and `rules-used` are only useful
-  for explaining *why* `attack-order` bounced; `attack-order` bounced
-  if-and-only-if this relation unifies with `bounced-by-interfering-order? ==
-  true` for some values of `interfering-order` and `rules-used`. If
-  `attack-order` bounced, it may also unify with `bounced-by-interfering-order?
-  == false`, because an attack that is bounced by one bounce-candidate and
-  bounced by another is still bounced.
+  - `interfering-order` is an order that satisfies one of these conditions:
+    - attempts to remain in `attack-order`'s destination
+    - attemps to move to the same destination as `attack-order`
+    - attempts to switch places with `attack-order`
+    - fails to leave `attack-order`'s destination
+  - `rule` is the most specific rule (represented as a keyword) that applies to
+    the conflict between `attack-order` and `interfering-order`; it dictates how
+    the conflict will be resolved.
+  - `attacks-assumed-successful` is a vector of attacks that will be assumed to
+    successfully vacate their destinations for the purposes of identifying
+    conflicts.
   "
-  [attack-order interfering-order bounced-by-interfering-order? rules-used]
-  ;; Doesn't work when I tried passing an empty set instead of an empty vector,
-  ;; but maybe I can change something to fix that?
-  (attack-bounce-rulingo-impl attack-order interfering-order
-                               bounced-by-interfering-order? rules-used []))
-
-(defn ^:private attack-bounce-rulingo-impl
-  "Backing function for `attack-bounce-rulingo`"
   ;; `attacks-assumed-successful` is necessary to allow three or more units to
   ;; 'rotate' in a cycle (all move to the next unit's position). Without it,
-  ;; each `attack-bounce-rulingo-impl` goal in the cycle depends on whether the
-  ;; attack leaving its destination bounces, causing an infinite loop.
-  [attack-order interfering-order bounced-by-interfering-order? rules-used
-   attacks-assumed-successful]
+  ;; each `determining-rule-for-conflicto` goal in the cycle depends on whether
+  ;; the attack leaving its destination succeeds, causing an infinite loop.
+  [attack-order interfering-order rule attacks-assumed-successful]
   (fresh [from to]
     (attacko attack-order from to)
-    (conde
-     ;; An attack tried to leave our destination but failed
-     [(all
-       (fresh [other-to new-attacks-assumed-successful]
-         (!= other-to from)
-         (attacko interfering-order to other-to)
-         ;; Fail if we assumed `interfering-order` successfully vacated our
-         ;; destination.
-         (fail-if (membero interfering-order attacks-assumed-successful))
-         ;; Assume this attack advanced
-         (conso attack-order attacks-assumed-successful
-                new-attacks-assumed-successful)
-         ;; We bounce if the order vacating our destination bounced, so we pass
-         ;; our own `bounced-by-interfering-order?` here. We don't care why the
-         ;; vacating order bounced, so we pass lvars that are never used
-         ;; anywhere else.
-         (attack-bounce-rulingo-impl
-          interfering-order
-          bounced-by-interfering-order?
-          (lvar 'rules-used-for-interfering-order)
-          (lvar 'interfering-order-for-interfering-order)
-          new-attacks-assumed-successful))
-       ;; Since the attack out of our destination bounced, it's support doesn't
-       ;; help it maintain its original position. We will only fail to dislodge
-       ;; it if we have no support (1v1).
-       (pred attack-order
-             has-no-supporters))]
+     (conde
+        [(holdo    interfering-order to)
+         (== rule :destination-occupied)]
+        [(supporto interfering-order to (lvar 'supported-order))
+         (== rule :destination-occupied)]
 
-     [(all
-       (conde
-        [(holdo    interfering-order to)]        ; attack occupied location
-        [(supporto interfering-order to (lvar 'supported-order))]
-        [(attacko interfering-order to from)]    ; swap places
-        [(fresh [other-from]                     ; different attack on same place
-           (!= other-from from)  ; make sure we don't bounce ourselves because
-                                 ; we're attacking the same place as ourselves.
+        [(fresh [other-from]
+           ;; make sure we don't bounce ourselves because we're attacking the
+           ;; same place as ourselves.
+           (!= other-from from)
            (attacko interfering-order other-from to)
            ;; pg 9: "A dislodged unit, even with support, has no effect on the
            ;; province that dislodged it" (see Diagram 13).
@@ -269,20 +223,96 @@
            ;;
            ;; B_rus (has 1 support) dislodges C_tur (has 0 support). The fact
            ;; that C_tur attacked where B_rus came from does not prevent A_rus
-           ;; from moving into where B_rus came from.
-           ;;
-           ;; If we're evaluating this goal and there was an attack out of `to`,
-           ;; the attack must have advanced, because if it bounced the previous
-           ;; goal would have succeeded and we wouldn't be evaluating this goal.
-           ;; If the attack from `to` to `other-from` advanced, then the attack
-           ;; from `other-from` to `to` doesn't bounce `attack-order`.
-           ;;
-           ;; TODO: see if assuming that the last goal in this conde failed is
-           ;; safe. Do we need to use conda or condu instead?
-           (fail-if (attacko (lvar 'vacating-to) to other-from)))])
-       (multi-pred has-fewer-or-equal-supporters
-                   attack-order
-                   interfering-order))])))
+           ;; from moving into where B_rus came from, because a dislodged unit
+           ;; has no effect on the province that dislodged it.
+           (conda
+            [(fresh [vacating-to]
+               (attacko vacating-to to other-from)
+               (pred vacating-to
+                     ;; I don't think we should pass
+                     ;; `attacks-assumed-successful` here because this
+                     ;; `attack-advanced?` can do its job without our help.
+                     #(attack-advanced? % [])))
+             (== rule :no-effect-on-dislodgers-province)]
+            ;; Otherwise, this is a normal conflict.
+            [(== rule :attacked-same-destination)]))]
+
+        [(attacko interfering-order to from)
+         ;; TODO: use :swapped-places-with-convoy when appropriate.
+         (== rule :swapped-places-without-convoy)]
+
+        [(fresh [other-to new-attacks-assumed-successful]
+           ;; Interfering orders that swap places with `attack-order` are
+           ;; handled in a different case.
+           (!= other-to from)
+           (attacko interfering-order to other-to)
+           ;; Assume this attack advanced
+           (conso attack-order attacks-assumed-successful
+                  new-attacks-assumed-successful)
+           ;; Don't consider `interfering-order` to interfere if we were told to
+           ;; assume it successfully vacated our destination, or if it did so
+           ;; under the assumption that we successfully vacated our destination.
+           ;; We could unify `(== rule :successfully-left-destination)` instead
+           ;; of failing if we wanted to produce conflict-resolution rules for
+           ;; all orders that *attempted* to leave our destination, but only
+           ;; producing rules for those that *fail* to leave our destination
+           ;; reduces noise (it's a no-conflict situation that's easy to
+           ;; identify and resolve, so it's not worth having the rules engine
+           ;; explain what happened).
+           (fail-if (membero interfering-order attacks-assumed-successful))
+           (fail-if (pred interfering-order
+                          #(attack-advanced? % new-attacks-assumed-successful)))
+           ;; If the `fail-if` goals didn't fail, `interfering-order` must have
+           ;; failed to leave our destination.
+           (== rule :failed-to-leave-destination))])))
+
+;; TODO: should this be a regular function instead of a relation?
+(defn attack-bounced-based-on-determining-ruleo
+  [attack-order interfering-order rule]
+  (conde
+   [(membero rule [:destination-occupied
+                   :attacked-same-destination
+                   :swapped-places-without-convoy])
+    ;; In a direct conflict, `attack-order` is bounced if it has equal or fewer
+    ;; supporters.
+    (multi-pred has-fewer-or-equal-supporters
+                attack-order
+                interfering-order)]
+   [(== rule :failed-to-leave-destination)
+    ;; Since the attack out of our destination failed to leave, it's support
+    ;; doesn't help it maintain its original position. It will only bounce us if
+    ;; we have no support (1v1).
+    (pred attack-order
+          has-no-supporters)]
+   ;; If `interfering-order` was dislodged and `attack-order` moves to the
+   ;; dislodger's province, `attack-order` succeeds regardless of how much
+   ;; support `interfering-order` has.
+   [(== rule :no-effect-on-dislodgers-province)]))
+
+;; TODO: should this be a regular function instead of a relation?
+(defn attack-rulingo
+  [attack-order interfering-order rule attacks-assumed-successful bounces?]
+  (all
+   (determining-rule-for-conflicto attack-order interfering-order rule
+                                   attacks-assumed-successful)
+   (conda [(attack-bounced-based-on-determining-ruleo
+            attack-order interfering-order rule)
+           (== bounces? true)]
+          [(== bounces? false)])))
+
+;; TODO: think about `attacks-assumed-successful` parameter.
+(defn ^:private attack-advanced?
+  "For internal use only."
+  [attack-order attacks-assumed-successful]
+  ;; If there is no interfering order that bounces the attack, then the attack
+  ;; succeeds.
+  (empty?
+   (run 1 [q]
+     (attack-rulingo attack-order
+                     (lvar 'interfering-order)
+                     (lvar 'rule)
+                     attacks-assumed-successful
+                     true))))
 
 (defn-spec failed-attacks
   [(s/coll-of ::dt/order)]
@@ -297,14 +327,9 @@
     (->>
      (run-db*-with-nested-runs
       orders-db
-      [attack interfering bounced-by-interfering?]
-      ;; TODO: incorporate `rules-used` in test cases.
-      (fresh [rules-used]
-        (attack-bounce-rulingo attack interfering bounced-by-interfering?
-                               rules-used)))
-     ;; TODO: add test cases for which rules were used for succeeding orders
-     ;; instead of removing all succeeding orders.
-     (filter #(nth % 2))
-     (map (fn [[k v _]] {k #{v}}))
+      [attack interfering rule bounced-by-interfering?]
+        (attack-rulingo attack interfering rule [] bounced-by-interfering?))
+     (map (fn [[attack interfere rule bounces?]]
+            {attack #{[bounces? interfere rule]}}))
      (apply merge-with clojure.set/union))))
 

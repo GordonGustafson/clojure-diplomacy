@@ -63,7 +63,8 @@
    })
 
 (def rulebook-diagrams
-  (into {} (for [[k v] rulebook-diagrams-raw]
+  {}
+  #_(into {} (for [[k v] rulebook-diagrams-raw]
              [k (diplomacy.test-utils/create-orders v)])))
 
    ;; have checked up to this line

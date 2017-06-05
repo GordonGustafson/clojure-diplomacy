@@ -5,10 +5,13 @@
 
 (defn-spec create-orders
   [(s/map-of (s/coll-of keyword?)
-             (s/coll-of (s/coll-of keyword?)))]
+             (s/coll-of (s/tuple (s/coll-of keyword?) keyword?)))]
   (s/map-of ::dt/order
-            (s/coll-of ::dt/order)))
+            (s/coll-of (s/tuple ::dt/order keyword?))))
 (defn create-orders [orders]
-  (into {} (for [[k v] orders] [(apply create-order k)
-                                (set (map (partial apply create-order) v))])))
+  (into {} (for [[k v] orders]
+             [(apply create-order k)
+              (set (map (fn [[bounces? order rule]]
+                          [bounces? (apply create-order order) rule])
+                        v))])))
 

@@ -27,7 +27,7 @@
     (run-test-case orders-map (str "Rulebook sample game, "
                                    (pr-str time)))))
 
-(test/deftest test-rulebook-diagrams
+#_(test/deftest test-rulebook-diagrams
   (doseq [[diagram-number orders-map]
           diplomacy.rulebook-diagrams/rulebook-diagrams]
     (run-test-case orders-map (str "Rulebook diagram "
