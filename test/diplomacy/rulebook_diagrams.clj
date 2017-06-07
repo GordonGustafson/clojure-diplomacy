@@ -2,69 +2,72 @@
   (:require [diplomacy.test-utils]))
 
 (def ^:private rulebook-diagrams-raw
-  {4 {[:germany :army :ber :attack :sil] #{[:russia  :army :war :attack :sil]}
-      [:russia  :army :war :attack :sil] #{[:germany :army :ber :attack :sil]}}
-   5 {[:germany :fleet :kie :attack :ber] #{[:germany :army :ber :attack :pru]}
-      [:germany :army :ber :attack :pru] #{[::russia :army :pru :hold]}
+  {3 {[:italy :fleet :rom :attack :nap] #{}}
+   4 {[:germany :army :ber :attack :sil] #{[true [:russia  :army :war :attack :sil] :attacked-same-destination]}
+      [:russia  :army :war :attack :sil] #{[true [:germany :army :ber :attack :sil] :attacked-same-destination]}}
+   5 {[:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :pru] :failed-to-leave-destination]}
+      [:germany :army :ber :attack :pru] #{[true [::russia :army :pru :hold] :destination-occupied]}
       [::russia :army :pru :hold] #{}}
-   6 {[:germany :fleet :ber :attack :pru] #{[:russia :army :pru :attack :ber]}
-      [:russia :army :pru :attack :ber] #{[:germany :fleet :ber :attack :pru]}}
+   6 {[:germany :fleet :ber :attack :pru] #{[true [:russia :army :pru :attack :ber] :swapped-places-without-convoy]}
+      [:russia :army :pru :attack :ber] #{[true [:germany :fleet :ber :attack :pru] :swapped-places-without-convoy]}}
    7 {[:england :army :hol :attack :bel] #{}
       [:england :fleet :bel :attack :nth] #{}
       [:france :fleet :nth :attack :hol] #{}}
-   8 {[:france :army :mar :attack :bur] #{}
+   8 {[:france :army :mar :attack :bur] #{[false [:germany :army :bur :hold] :destination-occupied]}
       [:france :army :gas :support :france :army :mar :attack :bur] #{}
       [:germany :army :bur :hold] #{}}
-   9 {[:germany :army :sil :attack :pru] #{}
+   9 {[:germany :army :sil :attack :pru] #{[false [:russia :army :pru :hold] :destination-occupied]}
       [:germany :fleet :bal :support :germany :army :sil :attack :pru] #{}
       [:russia :army :pru :hold] #{}}
-   10 {[:france :fleet :gol :attack :tyn] #{[:italy :fleet :nap :attack :tyn]}
+   10 {[:france :fleet :gol :attack :tyn] #{[true [:italy :fleet :nap :attack :tyn] :attacked-same-destination]}
        [:france :fleet :wes :support :france :fleet :gol :attack :tyn] #{}
-       [:italy :fleet :nap :attack :tyn] #{[:france :fleet :gol :attack :tyn]}
+       [:italy :fleet :nap :attack :tyn] #{[true [:france :fleet :gol :attack :tyn] :attacked-same-destination]}
        [:italy :fleet :rom :support :italy :fleet :nap :attack :tyn] #{}}
-   11 {[:france :fleet :gol :attack :tyn] #{[:italy :fleet :tyn :hold]}
+   11 {[:france :fleet :gol :attack :tyn] #{[true [:italy :fleet :tyn :hold] :destination-occupied]}
        [:france :fleet :wes :support :france :fleet :gol :attack :tyn] #{}
        [:italy :fleet :tyn :hold] #{}
        [:italy :fleet :rom :support :italy :fleet :tyn :hold] #{}}
-   12 {[:austria :army :boh :attack :mun] #{}
+   12 {[:austria :army :boh :attack :mun] #{[false [:germany :army :mun :attack :sil] :failed-to-leave-destination]}
        [:austria :army :tyr :support :austria :army :boh :attack :mun] #{}
-       [:germany :army :mun :attack :sil] #{[:germany :army :mun :attack :sil]}
+       [:germany :army :mun :attack :sil] #{[true [:russia :army :war :attack :sil] :attacked-same-destination]}
        [:germany :army :ber :support :germany :army :mun :attack :sil] #{}
-       [:russia :army :war :attack :sil] #{[:germany :army :mun :attack :sil]}
+       [:russia :army :war :attack :sil] #{[true [:germany :army :mun :attack :sil] :attacked-same-destination]}
        [:russia :army :pru :support :russia :army :war :attack :sil] #{}}
-   13 {[:turkey :army :bul :attack :rum] #{[:russia :army :rum :attack :bul]}
-       [:russia :army :rum :attack :bul] #{}
+   13 {[:turkey :army :bul :attack :rum] #{[true [:russia :army :rum :attack :bul] :swapped-places-without-convoy]
+                                           [true [:russia :army :sev :attack :rum] :attacked-same-destination]}
+       [:russia :army :rum :attack :bul] #{[false [:turkey :army :bul :attack :rum] :swapped-places-without-convoy]}
        [:russia :army :ser :support :russia :army :rum :attack :bul] #{}
-       [:russia :army :sev :attack :rum] #{}}
-   14 {[:turkey :army :bul :attack :rum] #{[:russia :army :rum :attack :bul]}
+       [:russia :army :sev :attack :rum] #{[false [:turkey :army :bul :attack :rum] :no-effect-on-dislodgers-province]}}
+   14 {[:turkey :army :bul :attack :rum] #{[true [:russia :army :rum :attack :bul] :swapped-places-without-convoy]
+                                           [false [:russia :army :sev :attack :rum] :attacked-same-destination]}
        [:turkey :fleet :bla :support :turkey :army :bul :attack :rum] #{}
-       [:russia :army :rum :attack :bul] #{}
+       [:russia :army :rum :attack :bul] #{[false [:turkey :army :bul :attack :rum] :swapped-places-without-convoy]}
        [:russia :army :gre :support :russia :army :rum :attack :bul] #{}
        [:russia :army :ser :support :russia :army :rum :attack :bul] #{}
-       [:russia :army :sev :attack :rum] #{}}
-   15 {[:germany :army :pru :attack :war] #{[:russia :army :war :hold]}
+       [:russia :army :sev :attack :rum] #{[false [:turkey :army :bul :attack :rum] :no-effect-on-dislodgers-province]}}
+   15 {[:germany :army :pru :attack :war] #{[true [:russia :army :war :hold] :destination-occupied]}
        [:germany :army :sil :support :germany :army :pru :attack :war] #{}
        [:russia :army :war :hold] #{}
-       [:russia :army :boh :attack :sil] #{[:germany :army :sil :support :germany :army :pru :attack :war]}}
-   16 {[:germany :army :pru :attack :war] #{}
-       [:germany :army :sil :support :germany :army :pru :attack :war] #{}
-       [:russia :army :war :attack :sil] #{[:germany :army :sil :support :germany :army :pru :attack :war]}}
-   17 {[:germany :fleet :ber :attack :pru] #{[:russia :fleet :bal :attack :pru]}
-       [:germany :army :sil :support :germany :army :ber :attack :pru] #{}
-       [:russia :army :pru :attack :sil] #{}
-       [:russia :army :war :support :russia :army :pru :attack :sil] #{}
-       [:russia :fleet :bal :attack :pru] #{[:germany :fleet :ber :attack :pru]}}
-   18 {[:germany :army :ber :hold] #{}
-       [:germany :army :mun :attack :sil] #{[:russia :army :sil :support :russia :army :pru :attack :ber]}
-       [:russia :army :pru :attack :ber] #{[:germany :army :ber :hold]}
-       [:russia :army :sil :support :russia :army :pru :attack :ber] #{}
-       [:russia :army :boh :attack :mun] #{}
-       [:russia :army :tyr :support :russia :army :boh :attack :mun] #{}}
+       [:russia :army :boh :attack :sil] #{[true [:germany :army :sil :support :germany :army :pru :attack :war] :destination-occupied]}}
+
+   ;; 16 {[:germany :army :pru :attack :war] #{}
+   ;;     [:germany :army :sil :support :germany :army :pru :attack :war] #{}
+   ;;     [:russia :army :war :attack :sil] #{[true [:germany :army :sil :support :germany :army :pru :attack :war] rule]}}
+   ;; 17 {[:germany :fleet :ber :attack :pru] #{[true [:russia :fleet :bal :attack :pru] rule]}
+   ;;     [:germany :army :sil :support :germany :army :ber :attack :pru] #{}
+   ;;     [:russia :army :pru :attack :sil] #{}
+   ;;     [:russia :army :war :support :russia :army :pru :attack :sil] #{}
+   ;;     [:russia :fleet :bal :attack :pru] #{[true [:germany :fleet :ber :attack :pru] rule]}}
+   ;; 18 {[:germany :army :ber :hold] #{}
+   ;;     [:germany :army :mun :attack :sil] #{[true [:russia :army :sil :support :russia :army :pru :attack :ber] rule]}
+   ;;     [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :hold] rule]}
+   ;;     [:russia :army :sil :support :russia :army :pru :attack :ber] #{}
+   ;;     [:russia :army :boh :attack :mun] #{}
+   ;;     [:russia :army :tyr :support :russia :army :boh :attack :mun] #{}}
    })
 
 (def rulebook-diagrams
-  {}
-  #_(into {} (for [[k v] rulebook-diagrams-raw]
+  (into {} (for [[k v] rulebook-diagrams-raw]
              [k (diplomacy.test-utils/create-orders v)])))
 
    ;; have checked up to this line
