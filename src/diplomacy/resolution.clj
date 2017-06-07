@@ -8,7 +8,12 @@
             [clojure.set]
             [clojure.spec :as s]))
 
-;; TODO: convoys, dislodging convoys, attacks on self
+;; TODO: convoys
+;; TODO: dislodging convoys
+;; TODO: can't dislodge own units
+;; TODO: failure reasons for support orders
+;; TODO: can't cut own support
+;; TODO: integrate coasts (colocated locations) into resolution??
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                       core.logic Utilities ;;
