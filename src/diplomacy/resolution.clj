@@ -187,14 +187,14 @@
 
 (defn ^:private determining-rule-for-conflicto
   "Relation where:
-  - `attack-order` is an attack whose outcome we would like to evaluate.
+  - `attack` is an attack whose outcome we would like to evaluate.
   - `interfering-order` is an order that satisfies one of these conditions:
-    - attempts to remain in `attack-order`'s destination
-    - attempts to move to the same destination as `attack-order`
-    - attempts to switch places with `attack-order`
-    - fails to leave `attack-order`'s destination
+    - attempts to remain in `attack`'s destination
+    - attempts to move to the same destination as `attack`
+    - attempts to switch places with `attack`
+    - fails to leave `attack`'s destination
   - `rule` is the most specific rule (represented as a keyword) that applies to
-    the conflict between `attack-order` and `interfering-order`; it dictates how
+    the conflict between `attack` and `interfering-order`; it dictates how
     the conflict will be resolved.
   - `attacks-assumed-successful` is a vector of attacks that will be assumed to
     successfully vacate their destinations for the purposes of identifying
@@ -204,9 +204,9 @@
   ;; 'rotate' in a cycle (all move to the next unit's position). Without it,
   ;; each `determining-rule-for-conflicto` goal in the cycle depends on whether
   ;; the attack leaving its destination succeeds, causing an infinite loop.
-  [attack-order interfering-order rule attacks-assumed-successful]
+  [attack interfering-order rule attacks-assumed-successful]
   (fresh [from to]
-    (attacko attack-order from to)
+    (attacko attack from to)
      (conde
         [(holdo    interfering-order to)
          (== rule :destination-occupied)]
@@ -223,8 +223,8 @@
            ;;
            ;; from                    to                             other-from
            ;; ------------------------------------------------------------------
-           ;; A_rus --attack-order--> B_rus ---vacating-to---1sup--> C_tur
-           ;;                               <--interfering-order----
+           ;; A_rus --attack--> B_rus ---vacating-to---1sup--> C_tur
+           ;;                         <--interfering-order----
            ;;
            ;; B_rus (has 1 support) dislodges C_tur (has 0 support). The fact
            ;; that C_tur attacked where B_rus came from does not prevent A_rus
@@ -245,12 +245,12 @@
          (== rule :swapped-places-without-convoy)]
 
         [(fresh [other-to new-attacks-assumed-successful]
-           ;; Interfering orders that swap places with `attack-order` are
+           ;; Interfering orders that swap places with `attack` are
            ;; handled in a different case.
            (!= other-to from)
            (attacko interfering-order to other-to)
            ;; Assume this attack advanced
-           (conso attack-order attacks-assumed-successful
+           (conso attack attacks-assumed-successful
                   new-attacks-assumed-successful)
            ;; Don't consider `interfering-order` to interfere if we were told to
            ;; assume it successfully vacated our destination, or if it did so
@@ -270,26 +270,26 @@
            (== rule :failed-to-leave-destination))])))
 
 (defn attack-bounced-based-on-determining-rule?
-  "Function that returns whether `interfering-order` bounced `attack-order` due
-  to `rule`. Proving the wrong `rule` will give bogus results."
-  [attack-order interfering-order rule]
+  "Function that returns whether `interfering-order` bounced `attack` due to
+  `rule`. Proving the wrong `rule` will give bogus results."
+  [attack interfering-order rule]
   (condp contains? rule
     #{:destination-occupied
       :attacked-same-destination
       :swapped-places-without-convoy}
-    ;; In a direct conflict, `attack-order` is bounced if it has equal or fewer
+    ;; In a direct conflict, `attack` is bounced if it has equal or fewer
     ;; supporters.
-    (has-fewer-or-equal-supporters attack-order interfering-order)
+    (has-fewer-or-equal-supporters attack interfering-order)
 
     #{:failed-to-leave-destination}
     ;; Since the attack out of our destination failed to leave, it's support
     ;; doesn't help it maintain its original position. It will only bounce us if
     ;; we have no support (1v1).
-    (has-no-supporters? attack-order)
+    (has-no-supporters? attack)
 
     #{:no-effect-on-dislodgers-province}
-    ;; If `interfering-order` was dislodged and `attack-order` moves to the
-    ;; dislodger's province, `interfering-order` can't bounce `attack-order`.
+    ;; If `interfering-order` was dislodged and `attack` moves to the
+    ;; dislodger's province, `interfering-order` can't bounce `attack`.
     false
 
     (assert false (str "Unknown rule: " rule))))
@@ -299,14 +299,14 @@
 (defn attack-rulingo
   "Relation where the first four parameters are as described in
   `determining-rule-for-conflicto`, and `bounces?` is whether
-  `interfering-order` bounces `attack-order`."
-  [attack-order interfering-order rule attacks-assumed-successful bounces?]
+  `interfering-order` bounces `attack`."
+  [attack interfering-order rule attacks-assumed-successful bounces?]
   (all
-   (determining-rule-for-conflicto attack-order interfering-order rule
+   (determining-rule-for-conflicto attack interfering-order rule
                                    attacks-assumed-successful)
    (conda
     [(multi-pred attack-bounced-based-on-determining-rule?
-                 attack-order
+                 attack
                  interfering-order
                  rule)
      (== bounces? true)]
@@ -316,18 +316,18 @@
 ;;
 ;; Convenience wrapper around `attack-rulingo`.
 (defn ^:private attack-advancedo
-  "Relation where `attack-order` succeeds"
-  [attack-order attacks-assumed-successful]
-  (let [some-order-bounced-us-goal (attack-rulingo attack-order
+  "Relation where `attack` succeeds"
+  [attack attacks-assumed-successful]
+  (let [some-order-bounced-us-goal (attack-rulingo attack
                                                    (lvar 'interfering-order)
                                                    (lvar 'rule)
                                                    attacks-assumed-successful
                                                    true)]
-    ;; `attack-order` advances if *there does not exist an order that bounces
-    ;; it*. Changing `true` to `false` in the call to `attack-rulingo` gives a
-    ;; goal that succeeds if *there exists an order that attempted to interfere
-    ;; with `attack-order` but did not successfully bounce it* (that goal could
-    ;; still succeed if some *other* order successfully bounced `attack-order`).
+    ;; `attack` advances if *there does not exist an order that bounces it*.
+    ;; Changing `true` to `false` in the call to `attack-rulingo` gives a goal
+    ;; that succeeds if *there exists an order that attempted to interfere with
+    ;; `attack` but did not successfully bounce it* (that goal could still
+    ;; succeed if some *other* order successfully bounced `attack`).
     (fail-if some-order-bounced-us-goal)))
 
 (defn-spec failed-attacks
