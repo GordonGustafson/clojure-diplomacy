@@ -161,13 +161,13 @@
 (defn supporter-count
   "Number of units that successfully support `supported-order`. Non-relational."
   [supported-order]
-  ;; TODO: can this `run*` return the same order multiple times? Shouldn't
-  ;;       matter because of the call to `set` afterwards, but I'm curious.
   (when (empty? clojure.core.logic/*logic-dbs*)
     ;; This helps more than it hurts at the moment; it's hard to notice that
     ;; you're using an empty fact database.
     (throw (IllegalStateException.
             "nested run running with empty fact database!")))
+  ;; TODO: can this `run*` return the same order multiple times? Shouldn't
+  ;;       matter because of the call to `set` afterwards, but I'm curious.
   (count (set (run* [supporting-order]
                 (support-succeedso supporting-order supported-order)))))
 
@@ -190,7 +190,7 @@
   - `attack-order` is an attack whose outcome we would like to evaluate.
   - `interfering-order` is an order that satisfies one of these conditions:
     - attempts to remain in `attack-order`'s destination
-    - attemps to move to the same destination as `attack-order`
+    - attempts to move to the same destination as `attack-order`
     - attempts to switch places with `attack-order`
     - fails to leave `attack-order`'s destination
   - `rule` is the most specific rule (represented as a keyword) that applies to
@@ -234,7 +234,7 @@
             [(fresh [vacating-to]
                (attacko vacating-to to other-from)
                ;; I don't think we should pass `attacks-assumed-successful` here
-               ;; because this `attack-rulingo` can do its job without our help.
+               ;; because this `attack-advanced` can do its job without our help.
                (attack-advancedo vacating-to []))
              (== rule :no-effect-on-dislodgers-province)]
             ;; Otherwise, this is a normal conflict.
@@ -270,6 +270,8 @@
            (== rule :failed-to-leave-destination))])))
 
 (defn attack-bounced-based-on-determining-rule?
+  "Function that returns whether `interfering-order` bounced `attack-order` due
+  to `rule`. Proving the wrong `rule` will give bogus results."
   [attack-order interfering-order rule]
   (condp contains? rule
     #{:destination-occupied
@@ -292,8 +294,12 @@
 
     (assert false (str "Unknown rule: " rule))))
 
-;; TODO: should this be a regular function instead of a relation?
+;; This relation links the relational code in `determining-rule-for-conflicto`
+;; with the functional code in `attack-bounced-based-on-determining-rule?`.
 (defn attack-rulingo
+  "Relation where the first four parameters are as described in
+  `determining-rule-for-conflicto`, and `bounces?` is whether
+  `interfering-order` bounces `attack-order`."
   [attack-order interfering-order rule attacks-assumed-successful bounces?]
   (all
    (determining-rule-for-conflicto attack-order interfering-order rule
@@ -307,13 +313,22 @@
     [(== bounces? false)])))
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
+;;
+;; Convenience wrapper around `attack-rulingo`.
 (defn ^:private attack-advancedo
+  "Relation where `attack-order` succeeds"
   [attack-order attacks-assumed-successful]
-  (fail-if (attack-rulingo attack-order
-                           (lvar 'interfering-order)
-                           (lvar 'rule)
-                           attacks-assumed-successful
-                           true)))
+  (let [some-order-bounced-us-goal (attack-rulingo attack-order
+                                                   (lvar 'interfering-order)
+                                                   (lvar 'rule)
+                                                   attacks-assumed-successful
+                                                   true)]
+    ;; `attack-order` advances if *there does not exist an order that bounces
+    ;; it*. Changing `true` to `false` in the call to `attack-rulingo` gives a
+    ;; goal that succeeds if *there exists an order that attempted to interfere
+    ;; with `attack-order` but did not successfully bounce it* (that goal could
+    ;; still succeed if some *other* order successfully bounced `attack-order`).
+    (fail-if some-order-bounced-us-goal)))
 
 (defn-spec failed-attacks
   [(s/coll-of ::dt/order)]
