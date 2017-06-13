@@ -330,12 +330,16 @@
     ;; some *other* order successfully bounced `attack`).
     (fail-if some-order-bounced-us-goal)))
 
-(defn-spec failed-attacks
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                      Public Interface for Order Resolution ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec attack-judgments
   [(s/coll-of ::dt/order)]
-  (s/map-of ::dt/order (s/coll-of ::dt/order)))
-(defn failed-attacks
-  "A map from each element of `orders` to the set of orders that conflicted with
-  it (empty-set if the order succeeded)"
+  (s/map-of ::dt/order (s/coll-of ::judgment)))
+(defn attack-judgments
+  "A map from each element of `orders` to the set of orders that may interfere
+  with it (empty-set if the order succeeded)"
   [orders]
   (let [orders-db (->> orders
                        (map (fn [order] [raw-order order]))
@@ -346,6 +350,8 @@
       [attack bouncer rule bounced-by-bouncer?]
         (attack-rulingo attack bouncer rule [] bounced-by-bouncer?))
      (map (fn [[attack bouncer rule bounced-by-bouncer?]]
-            {attack #{[bounced-by-bouncer? bouncer rule]}}))
+            {attack #{{:bouncer bouncer
+                       :rule rule
+                       :bounced-by-bouncer? bounced-by-bouncer?}}}))
      (apply merge-with clojure.set/union))))
 

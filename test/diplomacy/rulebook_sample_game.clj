@@ -3,7 +3,7 @@
 
 ;; this contains a good amount of supports, but only one convoy, and almost no
 ;; use of coasts. Be sure to add your own test cases to cover those!
-(def ^:private rulebook-sample-game-cases-raw
+(def ^:private rulebook-sample-game-judgments-raw
   {
    {:year 1901 :season :spring}
    {[:austria :army :vie :attack :tri] #{}
@@ -132,6 +132,6 @@
     [:turkey :fleet :bla :support :turkey :army :bul :attack :rum] #{}
     }})
 
-(def rulebook-sample-game-cases
-  (into {} (for [[k v] rulebook-sample-game-cases-raw]
-             [k (diplomacy.test-utils/create-orders v)])))
+(def rulebook-sample-game-judgments
+  (into {} (for [[k v] rulebook-sample-game-judgments-raw]
+             [k (diplomacy.test-utils/create-judgments-map v)])))

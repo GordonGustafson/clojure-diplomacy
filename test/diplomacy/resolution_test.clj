@@ -2,7 +2,7 @@
   (:require [clojure.test :as test]
             [clojure.data]
             [diplomacy.datatypes :as dt :refer [create-order]]
-            [diplomacy.resolution :refer [failed-attacks]]
+            [diplomacy.resolution :refer [attack-judgments]]
             [diplomacy.rulebook-sample-game]
             [diplomacy.rulebook-diagrams]
             [diplomacy.util :refer [defn-spec map-difference]]
@@ -10,26 +10,28 @@
             [diplomacy.maps]))
 
 (defn run-test-case [orders-map message]
-  (let [actual-fails (failed-attacks (keys orders-map))
-        expected-fails (into {} (filter (comp not empty? second) orders-map))
+  (let [actual-judgments (attack-judgments (keys orders-map))
+        expected-judgments (into {}
+                                 (filter (comp not empty? second) orders-map))
         ;; We *cannot* use `clojure.data/diff` here because "Maps are subdiffed
         ;; where keys match and values differ". We want to output exactly what
         ;; orders failed, and not do any sort of analysis on how the failing
         ;; orders differed (the user can do that much better themselves).
-        incorrect-fails (map-difference actual-fails expected-fails)
-        missing-fails   (map-difference expected-fails actual-fails)]
-    (test/is (empty? incorrect-fails) message)
-    (test/is (empty? missing-fails) message)))
+        incorrect-judgments (map-difference actual-judgments expected-judgments)
+        missing-judgments   (map-difference expected-judgments actual-judgments)
+        ]
+    (test/is (empty? incorrect-judgments) message)
+    (test/is (empty? missing-judgments) message)))
 
 (test/deftest test-rulebook-sample-game
   (doseq [[time orders-map]
-          diplomacy.rulebook-sample-game/rulebook-sample-game-cases]
+          diplomacy.rulebook-sample-game/rulebook-sample-game-judgments]
     (run-test-case orders-map (str "Rulebook sample game, "
                                    (pr-str time)))))
 
 (test/deftest test-rulebook-diagrams
   (doseq [[diagram-number orders-map]
-          diplomacy.rulebook-diagrams/rulebook-diagrams]
+          diplomacy.rulebook-diagrams/rulebook-diagram-judgments]
     (run-test-case orders-map (str "Rulebook diagram "
                                    (pr-str diagram-number)))))
 

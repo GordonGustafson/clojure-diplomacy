@@ -81,7 +81,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec validation-failure-reasons
-  [::dt/dmap ::dt/order] ::dt/failure-reasons)
+  [::dt/dmap ::dt/order] (s/coll-of ::dt/validation-failure-reason))
 (defn validation-failure-reasons
   "The names (as a set of keywords) of the invalidation functions that declared
   `order` invalid in `diplomacy-map`."

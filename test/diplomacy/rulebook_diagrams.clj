@@ -1,7 +1,7 @@
 (ns diplomacy.rulebook-diagrams
   (:require [diplomacy.test-utils]))
 
-(def ^:private rulebook-diagrams-raw
+(def ^:private rulebook-diagram-judgments-raw
   {3 {[:italy :fleet :rom :attack :nap] #{}}
    4 {[:germany :army :ber :attack :sil] #{[true [:russia  :army :war :attack :sil] :attacked-same-destination]}
       [:russia  :army :war :attack :sil] #{[true [:germany :army :ber :attack :sil] :attacked-same-destination]}}
@@ -66,9 +66,9 @@
    ;;     [:russia :army :tyr :support :russia :army :boh :attack :mun] #{}}
    })
 
-(def rulebook-diagrams
-  (into {} (for [[k v] rulebook-diagrams-raw]
-             [k (diplomacy.test-utils/create-orders v)])))
+(def rulebook-diagram-judgments
+  (into {} (for [[k v] rulebook-diagram-judgments-raw]
+             [k (diplomacy.test-utils/create-judgments-map v)])))
 
    ;; have checked up to this line
 

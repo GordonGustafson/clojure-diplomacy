@@ -201,10 +201,37 @@
 ;;                                            validating and resolving orders ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; keyword representing why an order was invalid
-(s/def ::validation-failure-reason keyword?)
-;; conflicting order that caused the order to fail
-(s/def ::interfering-order ::order)
-(s/def ::failure-reason (s/or ::validation-failure-reason
-                              ::interfering-order))
-(s/def ::failure-reasons (s/coll-of ::failure-reasons))
+;; Keyword representing which order validation predicate failed.
+(s/def ::validation-failure-reason
+  #{:attacks-current-location?
+    :supports-wrong-order-type?
+    :uses-nonexistent-location?
+    :attacks-inaccessible-location?
+    :attacks-via-inaccessible-edge?
+    :supports-unsupportable-location?})
+
+(s/def ::bouncer ::order)
+
+;; A rule describing how a conflict between an attack and another order was
+;; resolved.
+(s/def ::rule
+  #{:destination-occupied
+    :attacked-same-destination
+    :swapped-places-without-convoy
+    :failed-to-leave-destination
+    :no-effect-on-dislodgers-province})
+
+;; Whether the bouncer bounces the attack.
+(s/def ::bounced-by-bouncer? boolean?)
+
+;; Map describing the conflict that some attacker had with `:bouncer`.
+;; `:bounced-by-bouncer?` is the outcome of that conflict (whether `:bouncer`
+;; bounced the attacker), and `:rule` is the rule by which the outcome was
+;; determined.
+(s/def ::judgment (s/keys :req-un [::bouncer
+                                   ::rule
+                                   ::bounced-by-bouncer?]))
+
+;; Map of *all* orders in a turn to the judgments for each order.
+(s/def ::judgments-map (s/map-of ::order
+                                 (s/coll-of ::judgment)))

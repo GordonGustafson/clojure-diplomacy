@@ -10,8 +10,8 @@
 
 (defn-spec run-test-cases
   [(fn-spec [::dt/order]
-            ::dt/failure-reasons)
-   (s/map-of ::dt/failure-reasons
+            (s/coll-of ::dt/validation-failure-reason))
+   (s/map-of (s/coll-of ::dt/validation-failure-reason)
              (s/coll-of ::dt/order))]
   any?)
 (defn run-test-cases [func test-case-dict]
@@ -116,9 +116,10 @@
 (deftest test-rulebook-sample-game-validation
   (run-test-cases validation-failure-reasons-in-classic-map
                   (orders-map-to-validation-test-cases
-                   diplomacy.rulebook-diagrams/rulebook-diagrams)))
+                   diplomacy.rulebook-diagrams/rulebook-diagram-judgments)))
 
 (deftest test-rulebook-diagrams-validation
   (run-test-cases validation-failure-reasons-in-classic-map
                   (orders-map-to-validation-test-cases
-                   diplomacy.rulebook-sample-game/rulebook-sample-game-cases)))
+                   diplomacy.rulebook-sample-game/rulebook-sample-game-judgments
+                   )))
