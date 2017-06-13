@@ -298,9 +298,9 @@
 ;; with the functional code in `attack-bounced-based-on-determining-rule?`.
 (defn attack-rulingo
   "Relation where the first four parameters are as described in
-  `determining-rule-for-conflicto`, and `bounces?` is whether `bouncer` bounces
-  `attack`."
-  [attack bouncer rule attacks-assumed-successful bounces?]
+  `determining-rule-for-conflicto`, and `bounced-by-bouncer?` is whether
+  `bouncer` bounces `attack`."
+  [attack bouncer rule attacks-assumed-successful bounced-by-bouncer?]
   (all
    (determining-rule-for-conflicto attack bouncer rule
                                    attacks-assumed-successful)
@@ -309,8 +309,8 @@
                  attack
                  bouncer
                  rule)
-     (== bounces? true)]
-    [(== bounces? false)])))
+     (== bounced-by-bouncer? true)]
+    [(== bounced-by-bouncer? false)])))
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
 ;;

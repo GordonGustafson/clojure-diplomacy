@@ -11,7 +11,9 @@
 (defn create-orders [orders]
   (into {} (for [[k v] orders]
              [(apply create-order k)
-              (set (map (fn [[bounces? order rule]]
-                          [bounces? (apply create-order order) rule])
+              (set (map (fn [[bounced-by-bouncer? bouncer rule]]
+                          [bounced-by-bouncer?
+                           (apply create-order bouncer)
+                           rule])
                         v))])))
 
