@@ -122,7 +122,8 @@
 (s/def ::assisted-order (s/and ::order
                                #(contains? #{:hold :attack} (:order-type %))))
 
-(s/def ::create-order-args
+;; More concise way of writing an order in Clojure.
+(s/def ::order-vector
   (s/cat :country    ::country
          :unit-type  ::unit-type
          :location   ::location
@@ -133,7 +134,7 @@
          ;; `s/exercise-fn` with this spec.
          ))
 
-(defn-spec create-order ::create-order-args ::order)
+(defn-spec create-order ::order-vector ::order)
 (defn create-order
   "A shorthand for writing orders in Clojure. Intended for 'order literals' in
   source code rather than taking user input, so errors are handled with
