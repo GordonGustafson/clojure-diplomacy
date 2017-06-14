@@ -14,6 +14,13 @@
 ;; TODO: can't cut own support
 ;; TODO: integrate coasts (colocated locations) into resolution??
 
+(defn judgmento
+  [judgment interferer rule interfered?]
+  "Relation that destructures `judgment`"
+  (== judgment {:interferer interferer
+                :rule rule
+                :interfered? interfered?}))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                       core.logic Utilities ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -295,12 +302,14 @@
 
 ;; This relation links the relational code in `determining-rule-for-conflicto`
 ;; with the functional code in `attack-bounced-based-on-determining-rule?`.
-(defn attack-rulingo
-  "Relation where the first four parameters are as described in
-  `determining-rule-for-conflicto`, and `bounced-by-bouncer?` is whether
-  `bouncer` bounces `attack`."
-  [attack bouncer rule attacks-assumed-successful bounced-by-bouncer?]
-  (all
+(defn attack-judgmento
+  "Relation where `judgment` is the judgment for `attack`, and
+  `attacks-assumed-successful` is a vector of attacks that will be assumed to
+  successfully vacate their destinations for the purposes of identifying
+  conflicts."
+  [attack judgment attacks-assumed-successful]
+  (fresh [bouncer rule bounced-by-bouncer?]
+   (judgmento judgment bouncer rule bounced-by-bouncer?)
    (determining-rule-for-conflicto attack bouncer rule
                                    attacks-assumed-successful)
    (conda
@@ -313,17 +322,18 @@
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
 ;;
-;; Convenience wrapper around `attack-rulingo`.
+;; Convenience wrapper around `attack-judgmento`.
 (defn ^:private attack-advancedo
   "Relation where `attack` succeeds"
   [attack attacks-assumed-successful]
-  (let [some-order-bounced-us-goal (attack-rulingo attack
-                                                   (lvar 'bouncer)
-                                                   (lvar 'rule)
-                                                   attacks-assumed-successful
-                                                   true)]
+  (let [some-order-bounced-us-goal
+        (attack-judgmento attack
+                          {:interferer (lvar 'bouncer)
+                           :rule (lvar 'rule)
+                           :interfered? true}
+                          attacks-assumed-successful)]
     ;; `attack` advances if *there does not exist an order that bounces it*.
-    ;; Changing `true` to `false` in the call to `attack-rulingo` gives a goal
+    ;; Changing `true` to `false` in the call to `attack-judgmento` gives a goal
     ;; that succeeds if *there exists an order that potentially bounced `attack`
     ;; but did not successfully bounce it* (that goal could still succeed if
     ;; some *other* order successfully bounced `attack`).
@@ -346,11 +356,8 @@
     (->>
      (run-db*-with-nested-runs
       orders-db
-      [attack bouncer rule bounced-by-bouncer?]
-        (attack-rulingo attack bouncer rule [] bounced-by-bouncer?))
-     (map (fn [[attack bouncer rule bounced-by-bouncer?]]
-            {attack #{{:interferer bouncer
-                       :rule rule
-                       :interfered? bounced-by-bouncer?}}}))
+      [attack judgment]
+      (attack-judgmento attack judgment []))
+     (map (fn [[attack judgment]] {attack #{judgment}}))
      (apply merge-with clojure.set/union))))
 
