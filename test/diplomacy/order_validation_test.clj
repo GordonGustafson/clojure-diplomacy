@@ -1,10 +1,11 @@
 (ns diplomacy.order-validation-test
   (:require [clojure.test :refer [deftest is]]
-            [diplomacy.datatypes :as dt :refer [create-order]]
+            [diplomacy.datatypes :as dt]
+            [diplomacy.orders :refer [create-order]]
             [diplomacy.order-validation :refer [validation-failure-reasons]]
             [diplomacy.rulebook-diagrams]
             [diplomacy.rulebook-sample-game]
-            [diplomacy.maps]
+            [diplomacy.map-data]
             [diplomacy.util :refer [defn-spec fn-spec]]
             [clojure.spec :as s]))
 
@@ -22,7 +23,7 @@
       (is (= expected-failure-reasons (func order))))))
 
 (def validation-failure-reasons-in-classic-map
-  (partial validation-failure-reasons diplomacy.maps/classic-map))
+  (partial validation-failure-reasons diplomacy.map-data/classic-map))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          Custom Test Cases ;;

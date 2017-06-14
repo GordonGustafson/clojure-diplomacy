@@ -1,13 +1,12 @@
 (ns diplomacy.resolution-test
   (:require [clojure.test :as test]
             [clojure.data]
-            [diplomacy.datatypes :as dt :refer [create-order]]
+            [diplomacy.datatypes :as dt]
             [diplomacy.resolution :refer [attack-judgments]]
             [diplomacy.rulebook-sample-game]
             [diplomacy.rulebook-diagrams]
             [diplomacy.util :refer [defn-spec map-difference]]
-            [clojure.spec :as s]
-            [diplomacy.maps]))
+            [clojure.spec :as s]))
 
 (defn run-test-case [orders-map message]
   (let [actual-judgments (attack-judgments (keys orders-map))

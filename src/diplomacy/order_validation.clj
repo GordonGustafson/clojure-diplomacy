@@ -1,5 +1,7 @@
 (ns diplomacy.order-validation
   (:require [diplomacy.datatypes :as dt]
+            [diplomacy.map-functions :as map]
+            [diplomacy.orders :as ord]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec :as s]))
 
@@ -18,20 +20,20 @@
 
 (defn attacks-current-location?
   [diplomacy-map {:keys [location destination] :as order}]
-  (and (dt/attack? order)
+  (and (ord/attack? order)
        (= location destination)))
 
 (defn supports-wrong-order-type?
   [diplomacy-map {:keys [assisted-order] :as order}]
-  (and (dt/support? order)
-       (not (or (dt/attack? assisted-order) (dt/hold? assisted-order)))))
+  (and (ord/support? order)
+       (not (or (ord/attack? assisted-order) (ord/hold? assisted-order)))))
 
 ;; (defn convoys-wrong-order-type? [{:keys [assisted-order] :as order}]
-;;   (and (dt/convoy? order)
-;;        (not (dt/attack? assisted-order))))
+;;   (and (ord/convoy? order)
+;;        (not (ord/attack? assisted-order))))
 
 ;; (defn convoy-with-wrong-unit-types? [{:keys [assisted-order] :as order}]
-;;   (and (dt/convoy? order)
+;;   (and (ord/convoy? order)
 ;;        (not (and (fleet? order) (army? assisted-order)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,19 +44,19 @@
   [diplomacy-map order]
   (let [locations-in-map (:location-accessibility diplomacy-map)]
     (not (every? (partial contains? locations-in-map)
-                 (dt/locations-used-by-order order)))))
+                 (ord/locations-used-by-order order)))))
 
 (defn attacks-inaccessible-location?
   [diplomacy-map {:keys [unit-type destination] :as order}]
-  (and (dt/attack? order)
-       (not (dt/location-accessible-to? diplomacy-map destination unit-type))))
+  (and (ord/attack? order)
+       (not (map/location-accessible-to? diplomacy-map destination unit-type))))
 
 ;; TODO(convoy): rethink this, since army attacks can use complete convoys
 (defn attacks-via-inaccessible-edge?
   [diplomacy-map {:keys [unit-type location destination]
                   :as order}]
-  (and (dt/attack? order)
-       (not (dt/edge-accessible-to? diplomacy-map
+  (and (ord/attack? order)
+       (not (map/edge-accessible-to? diplomacy-map
                                     location
                                     destination
                                     unit-type))))
@@ -62,19 +64,19 @@
 (defn supports-unsupportable-location?
   [diplomacy-map {:keys [location assisted-order unit-type]
                   :as supporting-order}]
-  (and (dt/support? supporting-order)
-       (let [supported-location (dt/next-intended-location assisted-order)
-             coloc-set (dt/colocation-set-for-location diplomacy-map
-                                                       supported-location)]
-         (not-any? #(dt/edge-accessible-to? diplomacy-map
+  (and (ord/support? supporting-order)
+       (let [supported-location (ord/next-intended-location assisted-order)
+             coloc-set (map/colocation-set-for-location diplomacy-map
+                                                        supported-location)]
+         (not-any? #(map/edge-accessible-to? diplomacy-map
                                             location
                                             %
                                             unit-type)
                    coloc-set))))
 
 ;; (defn convoys-from-coast? [diplomacy-map {:keys [location] :as order}]
-;;   (and (dt/convoy? order)
-;;        (dt/location-accessible-to? diplomacy-map location :army)))
+;;   (and (ord/convoy? order)
+;;        (map/location-accessible-to? diplomacy-map location :army)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                            aggregating validity predicates ;;

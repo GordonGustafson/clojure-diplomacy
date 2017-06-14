@@ -1,4 +1,4 @@
-(ns diplomacy.maps)
+(ns diplomacy.map-data)
 
 (defn make-unit
   [unit-type country]

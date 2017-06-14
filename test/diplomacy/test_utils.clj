@@ -1,5 +1,6 @@
 (ns diplomacy.test-utils
-  (:require [diplomacy.datatypes :as dt :refer [create-order]]
+  (:require [diplomacy.datatypes :as dt]
+            [diplomacy.orders :refer [create-order]]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec :as s]))
 

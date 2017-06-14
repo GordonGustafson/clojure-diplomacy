@@ -3,7 +3,6 @@
   (:use [clojure.core.logic])
   (:require [clojure.core.logic.pldb :as pldb]
             [diplomacy.datatypes :as dt]
-            [diplomacy.maps :refer [classic-map]]
             [diplomacy.util :refer [defn-spec]]
             [clojure.set]
             [clojure.spec :as s]))
