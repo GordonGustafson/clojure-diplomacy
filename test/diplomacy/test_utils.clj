@@ -6,7 +6,7 @@
 
 (defn-spec create-judgments-map
   [(s/map-of ::dt/order-vector
-             (s/coll-of (s/tuple ::bounced-by-bouncer?
+             (s/coll-of (s/tuple ::interfered?
                                  ::dt/order-vector
                                  ::rule)))]
   ::dt/judgments-map)
@@ -16,9 +16,9 @@
   and judgment vectors into a judgments map."
   (into {} (for [[k v] orders]
              [(apply create-order k)
-              (set (map (fn [[bounced-by-bouncer? bouncer rule]]
-                           {:bouncer (apply create-order bouncer)
+              (set (map (fn [[interfered? interferer rule]]
+                           {:interferer (apply create-order interferer)
                             :rule rule
-                            :bounced-by-bouncer? bounced-by-bouncer?})
+                            :interfered? interfered?})
                         v))])))
 

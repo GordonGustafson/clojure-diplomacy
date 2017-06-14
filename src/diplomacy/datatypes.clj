@@ -106,7 +106,7 @@
     :attacks-via-inaccessible-edge?
     :supports-unsupportable-location?})
 
-(s/def ::bouncer ::order)
+(s/def ::interferer ::order)
 
 ;; A rule describing how a conflict between an attack and another order was
 ;; resolved.
@@ -118,15 +118,15 @@
     :no-effect-on-dislodgers-province})
 
 ;; Whether the bouncer bounces the attack.
-(s/def ::bounced-by-bouncer? boolean?)
+(s/def ::interfered? boolean?)
 
-;; Map describing the conflict that some attacker had with `:bouncer`.
-;; `:bounced-by-bouncer?` is the outcome of that conflict (whether `:bouncer`
-;; bounced the attacker), and `:rule` is the rule by which the outcome was
+;; Map describing the conflict that some order had with `:interferer`.
+;; `:interfered?` is the outcome of that conflict (whether `:interfered?`
+;; counteracted the order), and `:rule` is the rule by which the outcome was
 ;; determined.
-(s/def ::judgment (s/keys :req-un [::bouncer
+(s/def ::judgment (s/keys :req-un [::interferer
                                    ::rule
-                                   ::bounced-by-bouncer?]))
+                                   ::interfered?]))
 
 ;; Map of *all* orders in a turn to the judgments for each order.
 (s/def ::judgments-map (s/map-of ::order

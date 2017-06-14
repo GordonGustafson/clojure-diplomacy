@@ -349,8 +349,8 @@
       [attack bouncer rule bounced-by-bouncer?]
         (attack-rulingo attack bouncer rule [] bounced-by-bouncer?))
      (map (fn [[attack bouncer rule bounced-by-bouncer?]]
-            {attack #{{:bouncer bouncer
+            {attack #{{:interferer bouncer
                        :rule rule
-                       :bounced-by-bouncer? bounced-by-bouncer?}}}))
+                       :interfered? bounced-by-bouncer?}}}))
      (apply merge-with clojure.set/union))))
 
