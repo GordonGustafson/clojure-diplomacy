@@ -103,19 +103,19 @@
                     :destination to})))
 
 (defn supported-order-matcheso
-  "Relation where supporting `supported-order` would support `order`. This is
-  more complex than whether they unify because supporting a hold can also
-  indicate supporting a unit that's supporting or convoying."
-  [supported-order order]
+  "Relation where supporting `supported` would support `order`. This is more
+  complex than whether they unify because supporting a hold can also indicate
+  supporting a unit that's supporting or convoying."
+  [supported order]
   (conde
    ;; pg 7: A unit ordered to move can only be supported by a support order that
    ;; matches the move the unit is trying to make..
-   [(== supported-order order)]
+   [(== supported order)]
    ;; pg 7: A unit not ordered to move can be supported by a support order that
    ;; only mentions its province.
    [(fresh [location]
-      (featurec supported-order {:order-type :hold
-                                 :location location})
+      (featurec supported {:order-type :hold
+                           :location location})
       (conde
        [(featurec order {:order-type :support
                          :location location})]
@@ -124,15 +124,15 @@
 
 (defn supporto
   "Relation where `order` attempts to remain at `location` while supporting
-  `supported-order`"
-  [order location supported-order]
+  `supported`"
+  [order location supported]
   (fresh [actual-order-supported]
     (raw-order order)
-    (raw-order supported-order)
+    (raw-order supported)
     (featurec order {:order-type :support
                      :location location
                      :assisted-order actual-order-supported})
-    (supported-order-matcheso actual-order-supported supported-order)))
+    (supported-order-matcheso actual-order-supported supported)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                 Resolving Diplomacy Orders ;;
@@ -141,11 +141,11 @@
 ;; 'advanced': attack succeeded
 
 (defn support-succeedso
-  "Relation where `supporting-order` successfully supports `supported-order`"
-  [supporting-order supported-order]
+  "Relation where `support` successfully supports `supported`"
+  [support supported]
   (fresh [supporter-location
           supported-location]
-    (supporto supporting-order supporter-location supported-order)
+    (supporto support supporter-location supported)
     ;; pg 10: Support is cut if the unit giving support is attacked from any
     ;; province except the one where support is being given
     ;;
@@ -165,8 +165,8 @@
                supporter-location)))))
 
 (defn supporter-count
-  "Number of units that successfully support `supported-order`. Non-relational."
-  [supported-order]
+  "Number of units that successfully support `supported`. Non-relational."
+  [supported]
   (when (empty? clojure.core.logic/*logic-dbs*)
     ;; This helps more than it hurts at the moment; it's hard to notice that
     ;; you're using an empty fact database.
@@ -174,8 +174,8 @@
             "nested run running with empty fact database!")))
   ;; TODO: can this `run*` return the same order multiple times? Shouldn't
   ;;       matter because of the call to `set` afterwards, but I'm curious.
-  (count (set (run* [supporting-order]
-                (support-succeedso supporting-order supported-order)))))
+  (count (set (run* [support]
+                (support-succeedso support supported)))))
 
 (defn has-fewer-or-equal-supporters
   "Whether `order-a` has fewer or equally many successful supporters as
@@ -216,7 +216,7 @@
      (conde
         [(holdo    bouncer to)
          (== rule :destination-occupied)]
-        [(supporto bouncer to (lvar 'supported-order))
+        [(supporto bouncer to (lvar 'supported))
          (== rule :destination-occupied)]
 
         [(fresh [other-from]
