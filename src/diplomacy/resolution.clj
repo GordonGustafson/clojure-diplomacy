@@ -159,10 +159,10 @@
     ;; support.
     (fail-if
      (fresh [cutting-attack-from]
-      (!= cutting-attack-from supported-location)
-      (attacko (lvar 'cutting-attack)
-               cutting-attack-from
-               supporter-location)))))
+       (!= cutting-attack-from supported-location)
+       (attacko (lvar 'cutting-attack)
+                cutting-attack-from
+                supporter-location)))))
 
 (defn supporter-count
   "Number of units that successfully support `supported`. Non-relational."
@@ -213,67 +213,67 @@
   [attack bouncer rule attacks-assumed-successful]
   (fresh [from to]
     (attacko attack from to)
-     (conde
-        [(holdo    bouncer to)
-         (== rule :destination-occupied)]
-        [(supporto bouncer to (lvar 'supported))
-         (== rule :destination-occupied)]
+    (conde
+     [(holdo    bouncer to)
+      (== rule :destination-occupied)]
+     [(supporto bouncer to (lvar 'supported))
+      (== rule :destination-occupied)]
 
-        [(fresh [other-from]
-           ;; make sure we don't bounce ourselves because we're attacking the
-           ;; same place as ourselves.
-           (!= other-from from)
-           (attacko bouncer other-from to)
-           ;; pg 9: "A dislodged unit, even with support, has no effect on the
-           ;; province that dislodged it" (see Diagram 13).
-           ;;
-           ;; from                    to                             other-from
-           ;; ------------------------------------------------------------------
-           ;; A_rus --attack--> B_rus ---vacating-to---1sup--> C_tur
-           ;;                         <--bouncer-------0sup--
-           ;;
-           ;; B_rus (has 1 support) dislodges C_tur (has 0 support). The fact
-           ;; that C_tur attacked where B_rus came from does not prevent A_rus
-           ;; from moving into where B_rus came from, because a dislodged unit
-           ;; has no effect on the province that dislodged it.
-           (conda
-            [(fresh [vacating-to]
-               (attacko vacating-to to other-from)
-               ;; I don't think we should pass `attacks-assumed-successful` here
-               ;; because this `attack-advanced` can do its job without our help.
-               (attack-advancedo vacating-to []))
-             (== rule :no-effect-on-dislodgers-province)]
-            ;; Otherwise, this is a normal conflict.
-            [(== rule :attacked-same-destination)]))]
+     [(fresh [other-from]
+        ;; make sure we don't bounce ourselves because we're attacking the
+        ;; same place as ourselves.
+        (!= other-from from)
+        (attacko bouncer other-from to)
+        ;; pg 9: "A dislodged unit, even with support, has no effect on the
+        ;; province that dislodged it" (see Diagram 13).
+        ;;
+        ;; from                    to                             other-from
+        ;; ------------------------------------------------------------------
+        ;; A_rus --attack--> B_rus ---vacating-to---1sup--> C_tur
+        ;;                         <--bouncer-------0sup--
+        ;;
+        ;; B_rus (has 1 support) dislodges C_tur (has 0 support). The fact
+        ;; that C_tur attacked where B_rus came from does not prevent A_rus
+        ;; from moving into where B_rus came from, because a dislodged unit
+        ;; has no effect on the province that dislodged it.
+        (conda
+         [(fresh [vacating-to]
+            (attacko vacating-to to other-from)
+            ;; I don't think we should pass `attacks-assumed-successful` here
+            ;; because this `attack-advanced` can do its job without our help.
+            (attack-advancedo vacating-to []))
+          (== rule :no-effect-on-dislodgers-province)]
+         ;; Otherwise, this is a normal conflict.
+         [(== rule :attacked-same-destination)]))]
 
-        [(attacko bouncer to from)
-         ;; TODO: use :swapped-places-with-convoy when appropriate.
-         (== rule :swapped-places-without-convoy)]
+     [(attacko bouncer to from)
+      ;; TODO: use :swapped-places-with-convoy when appropriate.
+      (== rule :swapped-places-without-convoy)]
 
-        [(fresh [other-to new-attacks-assumed-successful]
-           ;; Orders that swap places with `attack` are handled in a different
-           ;; case.
-           (!= other-to from)
-           (attacko bouncer to other-to)
-           ;; Assume this attack advanced
-           (conso attack attacks-assumed-successful
-                  new-attacks-assumed-successful)
-           ;; Don't consider `bouncer` to be a potential bouncer if we were told
-           ;; to assume it successfully vacated our destination, or if it did so
-           ;; under the assumption that we successfully vacated our destination.
-           ;; We could unify `(== rule :successfully-left-destination)` instead
-           ;; of failing if we wanted to produce conflict-resolution rules for
-           ;; all orders that *attempted* to leave our destination, but only
-           ;; producing rules for those that *fail* to leave our destination
-           ;; reduces noise (it's a no-conflict situation that's easy to
-           ;; identify and resolve, so it's not worth having the rules engine
-           ;; explain what happened).
-           (fail-if (membero bouncer attacks-assumed-successful))
-           (fail-if (attack-advancedo bouncer
-                                      new-attacks-assumed-successful))
-           ;; If the `fail-if` goals didn't fail, `bouncer` must have failed to
-           ;; leave our destination.
-           (== rule :failed-to-leave-destination))])))
+     [(fresh [other-to new-attacks-assumed-successful]
+        ;; Orders that swap places with `attack` are handled in a different
+        ;; case.
+        (!= other-to from)
+        (attacko bouncer to other-to)
+        ;; Assume this attack advanced
+        (conso attack attacks-assumed-successful
+               new-attacks-assumed-successful)
+        ;; Don't consider `bouncer` to be a potential bouncer if we were told
+        ;; to assume it successfully vacated our destination, or if it did so
+        ;; under the assumption that we successfully vacated our destination.
+        ;; We could unify `(== rule :successfully-left-destination)` instead
+        ;; of failing if we wanted to produce conflict-resolution rules for
+        ;; all orders that *attempted* to leave our destination, but only
+        ;; producing rules for those that *fail* to leave our destination
+        ;; reduces noise (it's a no-conflict situation that's easy to
+        ;; identify and resolve, so it's not worth having the rules engine
+        ;; explain what happened).
+        (fail-if (membero bouncer attacks-assumed-successful))
+        (fail-if (attack-advancedo bouncer
+                                   new-attacks-assumed-successful))
+        ;; If the `fail-if` goals didn't fail, `bouncer` must have failed to
+        ;; leave our destination.
+        (== rule :failed-to-leave-destination))])))
 
 (defn attack-bounced-based-on-determining-rule?
   "Function that returns whether `bouncer` bounced `attack` due to `rule`.
@@ -309,16 +309,16 @@
   conflicts."
   [attack judgment attacks-assumed-successful]
   (fresh [bouncer rule bounced-by-bouncer?]
-   (judgmento judgment bouncer rule bounced-by-bouncer?)
-   (determining-rule-for-conflicto attack bouncer rule
-                                   attacks-assumed-successful)
-   (conda
-    [(multi-pred attack-bounced-based-on-determining-rule?
-                 attack
-                 bouncer
-                 rule)
-     (== bounced-by-bouncer? true)]
-    [(== bounced-by-bouncer? false)])))
+    (judgmento judgment bouncer rule bounced-by-bouncer?)
+    (determining-rule-for-conflicto attack bouncer rule
+                                    attacks-assumed-successful)
+    (conda
+     [(multi-pred attack-bounced-based-on-determining-rule?
+                  attack
+                  bouncer
+                  rule)
+      (== bounced-by-bouncer? true)]
+     [(== bounced-by-bouncer? false)])))
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
 ;;

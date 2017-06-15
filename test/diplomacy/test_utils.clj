@@ -17,8 +17,8 @@
   (into {} (for [[k v] orders]
              [(apply create-order k)
               (set (map (fn [[interfered? interferer rule]]
-                           {:interferer (apply create-order interferer)
-                            :rule rule
-                            :interfered? interfered?})
+                          {:interferer (apply create-order interferer)
+                           :rule rule
+                           :interfered? interfered?})
                         v))])))
 

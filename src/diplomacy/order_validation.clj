@@ -57,9 +57,9 @@
                   :as order}]
   (and (ord/attack? order)
        (not (map/edge-accessible-to? diplomacy-map
-                                    location
-                                    destination
-                                    unit-type))))
+                                     location
+                                     destination
+                                     unit-type))))
 
 (defn supports-unsupportable-location?
   [diplomacy-map {:keys [location assisted-order unit-type]
@@ -69,9 +69,9 @@
              coloc-set (map/colocation-set-for-location diplomacy-map
                                                         supported-location)]
          (not-any? #(map/edge-accessible-to? diplomacy-map
-                                            location
-                                            %
-                                            unit-type)
+                                             location
+                                             %
+                                             unit-type)
                    coloc-set))))
 
 ;; (defn convoys-from-coast? [diplomacy-map {:keys [location] :as order}]

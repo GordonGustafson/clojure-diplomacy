@@ -77,7 +77,7 @@
                                             :attack  #{:destination}
                                             :support #{:assisted-order}
                                             :convoy  #{:assisted-order}))]
-                 (= (set (keys order)) expected-keys)))))
+             (= (set (keys order)) expected-keys)))))
 (s/def ::assisted-order (s/and ::order
                                #(contains? #{:hold :attack} (:order-type %))))
 
