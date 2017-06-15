@@ -75,15 +75,6 @@
 ;; Puts an order dictionary directly into the fact database.
 (pldb/db-rel raw-order order-map)
 
-(defmacro fresh-order
-  "Like fresh, but all of the fresh variables are constrained with `raw-order`"
-  [name-vector & body]
-  (let [raw-order-constraints (map (fn [name] `(raw-order ~name))
-                                   name-vector)]
-    `(fresh ~name-vector
-       ~@raw-order-constraints
-       ~@body)))
-
 (defn holdo
   "Relation where `order` attempts to hold at `location`"
   [order location]
