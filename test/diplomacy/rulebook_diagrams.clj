@@ -46,24 +46,23 @@
        [:russia :army :ser :support :russia :army :rum :attack :bul] #{}
        [:russia :army :sev :attack :rum] #{[false [:turkey :army :bul :attack :rum] :no-effect-on-dislodgers-province]}}
    15 {[:germany :army :pru :attack :war] #{[true [:russia :army :war :hold] :destination-occupied]}
-       [:germany :army :sil :support :germany :army :pru :attack :war] #{}
+       [:germany :army :sil :support :germany :army :pru :attack :war] #{[true [:russia :army :boh :attack :sil] :attacked]}
        [:russia :army :war :hold] #{}
        [:russia :army :boh :attack :sil] #{[true [:germany :army :sil :support :germany :army :pru :attack :war] :destination-occupied]}}
-
-   ;; 16 {[:germany :army :pru :attack :war] #{}
-   ;;     [:germany :army :sil :support :germany :army :pru :attack :war] #{}
-   ;;     [:russia :army :war :attack :sil] #{[true [:germany :army :sil :support :germany :army :pru :attack :war] rule]}}
-   ;; 17 {[:germany :fleet :ber :attack :pru] #{[true [:russia :fleet :bal :attack :pru] rule]}
-   ;;     [:germany :army :sil :support :germany :army :ber :attack :pru] #{}
-   ;;     [:russia :army :pru :attack :sil] #{}
-   ;;     [:russia :army :war :support :russia :army :pru :attack :sil] #{}
-   ;;     [:russia :fleet :bal :attack :pru] #{[true [:germany :fleet :ber :attack :pru] rule]}}
-   ;; 18 {[:germany :army :ber :hold] #{}
-   ;;     [:germany :army :mun :attack :sil] #{[true [:russia :army :sil :support :russia :army :pru :attack :ber] rule]}
-   ;;     [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :hold] rule]}
-   ;;     [:russia :army :sil :support :russia :army :pru :attack :ber] #{}
-   ;;     [:russia :army :boh :attack :mun] #{}
-   ;;     [:russia :army :tyr :support :russia :army :boh :attack :mun] #{}}
+   16 {[:germany :army :pru :attack :war] #{[false [:russia :army :war :attack :sil] :failed-to-leave-destination]}
+       [:germany :army :sil :support :germany :army :pru :attack :war] #{[false [:russia :army :war :attack :sil] :attacked-from-supported-location-but-not-dislodged]}
+       [:russia :army :war :attack :sil] #{[true [:germany :army :sil :support :germany :army :pru :attack :war] :destination-occupied]}}
+   17 {[:germany :fleet :ber :attack :pru] #{[true [:russia :fleet :bal :attack :pru] :attacked-same-destination]}
+       [:germany :army :sil :support :germany :army :ber :attack :pru] #{[true [:russia :army :pru :attack :sil] :dislodged]}
+       [:russia :army :pru :attack :sil] #{[false [:germany :army :sil :support :germany :army :ber :attack :pru] :destination-occupied]}
+       [:russia :army :war :support :russia :army :pru :attack :sil] #{}
+       [:russia :fleet :bal :attack :pru] #{[true [:germany :fleet :ber :attack :pru] :attacked-same-destination]}}
+   18 {[:germany :army :ber :hold] #{}
+       [:germany :army :mun :attack :sil] #{[true [:russia :army :sil :support :russia :army :pru :attack :ber] :destination-occupied]}
+       [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :hold] :destination-occupied]}
+       [:russia :army :sil :support :russia :army :pru :attack :ber] #{[true [:germany :army :mun :attack :sil] :attacked]}
+       [:russia :army :boh :attack :mun] #{[false [:germany :army :mun :attack :sil] :failed-to-leave-destination]}
+       [:russia :army :tyr :support :russia :army :boh :attack :mun] #{}}
    })
 
 (def rulebook-diagram-judgments

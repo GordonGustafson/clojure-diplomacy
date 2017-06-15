@@ -10,7 +10,6 @@
 ;; TODO: convoys
 ;; TODO: dislodging convoys
 ;; TODO: can't dislodge own units
-;; TODO: failure reasons for support orders
 ;; TODO: can't cut own support
 ;; TODO: integrate coasts (colocated locations) into resolution??
 
@@ -103,36 +102,45 @@
                     :destination to})))
 
 (defn supported-order-matcheso
-  "Relation where supporting `supported` would support `order`. This is more
-  complex than whether they unify because supporting a hold can also indicate
-  supporting a unit that's supporting or convoying."
-  [supported order]
+  "Relation where supporting `supported-order` would give support into
+  `supported-location` for `order` . This requires some logic because supporting
+  a hold can also indicate supporting a unit that's supporting or convoying."
+  [supported-order order supported-location]
   (conde
    ;; pg 7: A unit ordered to move can only be supported by a support order that
-   ;; matches the move the unit is trying to make..
-   [(== supported order)]
+   ;; matches the move the unit is trying to make.
+   [(fresh [attack-from]
+      (featurec supported-order {:order-type :attack
+                                 :location attack-from
+                                 :destination supported-location})
+      (featurec order {:order-type :attack
+                       :location attack-from
+                       :destination supported-location}))]
    ;; pg 7: A unit not ordered to move can be supported by a support order that
    ;; only mentions its province.
-   [(fresh [location]
-      (featurec supported {:order-type :hold
-                           :location location})
-      (conde
-       [(featurec order {:order-type :support
-                         :location location})]
-       [(featurec order {:order-type :convoy
-                         :location location})]))]))
+   [(featurec supported-order {:order-type :hold
+                               :location supported-location})
+    (conde
+     [(featurec order {:order-type :hold
+                       :location supported-location})]
+     [(featurec order {:order-type :support
+                       :location supported-location})]
+     [(featurec order {:order-type :convoy
+                       :location supported-location})])]))
 
 (defn supporto
-  "Relation where `order` attempts to remain at `location` while supporting
-  `supported`"
-  [order location supported]
+  "Relation where `order` attempts to remain at `location` while supporting for
+  `supported-order` into `supported-location`."
+  [order location supported-order supported-location]
   (fresh [actual-order-supported]
     (raw-order order)
-    (raw-order supported)
+    (raw-order supported-order)
     (featurec order {:order-type :support
                      :location location
                      :assisted-order actual-order-supported})
-    (supported-order-matcheso actual-order-supported supported)))
+    (supported-order-matcheso actual-order-supported
+                              supported-order
+                              supported-location)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                 Resolving Diplomacy Orders ;;
@@ -140,29 +148,67 @@
 ;; 'bounced': attack failed due to conflict with another unit.
 ;; 'advanced': attack succeeded
 
+(declare attack-advancedo)
+
+;; TODO: pg 15: A country can't support the dislodgement of one of its own
+;; units.
+;;
+;; TODO: pg 16: An attack by a country on one of its own units doesn't cut
+;; support.
+(defn support-judgmento
+  "Relation where `judgment` is the judgment for `support'"
+  [support judgment]
+  (fresh [supporter-location supported-location
+          cutter rule support-cut?
+          cutter-from]
+    (supporto support
+              supporter-location
+              (lvar 'supported-order)
+              supported-location)
+    (judgmento judgment cutter rule support-cut?)
+    (attacko cutter cutter-from supporter-location)
+
+    (conde
+     ;; pg 12: "Support is cut if the unit giving support is attacked from any
+     ;; province except the one where support is being given."
+     [(!= cutter-from supported-location)
+      (== rule :attacked)
+      (== support-cut? true)]
+
+     [(== cutter-from supported-location)
+      (conda
+       ;; pg 12: "Support is cut if the unit giving support is dislodged."
+       ;;
+       ;; Only evaluate this goal when it's outcome determines `support-cut?`.
+       ;; We could evaluate it first in this relation to get different results
+       ;; for `rule`, but at the moment that causes a stackoverflow. If we want
+       ;; different `rule` to be reported, such as `:dislodged` when the
+       ;; supporter is dislodged from *anywhere*, that can be computed after
+       ;; we're done figuring out the actual results.
+       ;;
+       ;; TODO: make sure this doesn't cause termination issues.
+       [(attack-advancedo cutter [])
+        (== rule :dislodged)
+        (== support-cut? true)]
+
+       [(== rule :attacked-from-supported-location-but-not-dislodged)
+        (== support-cut? false)])])))
+
+;; Convenience wrapper around `support-judgmento`.
 (defn support-succeedso
-  "Relation where `support` successfully supports `supported`"
-  [support supported]
-  (fresh [supporter-location
-          supported-location]
-    (supporto support supporter-location supported)
-    ;; pg 10: Support is cut if the unit giving support is attacked from any
-    ;; province except the one where support is being given
-    ;;
-    ;; TODO: pg 12: Support is cut if the unit giving support is dislodged (even
-    ;; if it is dislodged from the province into which it's giving support).
-    ;;
-    ;; TODO: pg 15: A country can't support the dislodgement of one of its own
-    ;; units.
-    ;;
-    ;; TODO: pg 16: An attack by a country on one of its own units doesn't cut
-    ;; support.
-    (fail-if
-     (fresh [cutting-attack-from]
-       (!= cutting-attack-from supported-location)
-       (attacko (lvar 'cutting-attack)
-                cutting-attack-from
-                supporter-location)))))
+  "Relation where `support` successfully supports its supported order."
+  [support]
+  (let [some-order-cut-us-goal
+        (support-judgmento support
+                           {:interferer (lvar 'cutter)
+                            :rule (lvar 'rule)
+                            :interfered? true})]
+    ;; `support` succeeds if *there does not exist an order that cuts it*.
+    ;; Changing `true` to `false` in the call to `support-judgmento` gives a
+    ;; goal that succeeds if *there exists an order that potentially cut
+    ;; `support` but did not successfully cut it* (that goal could still succeed
+    ;; if some *other* order successfully cut `support`).
+    (fail-if some-order-cut-us-goal)))
 
 (defn supporter-count
   "Number of units that successfully support `supported`. Non-relational."
@@ -175,7 +221,11 @@
   ;; TODO: can this `run*` return the same order multiple times? Shouldn't
   ;;       matter because of the call to `set` afterwards, but I'm curious.
   (count (set (run* [support]
-                (support-succeedso support supported)))))
+                (supporto support
+                          (lvar 'location)
+                          supported
+                          (lvar 'supported-location))
+                (support-succeedso support)))))
 
 (defn has-fewer-or-equal-supporters
   "Whether `order-a` has fewer or equally many successful supporters as
@@ -188,8 +238,6 @@
   "Whether `order` has no successful supporters. Non-relational."
   [order]
   (zero? (supporter-count order)))
-
-(declare attack-advancedo)
 
 (defn ^:private determining-rule-for-conflicto
   "Relation where:
@@ -216,7 +264,7 @@
     (conde
      [(holdo    bouncer to)
       (== rule :destination-occupied)]
-     [(supporto bouncer to (lvar 'supported))
+     [(supporto bouncer to (lvar 'supported-order) (lvar 'supported-location))
       (== rule :destination-occupied)]
 
      [(fresh [other-from]
@@ -343,12 +391,13 @@
 ;;                                      Public Interface for Order Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec attack-judgments
+(defn-spec order-judgments
   [(s/coll-of ::dt/order)]
   (s/map-of ::dt/order (s/coll-of ::judgment)))
-(defn attack-judgments
-  "A map from each element of `orders` to the set of orders that may interfere
-  with it (empty-set if the order succeeded)"
+(defn order-judgments
+  "A map from each element of `orders` to the set of judgments that apply to it
+  (the orders that may interfere with it, whether they successfully interfered,
+  and the rule that determined that result)."
   [orders]
   (let [orders-db (->> orders
                        (map (fn [order] [raw-order order]))
@@ -356,8 +405,10 @@
     (->>
      (run-db*-with-nested-runs
       orders-db
-      [attack judgment]
-      (attack-judgmento attack judgment []))
+      [order judgment]
+      (conde
+       [(attack-judgmento order judgment [])]
+       [(support-judgmento order judgment)]))
      (map (fn [[attack judgment]] {attack #{judgment}}))
      (apply merge-with clojure.set/union))))
 

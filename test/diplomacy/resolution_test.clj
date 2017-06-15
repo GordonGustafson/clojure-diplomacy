@@ -2,14 +2,14 @@
   (:require [clojure.test :as test]
             [clojure.data]
             [diplomacy.datatypes :as dt]
-            [diplomacy.resolution :refer [attack-judgments]]
+            [diplomacy.resolution :refer [order-judgments]]
             [diplomacy.rulebook-sample-game]
             [diplomacy.rulebook-diagrams]
             [diplomacy.util :refer [defn-spec map-difference]]
             [clojure.spec :as s]))
 
 (defn run-test-case [orders-map message]
-  (let [actual-judgments (attack-judgments (keys orders-map))
+  (let [actual-judgments (order-judgments (keys orders-map))
         expected-judgments (into {}
                                  (filter (comp not empty? second) orders-map))
         ;; We *cannot* use `clojure.data/diff` here because "Maps are subdiffed

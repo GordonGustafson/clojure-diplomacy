@@ -52,7 +52,7 @@
     [:turkey :army :bul :attack :ser] #{[true [:austria :army :bud :attack :ser] :attacked-same-destination]}
     ;; backed up
     [:turkey :army :con :attack :bul] #{[true [:turkey :army :bul :attack :ser] :failed-to-leave-destination]}
-    [:turkey :fleet :ank :attack :bla] nil}
+    [:turkey :fleet :ank :attack :bla] #{}}
    {:year 1902 :season :spring}
    {[:austria :army :tri :attack :bud] #{[true [:austria :army :vie :attack :bud] :attacked-same-destination]
                                          [true [:russia :army :gal :attack :bud] :attacked-same-destination]}
@@ -70,7 +70,7 @@
     [:england :fleet :bar :support :england :army :nwy :attack :stp] #{}
     ;; backed up
     [:england :fleet :edi :attack :nth] #{[true [:england :fleet :nth :attack :nwy] :failed-to-leave-destination]}
-    [:france :army :bur :support :france :fleet :pic :attack :bel] #{}
+    [:france :army :bur :support :france :fleet :pic :attack :bel] #{[true [:germany :army :mun :attack :bur] :attacked]}
     [:france :army :por :attack :spa] #{}
     [:france :fleet :pic :attack :bel] #{[true [:germany :army :hol :attack :bel] :attacked-same-destination]}
     [:france :fleet :mar :hold] #{}
@@ -94,7 +94,7 @@
     [:turkey :army :bul :attack :rum] #{[true [:russia :fleet :rum :hold] :destination-occupied]}
     [:turkey :army :con :attack :bul] #{[true [:turkey :army :bul :attack :rum] :failed-to-leave-destination]}
     [:turkey :army :smy :attack :arm] #{}
-    [:turkey :fleet :bla :support :turkey :army :bul :attack :rum] nil}
+    [:turkey :fleet :bla :support :turkey :army :bul :attack :rum] #{}}
    {:year 1902 :season :fall}
    {
     [:austria :army :vie :attack :gal] #{[true [:russia :army :gal :support :russia :fleet :rum :hold] :destination-occupied]}
@@ -108,10 +108,10 @@
     [:france :army :bur :attack :bel] #{[true [:germany :army :bel :support :germany :army :ruh :attack :bur] :destination-occupied]}
     [:france :fleet :pic :support :france :army :bur :attack :bel] #{}
     [:france :army :spa :support :france :fleet :mar :hold] #{}
-    [:france :fleet :mar :support :france :army :spa :hold] #{}
+    [:france :fleet :mar :support :france :army :spa :hold] #{[true [:italy :army :pie :attack :mar] :attacked]}
     [:germany :army :ruh :attack :bur] #{[false [:france :army :bur :attack :bel] :failed-to-leave-destination]}
     [:germany :army :mun :support :germany :army :ruh :attack :bur] #{}
-    [:germany :army :bel :support :germany :army :ruh :attack :bur] #{}
+    [:germany :army :bel :support :germany :army :ruh :attack :bur] #{[false [:france :army :bur :attack :bel] :attacked-from-supported-location-but-not-dislodged]}
     [:germany :fleet :den :attack :swe] #{[true [:russia :fleet :swe :support :russia :army :stp :attack :nwy] :destination-occupied]}
     [:germany :fleet :hol :support :germany :army :bel :hold] #{}
     ;; backed up
@@ -121,10 +121,10 @@
     [:italy :fleet :tyn :attack :gol] #{}
     [:russia :army :stp :attack :nwy] #{[true [:england :army :nwy :attack :stp] :swapped-places-without-convoy]
                                         [true [:england :fleet :nth :attack :nwy] :attacked-same-destination]}
-    [:russia :fleet :swe :support :russia :army :stp :attack :nwy] #{}
-    [:russia :fleet :rum :support :russia :army :sev :hold] #{}
-    [:russia :army :sev :support :russia :fleet :rum :hold] #{}
-    [:russia :army :gal :support :russia :fleet :rum :hold] #{}
+    [:russia :fleet :swe :support :russia :army :stp :attack :nwy] #{[true [:germany :fleet :den :attack :swe] :attacked]}
+    [:russia :fleet :rum :support :russia :army :sev :hold] #{[true [:turkey :army :bul :attack :rum] :attacked]}
+    [:russia :army :sev :support :russia :fleet :rum :hold] #{[true [:turkey :army :arm :attack :sev] :attacked]}
+    [:russia :army :gal :support :russia :fleet :rum :hold] #{[true [:austria :army :vie :attack :gal] :attacked]}
     [:russia :army :ukr :support :russia :army :sev :hold] #{}
     [:turkey :army :bul :attack :rum] #{[false [:russia :fleet :rum :support :russia :army :sev :hold] :destination-occupied]}
     [:turkey :army :con :attack :bul] #{}
