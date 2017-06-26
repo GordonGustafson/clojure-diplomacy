@@ -192,19 +192,22 @@ F Western Mediterranean - Spain(sc)
 See issue 4.B.4. If it is required that the coast matches, then the support of the French fleet in the Mid-Atlantic Ocean fails and that the Italian fleet in the Western Mediterranean moves successfully. Some adjudicators ignores the coasts in support orders. In that case, the move of the Italian fleet bounces. <i>I prefer that the support fails and that the Italian fleet in the  Western Mediterranean moves successfully.</i>
 <h4>6.B.10. TEST CASE, UNIT ORDERED WITH WRONG COAST</h4>
 A player might specify the wrong coast for the ordered unit. France has a fleet on the south coast of Spain and orders:
-<pre>France:
+<pre>
+France:
 F Spain(nc) - Gulf of Lyon
 </pre>
 If only perfect orders are accepted, then the move will fail, but since the coast for the ordered unit has no purpose, it might also be ignored (see issue 4.B.5). <i>I prefer that a move will be attempted.</i>
 <h4>6.B.11. TEST CASE, COAST CAN NOT BE ORDERED TO CHANGE</h4>
 The coast can not change by just ordering the other coast. France has a fleet on the north coast of Spain and orders:
-<pre>France:
+<pre>
+France:
 F Spain(sc) - Gulf of Lyon
 </pre>
 The move fails.
 <h4>6.B.12. TEST CASE, ARMY MOVEMENT WITH COASTAL SPECIFICATION</h4>
 For armies the coasts are irrelevant:
-<pre>France:
+<pre>
+France:
 A Gascony - Spain(nc)
 </pre>
 If only perfect orders are accepted, then the move will fail. But it is also possible that coasts are ignored in this case and a move will be attempted (see issue 4.B.6). <i>I prefer that a move will be attempted.</i>
