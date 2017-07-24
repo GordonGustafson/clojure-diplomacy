@@ -143,8 +143,14 @@ def line_to_order_vector(line, raw_location_to_country_map):
     if order_type == "hold":
         return base_order_vector
     elif order_type == "attack":
-        # destination is everything after the order type.
-        raw_destination = " ".join(rest_of_line)
+        # `rest_of_line` contains the destination and an optional ("via",
+        # "Convoy") suffix.
+        # TODO: Currently the order representation in the Clojure code doesn't
+        # permit specifying "via Convoy", so we ignore it here.
+        is_via_convoy = (len(rest_of_line) > 2
+                         and rest_of_line[-2:] == ("via", "Convoy"))
+        raw_destination = (" ".join(rest_of_line[:-2]) if is_via_convoy
+                           else " ".join(rest_of_line))
         return base_order_vector + [TRANSLATE_LOCATION[raw_destination]]
     elif order_type in ["support", "convoy"]:
         assisted_order_vector = (
