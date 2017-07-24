@@ -138,7 +138,7 @@ def line_to_order_vector(line, raw_location_to_country_map):
     location   = TRANSLATE_LOCATION[raw_location]
     order_type = TRANSLATE_ORDER_TYPE[raw_order_type]
 
-    base_order_vector = [country, unit_type, location, order_type]
+    base_order_vector = (country, unit_type, location, order_type)
 
     if order_type == "hold":
         return base_order_vector
@@ -151,7 +151,7 @@ def line_to_order_vector(line, raw_location_to_country_map):
                          and rest_of_line[-2:] == ("via", "Convoy"))
         raw_destination = (" ".join(rest_of_line[:-2]) if is_via_convoy
                            else " ".join(rest_of_line))
-        return base_order_vector + [TRANSLATE_LOCATION[raw_destination]]
+        return base_order_vector + (TRANSLATE_LOCATION[raw_destination],)
     elif order_type in ["support", "convoy"]:
         assisted_order_vector = (
             line_to_order_vector(rest_of_line, raw_location_to_country_map))
