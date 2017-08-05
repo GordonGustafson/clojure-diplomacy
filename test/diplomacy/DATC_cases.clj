@@ -44,7 +44,7 @@
 :explanation "Move fails. An army can go from Rome to Venice, but a fleet can not."}
 "6.A.10. SUPPORT ON UNREACHABLE DESTINATION NOT POSSIBLE"
 {:summary "The destination of the move that is supported must be reachable by the supporting unit."
-:judgments-map {[:austria :army :ven :hold] #{[:interfered? :interferer :rule]}
+:judgments-map {[:austria :army :ven :hold] #{}
 [:italy :fleet :rom :support :italy :army :apu :attack :ven] #{[:interfered? :interferer :rule]}
 [:italy :army :apu :attack :ven] #{[:interfered? :interferer :rule]}}
 :explanation "The support of Rome is illegal, because Venice can not be reached from Rome by a fleet. Venice is not dislodged."}
@@ -82,14 +82,14 @@
 {:summary "A fleet can not give support to an area that can not be reached from the current coast of the fleet."
 :judgments-map {[:france :fleet :mar :attack :gol] #{[:interfered? :interferer :rule]}
 [:france :fleet :spa-nc :support :france :fleet :mar :attack :gol] #{[:interfered? :interferer :rule]}
-[:italy :fleet :gol :hold] #{[:interfered? :interferer :rule]}}
+[:italy :fleet :gol :hold] #{}}
 :explanation "The Gulf of Lyon can not be reached from the North Coast of Spain. Therefore, the support of Spain is invalid and the fleet in the Gulf of Lyon is not dislodged."}
 "6.B.6. SUPPORT CAN BE CUT WITH OTHER COAST"
 {:summary "Support can be cut from the other coast."
 :judgments-map {[:england :fleet :iri :support :england :fleet :nat :attack :mid] #{[:interfered? :interferer :rule]}
 [:england :fleet :nat :attack :mid] #{[:interfered? :interferer :rule]}
 [:france :fleet :spa-nc :support :france :fleet :mid :hold] #{[:interfered? :interferer :rule]}
-[:france :fleet :mid :hold] #{[:interfered? :interferer :rule]}
+[:france :fleet :mid :hold] #{}
 [:italy :fleet :gol :attack :spa-sc] #{[:interfered? :interferer :rule]}}
 :explanation "The Italian fleet in the Gulf of Lyon will cut the support in Spain. That means that the French fleet in the Mid Atlantic Ocean will be dislodged by the English fleet in the North Atlantic Ocean."}
 "6.B.7. SUPPORTING WITH UNSPECIFIED COAST"
@@ -192,7 +192,7 @@
 {:summary "The most simple support to hold order."
 :judgments-map {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
 [:austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
-[:italy :army :ven :hold] #{[:interfered? :interferer :rule]}
+[:italy :army :ven :hold] #{}
 [:italy :army :tyr :support :italy :army :ven :hold] #{[:interfered? :interferer :rule]}}
 :explanation "The support of Tyrolia prevents that the army in Venice is dislodged. The army in Trieste will not move."}
 "6.D.2. A MOVE CUTS SUPPORT ON HOLD"
@@ -200,14 +200,14 @@
 :judgments-map {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
 [:austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
 [:austria :army :vie :attack :tyr] #{[:interfered? :interferer :rule]}
-[:italy :army :ven :hold] #{[:interfered? :interferer :rule]}
+[:italy :army :ven :hold] #{}
 [:italy :army :tyr :support :italy :army :ven :hold] #{[:interfered? :interferer :rule]}}
 :explanation "The support of Tyrolia is cut by the army in Vienna. That means that the army in Venice is dislodged by the army from Trieste."}
 "6.D.3. A MOVE CUTS SUPPORT ON MOVE"
 {:summary "The most simple support on move cut."
 :judgments-map {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
 [:austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
-[:italy :army :ven :hold] #{[:interfered? :interferer :rule]}
+[:italy :army :ven :hold] #{}
 [:italy :fleet :ion :attack :adr] #{[:interfered? :interferer :rule]}}
 :explanation "The support of the fleet in the Adriatic Sea is cut. That means that the army in Venice will not be dislodged and the army in Trieste stays in Trieste."}
 "6.D.4. SUPPORT TO HOLD ON UNIT SUPPORTING A HOLD ALLOWED"
@@ -243,7 +243,7 @@
 :explanation "The support of the fleet in Prussia fails. The fleet in Baltic Sea will bounce on the Russian army in Finland and will be dislodged by the Russian fleet from Livonia when it returns to the Baltic Sea."}
 "6.D.8. FAILED CONVOY CAN NOT RECEIVE HOLD SUPPORT"
 {:summary "If a convoy fails because of disruption of the convoy or when the right convoy orders are not given, then the army to be convoyed can not receive support in  hold, since it still tried to move."
-:judgments-map {[:austria :fleet :ion :hold] #{[:interfered? :interferer :rule]}
+:judgments-map {[:austria :fleet :ion :hold] #{}
 [:austria :army :ser :support :austria :army :alb :attack :gre] #{[:interfered? :interferer :rule]}
 [:austria :army :alb :attack :gre] #{[:interfered? :interferer :rule]}
 [:turkey :army :gre :attack :nap] #{[:interfered? :interferer :rule]}
@@ -254,11 +254,11 @@
 :judgments-map {[:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
 [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
 [:austria :army :alb :support :austria :army :tri :attack :ser] #{[:interfered? :interferer :rule]}
-[:austria :army :tri :hold] #{[:interfered? :interferer :rule]}}
+[:austria :army :tri :hold] #{}}
 :explanation "The support of the army in Albania fails and the army in Trieste is dislodged by the army from Venice."}
 "6.D.10. SELF DISLODGMENT PROHIBITED"
 {:summary "A unit may not dislodge a unit of the same great power."
-:judgments-map {[:germany :army :ber :hold] #{[:interfered? :interferer :rule]}
+:judgments-map {[:germany :army :ber :hold] #{}
 [:germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}
 [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}}
 :explanation "Move to Berlin fails."}
@@ -271,7 +271,7 @@
 :explanation "Army in Berlin bounces, but is not dislodged by own unit."}
 "6.D.12. SUPPORTING A FOREIGN UNIT TO DISLODGE OWN UNIT PROHIBITED"
 {:summary "You may not help another power in dislodging your own unit."
-:judgments-map {[:austria :fleet :tri :hold] #{[:interfered? :interferer :rule]}
+:judgments-map {[:austria :fleet :tri :hold] #{}
 [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
 [:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}}
 :explanation "No dislodgment of fleet in Trieste."}
@@ -284,7 +284,7 @@
 :explanation "No dislodgment of fleet in Trieste."}
 "6.D.14. SUPPORTING A FOREIGN UNIT IS NOT ENOUGH TO PREVENT DISLODGEMENT"
 {:summary "If a foreign unit has enough support to dislodge your unit, you may not prevent that dislodgement by supporting the attack."
-:judgments-map {[:austria :fleet :tri :hold] #{[:interfered? :interferer :rule]}
+:judgments-map {[:austria :fleet :tri :hold] #{}
 [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
 [:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
 [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
@@ -298,7 +298,7 @@
 :explanation "The support of Constantinople is not cut and the fleet in Ankara is dislodged by the fleet in the Black Sea."}
 "6.D.16. CONVOYING A UNIT DISLODGING A UNIT OF SAME POWER IS ALLOWED"
 {:summary "It is allowed to convoy a foreign unit that dislodges your own unit is allowed."
-:judgments-map {[:england :army :lon :hold] #{[:interfered? :interferer :rule]}
+:judgments-map {[:england :army :lon :hold] #{}
 [:england :fleet :nth :convoy :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
 [:france :fleet :eng :support :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
 [:france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}}
@@ -332,11 +332,11 @@
 :judgments-map {[:england :fleet :lon :support :england :fleet :nth :attack :eng] #{[:interfered? :interferer :rule]}
 [:england :fleet :nth :attack :eng] #{[:interfered? :interferer :rule]}
 [:england :army :yor :attack :lon] #{[:interfered? :interferer :rule]}
-[:france :fleet :eng :hold] #{[:interfered? :interferer :rule]}}
+[:france :fleet :eng :hold] #{}}
 :explanation "The army in York does not cut support. This means that the fleet in the English Channel is dislodged by the fleet in the North Sea."}
 "6.D.21. DISLODGING DOES NOT CANCEL A SUPPORT CUT"
 {:summary "Sometimes there is the question whether a dislodged moving unit does not cut support (similar to the dislodge rule). This is not the case."
-:judgments-map {[:austria :fleet :tri :hold] #{[:interfered? :interferer :rule]}
+:judgments-map {[:austria :fleet :tri :hold] #{}
 [:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
 [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
 [:germany :army :mun :attack :tyr] #{[:interfered? :interferer :rule]}
@@ -361,7 +361,7 @@
 {:summary "Comparable with the previous test case, but now an army tries to move into sea and the support is used in a beleaguered garrison."
 :judgments-map {[:france :army :mar :attack :gol] #{[:interfered? :interferer :rule]}
 [:france :fleet :spa-sc :support :france :army :mar :attack :gol] #{[:interfered? :interferer :rule]}
-[:italy :fleet :gol :hold] #{[:interfered? :interferer :rule]}
+[:italy :fleet :gol :hold] #{}
 [:turkey :fleet :tyn :support :turkey :fleet :wes :attack :gol] #{[:interfered? :interferer :rule]}
 [:turkey :fleet :wes :attack :gol] #{[:interfered? :interferer :rule]}}
 :explanation "The French move from Marseilles to Gulf of Lyon is illegal (an army can not go to sea). Therefore, the support from Spain fails and there is no beleaguered garrison. The fleet in the Gulf of Lyon is dislodged by the Turkish fleet in the Western Mediterranean."}
@@ -383,7 +383,7 @@
 {:summary "Similar as the previous test case, but now with an unmatched convoy."
 :judgments-map {[:england :fleet :swe :attack :bal] #{[:interfered? :interferer :rule]}
 [:england :fleet :den :support :england :fleet :swe :attack :bal] #{[:interfered? :interferer :rule]}
-[:germany :army :ber :hold] #{[:interfered? :interferer :rule]}
+[:germany :army :ber :hold] #{}
 [:russia :fleet :bal :convoy :germany :army :ber :attack :lvn] #{[:interfered? :interferer :rule]}
 [:russia :fleet :pru :support :russia :fleet :bal :hold] #{[:interfered? :interferer :rule]}}
 :explanation "The convoy order in the Baltic Sea is unmatched and fails. However, the support of Prussia on the Baltic Sea is still valid and the fleet in the Baltic Sea is not dislodged."}
@@ -495,7 +495,7 @@
 :explanation "Although the German force from Holland to North Sea is one larger than the French force from North Sea to Holland, the French fleet in the North Sea is not dislodged, because one of the supports on the German movement is French. Therefore, the Austrian army in Ruhr will not move to Holland."}
 "6.E.7. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
 {:summary "An attempt to self dislodgement can be combined with a beleaguered garrison. Such self dislodgment is still not possible."
-:judgments-map {[:england :fleet :nth :hold] #{[:interfered? :interferer :rule]}
+:judgments-map {[:england :fleet :nth :hold] #{}
 [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{[:interfered? :interferer :rule]}
 [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
 [:germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
@@ -554,7 +554,7 @@
 [:england :fleet :yor :attack :nth] #{[:interfered? :interferer :rule]}
 [:france :fleet :bel :attack :nth] #{[:interfered? :interferer :rule]}
 [:france :fleet :eng :support :france :fleet :bel :attack :nth] #{[:interfered? :interferer :rule]}
-[:germany :fleet :nth :hold] #{[:interfered? :interferer :rule]}
+[:germany :fleet :nth :hold] #{}
 [:russia :fleet :nrg :attack :nth] #{[:interfered? :interferer :rule]}
 [:russia :fleet :nwy :support :russia :fleet :nrg :attack :nth] #{[:interfered? :interferer :rule]}}
 :explanation "None of the fleets move. The German fleet in the North Sea is not dislodged."}
@@ -829,8 +829,8 @@
 :judgments-map {[:england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
 [:england :fleet :eng :convoy :england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
 [:germany :army :edi :attack :lvp] #{[:interfered? :interferer :rule]}
-[:france :fleet :iri :hold] #{[:interfered? :interferer :rule]}
-[:france :fleet :nth :hold] #{[:interfered? :interferer :rule]}
+[:france :fleet :iri :hold] #{}
+[:france :fleet :nth :hold] #{}
 [:russia :fleet :nrg :convoy :england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
 [:russia :fleet :nat :convoy :england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}}
 :explanation "See issue 4.A.3. For choice a, b and c the English army in Liverpool will move by convoy and consequentially the two armies are swapped. For choice d, the 1982/2000 rulebook (<i>which I prefer</i>), the convoy depends on the \"intent\". England intended to convoy via the French fleets in the Irish Sea and the North Sea. However, the French did not order the convoy. The alternative route with the Russian fleets was unintended.  The English fleet in the English Channel (with the convoy order) is not part of this alternative route with the Russian fleets. Since England still \"intent\" to convoy, the move from Liverpool to Edinburgh should be via convoy and the two armies are swapped. Although, you could argue that this is not really according to the clarification of the 2000 rulebook. When explicit adjacent convoying is used (DPTG, choice e), then the English army did not receive an order to move by convoy. So, it is just a head to head battle and both the army in Edinburgh and Liverpool will not move."}
