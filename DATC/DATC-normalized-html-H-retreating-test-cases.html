@@ -1,0 +1,249 @@
+<h3>6.H. TEST CASES, RETREATING</h3>
+<h4>6.H.1. NO SUPPORTS DURING RETREAT</h4>
+Supports are not allowed in the retreat phase.
+<pre>
+Austria:
+F Trieste Hold
+A Serbia Hold
+Turkey:
+F Greece Hold
+Italy:
+A Venice Supports A Tyrolia - Trieste
+A Tyrolia - Trieste
+F Ionian Sea - Greece
+F Aegean Sea Supports F Ionian Sea - Greece
+</pre>
+The fleet in Trieste and the fleet in Greece are dislodged. If the retreat orders are as follows:
+<pre>
+Austria:
+F Trieste - Albania
+A Serbia Supports F Trieste - Albania
+Turkey:
+F Greece - Albania
+</pre> The Austrian support order is illegal. Both dislodged fleets are disbanded.
+<h4>6.H.2. NO SUPPORTS FROM RETREATING UNIT</h4>
+Even a retreating unit can not give support.
+<pre>
+England:
+A Liverpool - Edinburgh
+F Yorkshire Supports A Liverpool - Edinburgh
+F Norway Hold
+Germany:
+A Kiel Supports A Ruhr - Holland
+A Ruhr - Holland
+Russia:
+F Edinburgh Hold
+A Sweden Supports A Finland - Norway
+A Finland - Norway
+F Holland Hold
+</pre>The English fleet in Norway and the Russian fleets in Edinburgh and
+Holland are dislodged. If the following retreat orders are given:
+<pre> England: F Norway - North Sea Russia: F Edinburgh - North Sea F Holland Supports F Edinburgh - North Sea
+</pre> Although the fleet in Holland may receive an order, it may not support (it is disbanded). The English fleet in Norway and the Russian fleet in Edinburgh bounce and are disbanded.
+<h4>6.H.3. NO CONVOY DURING RETREAT</h4>
+Convoys during retreat are not allowed.
+<pre>
+England:
+F North Sea Hold
+A Holland Hold
+Germany:
+F Kiel Supports A Ruhr - Holland
+A Ruhr - Holland
+</pre>
+The English army in Holland is dislodged. If England orders the following in retreat:
+<pre>
+England:
+A Holland - Yorkshire
+F North Sea Convoys A Holland - Yorkshire
+</pre> The convoy order is illegal. The army in Holland is disbanded.
+<h4>6.H.4. NO OTHER MOVES DURING RETREAT</h4>
+Of course you may not do any other move during a retreat. But look if the adjudicator checks for it.
+<pre>
+England:
+F North Sea Hold
+A Holland Hold
+Germany:
+F Kiel Supports A Ruhr - Holland
+A Ruhr - Holland
+</pre>
+The English army in Holland is dislodged. If England orders the following in retreat:
+<pre>
+England:
+A Holland - Belgium
+F North Sea - Norwegian Sea
+</pre> The fleet in the North Sea is not dislodge, so the move is illegal.
+<h4>6.H.5. A UNIT MAY NOT RETREAT TO THE AREA FROM WHICH IT IS ATTACKED</h4>
+Well, that would be of course stupid. Still, the adjudicator must be tested on this.
+<pre>
+Russia:
+F Constantinople Supports F Black Sea - Ankara
+F Black Sea - Ankara
+Turkey:
+F Ankara Hold
+</pre>
+Fleet in Ankara is dislodged and may not retreat to Black Sea.
+<h4>6.H.6. UNIT MAY NOT RETREAT TO A CONTESTED AREA</h4>
+Stand off prevents retreat to the area.
+<pre>
+Austria:
+A Budapest Supports A Trieste - Vienna
+A Trieste - Vienna
+Germany:
+A Munich - Bohemia
+A Silesia - Bohemia
+Italy:
+A Vienna Hold
+</pre>
+The Italian army in Vienna is dislodged. It may not retreat to Bohemia.
+<h4>6.H.7. MULTIPLE RETREAT TO SAME AREA WILL DISBAND UNITS</h4>
+There can only be one unit in an area.
+<pre>
+Austria:
+A Budapest Supports A Trieste - Vienna
+A Trieste - Vienna
+Germany:
+A Munich Supports A Silesia - Bohemia
+A Silesia - Bohemia
+Italy:
+A Vienna Hold
+A Bohemia Hold
+</pre>
+If Italy orders the following for retreat:
+<pre>
+Italy:
+A Bohemia - Tyrolia
+A Vienna - Tyrolia
+</pre> Both armies will be disbanded.
+<h4>6.H.8. TRIPLE RETREAT TO SAME AREA WILL DISBAND UNITS</h4>
+When three units retreat to the same area, then all three units are disbanded.
+<pre>
+England:
+A Liverpool - Edinburgh
+F Yorkshire Supports A Liverpool - Edinburgh
+F Norway Hold
+Germany:
+A Kiel Supports A Ruhr - Holland
+A Ruhr - Holland
+Russia:
+F Edinburgh Hold
+A Sweden Supports A Finland - Norway
+A Finland - Norway
+F Holland Hold
+</pre>
+The fleets in Norway, Edinburgh and Holland are dislodged. If the following retreat orders are given:
+<pre>
+England:
+F Norway - North Sea
+Russia:
+F Edinburgh - North Sea
+F Holland - North Sea
+</pre> All three units are disbanded.
+<h4>6.H.9. DISLODGED UNIT WILL NOT MAKE ATTACKERS AREA CONTESTED</h4>
+An army can follow.
+<pre>
+England:
+F Helgoland Bight - Kiel
+F Denmark Supports F Helgoland Bight - Kiel
+Germany:
+A Berlin - Prussia
+F Kiel Hold
+A Silesia Supports A Berlin - Prussia
+Russia:
+A Prussia - Berlin
+</pre>
+The fleet in Kiel can retreat to Berlin.
+<h4>6.H.10. NOT RETREATING TO ATTACKER DOES NOT MEAN CONTESTED</h4>
+An army can not retreat to the place of the attacker. The easiest way to program that, is to mark that place as "contested". However, this is not correct. Another army may retreat to that place.
+<pre>
+England:
+A Kiel Hold
+Germany:
+A Berlin - Kiel
+A Munich Supports A Berlin - Kiel
+A Prussia Hold
+Russia:
+A Warsaw - Prussia
+A Silesia Supports A Warsaw - Prussia
+</pre>
+The armies in Kiel and Prussia are dislodged. The English army in Kiel can not retreat to Berlin, but the army in Prussia can retreat to Berlin. Suppose the following retreat orders are given:
+<pre> England: A Kiel - Berlin Germany: A Prussia - Berlin
+</pre> The English retreat to Berlin is illegal and fails (the unit is disbanded). The German retreat to Berlin is successful and does not bounce on the English unit.
+<h4>6.H.11. RETREAT WHEN DISLODGED BY ADJACENT CONVOY</h4>
+If a unit is dislodged by an army via convoy, the question arises whether the dislodged army can retreat to the original place of the convoyed army. This is only relevant in case the convoy was to an adjacent place.
+<pre>
+France:
+A Gascony - Marseilles via Convoy
+A Burgundy Supports A Gascony - Marseilles
+F Mid-Atlantic Ocean Convoys A Gascony - Marseilles
+F Western Mediterranean Convoys A Gascony - Marseilles
+F Gulf of Lyon Convoys A Gascony - Marseilles
+Italy:
+A Marseilles Hold
+</pre>
+If for issue 4.A.3 choice b or c has been taken, then the army in Gascony will not move with the use of the convoy, because the army in Marseilles does not move in opposite direction. This immediately means that the army in Marseilles may not move to Gascony when it dislodged by the army there. For all other choices of issue 4.A.3, the army in Gascony takes a convoy and does not pass the border of Gascony with Marseilles (it went a complete different direction). Now, the result depends on which rule is used for retreating (see issue 4.A.5). <i>I prefer the 1982/2000 rule for convoying to adjacent places. This means that the move of Gascony happened by convoy. Furthermore, I prefer that the army in Marseilles may retreat to Gascony.</i>
+<h4>6.H.12. RETREAT WHEN DISLODGED BY ADJACENT CONVOY WHILE TRYING TO DO THE SAME</h4>
+The previous test case can be made more extra ordinary, when both armies tried to move by convoy.
+<pre>
+England:
+A Liverpool - Edinburgh via Convoy
+F Irish Sea Convoys A Liverpool - Edinburgh
+F English Channel Convoys A Liverpool - Edinburgh
+F North Sea Convoys A Liverpool - Edinburgh
+France:
+F Brest - English Channel
+F Mid-Atlantic Ocean Supports F Brest - English Channel
+Russia:
+A Edinburgh - Liverpool via Convoy
+F Norwegian Sea Convoys A Edinburgh - Liverpool
+F North Atlantic Ocean Convoys A Edinburgh - Liverpool
+A Clyde Supports A Edinburgh - Liverpool
+</pre>
+If for issue 4.A.3 choice c has been taken, then the army in Liverpool will not try to move by convoy, because the convoy is disrupted. This has as consequence that army will just advance to Edinburgh by using the land route. For all other choices of issue 4.A.3, both the army in Liverpool as in Edinburgh will try to move by convoy. The army in Edinburgh will succeed. The army in Liverpool will fail, because of the disrupted convoy. It is dislodged by the army of Edinburgh. Now, the question is whether the army in Liverpool may retreat to Edinburgh. The result depends on which rule is used for retreating (see issue 4.A.5). <i>I prefer the 1982/2000 rule for convoying to adjacent places. This means that the army in Liverpool tries the disrupted convoy. Furthermore, I prefer that the army in Liverpool may retreat to Edinburgh.</i>
+<h4>6.H.13. NO RETREAT WITH CONVOY IN MAIN PHASE</h4>
+The places where a unit may retreat to, must be calculated during the main phase. Care should be taken that a convoy ordered in the main phase can not be used in the retreat phase.
+<pre>
+England:
+A Picardy Hold
+F English Channel Convoys A Picardy - London
+France:
+A Paris - Picardy
+A Brest Supports A Paris - Picardy
+</pre>
+The dislodged army in Picardy can not retreat to London.
+<h4>6.H.14. NO RETREAT WITH SUPPORT IN MAIN PHASE</h4>
+Comparable to the previous test case, a support given in the main phase can not be used in the retreat phase.
+<pre>
+England:
+A Picardy Hold
+F English Channel Supports A Picardy - Belgium
+France:
+A Paris - Picardy
+A Brest Supports A Paris - Picardy
+A Burgundy Hold
+Germany:
+A Munich Supports A Marseilles - Burgundy
+A Marseilles - Burgundy
+</pre>
+After the main phase the following retreat orders are given: England:  A Picardy - Belgium France:  A Burgundy - Belgium Both the army in Picardy and Burgundy are disbanded.
+<h4>6.H.15. NO COASTAL CRAWL IN RETREAT</h4>
+You can not go to the other coast from where the attacker came from.
+<pre>
+England:
+F Portugal Hold
+France:
+F Spain(sc) - Portugal
+F Mid-Atlantic Ocean Supports F Spain(sc) - Portugal
+</pre>
+The English fleet in Portugal is destroyed and can not retreat to Spain(nc).
+<h4>6.H.16. CONTESTED FOR BOTH COASTS</h4>
+If a coast is contested, the other is not available for retreat.
+<pre>
+France:
+F Mid-Atlantic Ocean - Spain(nc)
+F Gascony - Spain(nc)
+F Western Mediterranean Hold
+Italy:
+F Tunis Supports F Tyrrhenian Sea - Western Mediterranean
+F Tyrrhenian Sea - Western Mediterranean
+</pre>
+The French fleet in the Western Mediterranean can not retreat to Spain(sc).
