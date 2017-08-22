@@ -105,6 +105,19 @@
     :attacks-inaccessible-location?
     :attacks-via-inaccessible-edge?
     :supports-unsupportable-location?})
+(s/def ::validation-failure-reasons (s/coll-of ::validation-failure-reason))
+(s/def ::order-given ::order)
+(s/def ::order-used ::order)
+;; `:valid` if the order was valid, otherwise a list of reasons it was invalid,
+;; and the order that should actually be fed to the resolution engine (what the
+;; order was interpreted as).
+;; Is this how I actually do this in core.spec???
+(s/def ::validation-result
+  (s/or :valid (partial == :valid)
+        :invalid (s/keys :req-un [::validation-failure-reasons
+                                  ::order-used])))
+;; Map from *every* order given in a turn to its validation result.
+(s/def ::validation-results (s/map-of ::order ::validation-result))
 
 (s/def ::interferer ::order)
 
@@ -122,20 +135,27 @@
     :attacked-from-supported-location-but-not-dislodged
     :dislodged})
 
-(s/def ::rule (s/or :attack-rule ::attack-rule
-                    :support-rule ::support-rule))
+(s/def ::conflict-rule (s/or :attack-rule ::attack-rule
+                             :support-rule ::support-rule))
 
 ;; Whether the bouncer bounces the attack.
 (s/def ::interfered? boolean?)
 
 ;; Map describing the conflict that some order had with `:interferer`.
 ;; `:interfered?` is the outcome of that conflict (whether `:interfered?`
-;; counteracted the order), and `:rule` is the rule by which the outcome was
-;; determined.
-(s/def ::judgment (s/keys :req-un [::interferer
-                                   ::rule
-                                   ::interfered?]))
+;; counteracted the order), and `:conflict-rule` is the rule by which the
+;; outcome was determined.
+(s/def ::conflict-judgment (s/keys :req-un [::interferer
+                                            ::conflict-rule
+                                            ::interfered?]))
+;; Map from *every* order that went into the resolution engine to the rules
+;; governing how it was resolved.
+(s/def ::conflict-judgments (s/map-of ::order
+                                      (s/coll-of ::conflict-judgment)))
 
-;; Map of *all* orders in a turn to the judgments for each order.
-(s/def ::judgments-map (s/map-of ::order
-                                 (s/coll-of ::judgment)))
+(s/def ::unit-positions-before ::unit-positions)
+(s/def ::unit-positions-after ::unit-positions)
+(s/def ::adjudication (s/keys :req-un [::unit-positions-before
+                                       ::validation-results
+                                       ::conflict-judgments
+                                       ::unit-positions-after]))

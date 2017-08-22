@@ -9,7 +9,7 @@
              (s/coll-of (s/tuple ::interfered?
                                  ::dt/order-vector
                                  ::rule)))]
-  ::dt/judgments-map)
+  ::dt/conflict-judgments)
 (defn create-judgments-map [orders]
   "Judgment maps are verbose when written out in full (the keys are repeated
   many times). This function converts a form using more concise order vectors

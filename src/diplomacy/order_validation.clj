@@ -83,7 +83,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec validation-failure-reasons
-  [::dt/dmap ::dt/order] (s/coll-of ::dt/validation-failure-reason))
+  [::dt/dmap ::dt/order] ::dt/validation-failure-reasons)
 (defn validation-failure-reasons
   "The names (as a set of keywords) of the invalidation functions that declared
   `order` invalid in `diplomacy-map`."
@@ -106,3 +106,26 @@
                      []))
                  invalidators
                  failure-keywords))))
+
+(defn-spec validation-result
+  [::dt/order ::dt/order] ::dt/validation-result)
+(defn validation-result
+  "The ::dt/validation-result for `order` in `diplomacy-map`"
+  [diplomacy-map {:keys [country unit-type location] :as order}]
+  (let [failure-reasons (validation-failure-reasons diplomacy-map order)]
+    (if (empty? failure-reasons)
+      :valid
+      ;; TODO: For now any validation failure causes the unit to hold. Consider
+      ;; whether we want to change this (low priority).
+      {:validation-failure-reasons failure-reasons
+       :order-used (::ord/create-order country unit-type location :hold)})))
+
+(defn-spec validation-results
+  [::dt/dmap ::dt/orders] ::dt/validation-result)
+(defn validation-results
+  "The ::dt/validation-results for `orders` in `diplomacy-map`"
+  [diplomacy-map orders]
+  (->>
+   orders
+   (map (fn [order] [order (validation-result diplomacy-map order)]))
+   (into {})))
