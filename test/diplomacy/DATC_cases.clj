@@ -23,8 +23,8 @@
                         [:germany :fleet :lon :attack :yor] #{[:interfered? :interferer :rule]}
                         [:germany :army :wal :support :germany :fleet :lon :attack :yor] #{[:interfered? :interferer :rule]}}
    :explanation "The move of the army in Yorkshire is illegal. This makes the support of Liverpool also illegal and without the support, the Germans have a stronger force. The army in London dislodges the army in Yorkshire."}
-  "6.A.6. ORDERING A UNIT OF ANOTHER COUNTRY"
-  {:summary "Check whether someone can not order a unit that is not his own unit. England has a fleet in London."
+  #_"6.A.6. ORDERING A UNIT OF ANOTHER COUNTRY"
+  #_{:summary "Check whether someone can not order a unit that is not his own unit. England has a fleet in London."
    :conflict-judgments {[:germany :fleet :lon :attack :nth] #{[:interfered? :interferer :rule]}}
    :explanation "Order should fail."}
   "6.A.7. ONLY ARMIES CAN BE CONVOYED"
