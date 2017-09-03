@@ -1,3 +1,7 @@
+(ns diplomacy.DATC-cases
+  (:require [diplomacy.test-utils]))
+
+(def ^:private DATC-cases-raw
  {"6.A.1 MOVING TO AN AREA THAT IS NOT A NEIGHBOUR"
   {:summary "Check if an illegal move (without convoy) will fail."
    :conflict-judgments {[:england :fleet :nth :attack :pic] #{[:interfered? :interferer :rule]}}
@@ -998,4 +1002,17 @@
                         [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                         [:france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                         [:france :army :wal :support :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}}
-   :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}}
+   :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}})
+
+(def DATC-cases
+  ;; Don't export test cases that don't have conflict judgments assigned.
+  ;; Make sure that DATC-cases actually contains the tests you want to run!
+  (let [finished-cases
+        (into {}
+              (filter (fn [[test-name test-dict]]
+                        (not-any? (partial = #{[:interfered? :interferer :rule]})
+                                  (vals (:conflict-judgments test-dict))))
+                      DATC-cases-raw))]
+    (into {} (for [[test-name test-dict] finished-cases]
+               [test-name (update test-dict :conflict-judgments
+                                  diplomacy.test-utils/create-conflict-judgments)]))))
