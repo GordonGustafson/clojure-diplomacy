@@ -67,7 +67,7 @@
 
 (def rulebook-diagram-judgments
   (into {} (for [[k v] rulebook-diagram-judgments-raw]
-             [k (diplomacy.test-utils/create-judgments-map v)])))
+             [k (diplomacy.test-utils/create-conflict-judgments v)])))
 
    ;; have checked up to this line
 

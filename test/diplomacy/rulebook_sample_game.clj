@@ -134,4 +134,4 @@
 
 (def rulebook-sample-game-judgments
   (into {} (for [[k v] rulebook-sample-game-judgments-raw]
-             [k (diplomacy.test-utils/create-judgments-map v)])))
+             [k (diplomacy.test-utils/create-conflict-judgments v)])))

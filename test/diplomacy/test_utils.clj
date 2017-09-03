@@ -4,13 +4,13 @@
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec :as s]))
 
-(defn-spec create-judgments-map
+(defn-spec create-conflict-judgments
   [(s/map-of ::dt/order-vector
              (s/coll-of (s/tuple ::interfered?
                                  ::dt/order-vector
                                  ::rule)))]
   ::dt/conflict-judgments)
-(defn create-judgments-map [orders]
+(defn create-conflict-judgments [orders]
   "Judgment maps are verbose when written out in full (the keys are repeated
   many times). This function converts a form using more concise order vectors
   and judgment vectors into a judgments map."
