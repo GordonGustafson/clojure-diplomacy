@@ -113,7 +113,7 @@
 ;; order was interpreted as).
 ;; Is this how I actually do this in core.spec???
 (s/def ::validation-result
-  (s/or :valid (partial == :valid)
+  (s/or :valid (partial = :valid)
         :invalid (s/keys :req-un [::validation-failure-reasons
                                   ::order-used])))
 ;; Map from *every* order given in a turn to its validation result.

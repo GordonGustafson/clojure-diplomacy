@@ -8,7 +8,7 @@
 (fn validation-results-to-orders-to-resolve
   [validation-results]
   (map (fn [order validation-result]
-         (if (== validation-result :valid)
+         (if (= validation-result :valid)
            order
            (:order-used validation-result)))))
 
