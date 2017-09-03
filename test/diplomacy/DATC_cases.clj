@@ -1,4 +1,3 @@
-{"6.A. TEST CASES, BASIC CHECKS"
  {"6.A.1 MOVING TO AN AREA THAT IS NOT A NEIGHBOUR"
   {:summary "Check if an illegal move (without convoy) will fail."
    :conflict-judgments {[:england :fleet :nth :attack :pic] #{[:interfered? :interferer :rule]}}
@@ -60,9 +59,8 @@
    :conflict-judgments {[:austria :army :vie :attack :tyr] #{[:interfered? :interferer :rule]}
                         [:germany :army :mun :attack :tyr] #{[:interfered? :interferer :rule]}
                         [:italy :army :ven :attack :tyr] #{[:interfered? :interferer :rule]}}
-   :explanation "The three units bounce."}}
- "6.B. TEST CASES, COASTAL ISSUES"
- {"6.B.1. MOVING WITH UNSPECIFIED COAST WHEN COAST IS NECESSARY"
+   :explanation "The three units bounce."}
+ "6.B.1. MOVING WITH UNSPECIFIED COAST WHEN COAST IS NECESSARY"
   {:summary "Coast is significant in this case:"
    :conflict-judgments {[:france :fleet :por :attack :spa] #{[:interfered? :interferer :rule]}}
    :explanation "Some adjudicators take a default coast (see issue 4.B.1). <i>I prefer that the move fails.</i>"}
@@ -142,9 +140,8 @@
   #_{:summary "If a fleet is leaving a sector from a certain coast while in the opposite direction another fleet is moving to another coast of the sector, it is still a head to head battle. This has been decided in the great revision of the 1961 rules that resulted in the 1971 rules."
    :conflict-judgments {[:turkey :fleet :bul-sc :attack :con] #{[:interfered? :interferer :rule]}
                         [:turkey :fleet :con :attack :bul-ec] #{[:interfered? :interferer :rule]}}
-   :explanation "Both moves fail."}}
- "6.C. TEST CASES, CIRCULAR MOVEMENT"
- {"6.C.1. THREE ARMY CIRCULAR MOVEMENT"
+   :explanation "Both moves fail."}
+ "6.C.1. THREE ARMY CIRCULAR MOVEMENT"
   {:summary "Three units can change place, even in spring 1901."
    :conflict-judgments {[:turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}
                         [:turkey :army :con :attack :smy] #{[:interfered? :interferer :rule]}
@@ -203,9 +200,8 @@
                         [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                         [:france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                         [:france :army :bur :attack :bel] #{[:interfered? :interferer :rule]}}
-   :explanation "None of the units will succeed to move."}}
- "6.D. TEST CASES, SUPPORTS AND DISLODGES"
- {"6.D.1. SUPPORTED HOLD CAN PREVENT DISLODGEMENT"
+   :explanation "None of the units will succeed to move."}
+ "6.D.1. SUPPORTED HOLD CAN PREVENT DISLODGEMENT"
   {:summary "The most simple support to hold order."
    :conflict-judgments {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
                         [:austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
@@ -458,9 +454,8 @@
                         [:italy :army :pru :support :russia :army :lvn :attack :pru] #{[:interfered? :interferer :rule]}
                         [:russia :army :war :support :russia :army :lvn :attack :pru] #{[:interfered? :interferer :rule]}
                         [:russia :army :lvn :attack :pru] #{[:interfered? :interferer :rule]}}
-   :explanation "Russia and Italy wanted to get rid of the Italian army in Prussia (to build an Italian fleet somewhere else). However, they didn't want a possible German attack on Prussia to succeed. They invented this odd order of Italy. It was intended that the attack of the army in Livonia would have strength three, so it would be capable to prevent the possible German attack to succeed. However, the order of Italy is illegal, because a unit may only support to an area where the unit can go by itself. A unit can't go to the area it is already standing, so the Italian order is illegal and the German move from Berlin succeeds. Even if it would be legal, the German move from Berlin would still succeed, because the support of Prussia is cut by Livonia and Berlin."}}
- "6.E. TEST CASES, HEAD TO HEAD BATTLES AND BELEAGUERED GARRISON"
- {"6.E.1. DISLODGED UNIT HAS NO EFFECT ON ATTACKERS AREA"
+   :explanation "Russia and Italy wanted to get rid of the Italian army in Prussia (to build an Italian fleet somewhere else). However, they didn't want a possible German attack on Prussia to succeed. They invented this odd order of Italy. It was intended that the attack of the army in Livonia would have strength three, so it would be capable to prevent the possible German attack to succeed. However, the order of Italy is illegal, because a unit may only support to an area where the unit can go by itself. A unit can't go to the area it is already standing, so the Italian order is illegal and the German move from Berlin succeeds. Even if it would be legal, the German move from Berlin would still succeed, because the support of Prussia is cut by Livonia and Berlin."}
+ "6.E.1. DISLODGED UNIT HAS NO EFFECT ON ATTACKERS AREA"
   {:summary "An army can follow."
    :conflict-judgments {[:germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
                         [:germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}
@@ -599,10 +594,9 @@
                         [:germany :fleet :hel :support :germany :army :ber :attack :kie] #{[:interfered? :interferer :rule]}
                         [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}
                         [:russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}}
-   :explanation "None of the moves succeeds. This case is especially difficult for  sequence based adjudicators. They will start adjudicating the head to head battle and continue to adjudicate the attack on one of the units part of the head to head battle. In this process, one of the sides of the head to head battle might be cancelled out. This happens in the DPTG. If this is adjudicated according to the DPTG, the unit in Ruhr or in Prussia will advance (depending on the order the units are adjudicated). This is clearly a bug in the DPTG."}}
- "6.F. TEST CASES, CONVOYS"
+   :explanation "None of the moves succeeds. This case is especially difficult for  sequence based adjudicators. They will start adjudicating the head to head battle and continue to adjudicate the attack on one of the units part of the head to head battle. In this process, one of the sides of the head to head battle might be cancelled out. This happens in the DPTG. If this is adjudicated according to the DPTG, the unit in Ruhr or in Prussia will advance (depending on the order the units are adjudicated). This is clearly a bug in the DPTG."}
   ;; commented out because it uses a convoy
- {#_"6.F.1. NO CONVOY IN COASTAL AREAS"
+ #_"6.F.1. NO CONVOY IN COASTAL AREAS"
   #_{:summary "A fleet in a coastal area may not convoy."
    :conflict-judgments {[:turkey :army :gre :attack :sev] #{[:interfered? :interferer :rule]}
                         [:turkey :fleet :aeg :convoy :turkey :army :gre :attack :sev] #{[:interfered? :interferer :rule]}
@@ -834,10 +828,9 @@
                         [:france :fleet :bel :support :france :fleet :eng :hold] #{[:interfered? :interferer :rule]}
                         [:russia :army :nwy :attack :bel] #{[:interfered? :interferer :rule]}
                         [:russia :fleet :nth :convoy :russia :army :nwy :attack :bel] #{[:interfered? :interferer :rule]}}
-   :explanation "When no paradox rule is used, there is no consistent resolution. If the French support in Belgium is cut, the French fleet in the English Channel will be dislodged. That means that the support of London will not be cut and the fleet in Edinburgh will dislodge the Russian fleet in the North Sea. In this way the support in Belgium is not cut! But if the support in Belgium is not cut, the Russian fleet in the North Sea will not be dislodged and the army in Norway can cut the support in Belgium. The 1971 paradox rule and the 2000 rule (see issue 4.A.2) do not have an answer on this. According to the 1982 rule, the supports are not cut which means that the French fleet in the English Channel will survive and but the Russian fleet in the North Sea is dislodged. If the Szykman alternative is used (<i>which I prefer</i>), the supports are not cut and the convoying armies fail to move, which has the same result as the 1982 rule in this case. When the 'All Hold' rule is used, the movement of the armies in  Brest and Norway as the fleets in Edinburgh and the Irish Sea will fail. Since there is no consistent resolution where all convoys fail, the DPTG has in this case the same result as the 'All Hold' rule."}}
- "6.G. TEST CASES, CONVOYING TO ADJACENT PLACES"
+   :explanation "When no paradox rule is used, there is no consistent resolution. If the French support in Belgium is cut, the French fleet in the English Channel will be dislodged. That means that the support of London will not be cut and the fleet in Edinburgh will dislodge the Russian fleet in the North Sea. In this way the support in Belgium is not cut! But if the support in Belgium is not cut, the Russian fleet in the North Sea will not be dislodged and the army in Norway can cut the support in Belgium. The 1971 paradox rule and the 2000 rule (see issue 4.A.2) do not have an answer on this. According to the 1982 rule, the supports are not cut which means that the French fleet in the English Channel will survive and but the Russian fleet in the North Sea is dislodged. If the Szykman alternative is used (<i>which I prefer</i>), the supports are not cut and the convoying armies fail to move, which has the same result as the 1982 rule in this case. When the 'All Hold' rule is used, the movement of the armies in  Brest and Norway as the fleets in Edinburgh and the Irish Sea will fail. Since there is no consistent resolution where all convoys fail, the DPTG has in this case the same result as the 'All Hold' rule."}
   ;; commented out because it uses a convoy
- {#_"6.G.1. TWO UNITS CAN SWAP PLACES BY CONVOY"
+ #_"6.G.1. TWO UNITS CAN SWAP PLACES BY CONVOY"
   #_{:summary "The only way to swap two units, is by convoy."
    :conflict-judgments {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                         [:england :fleet :ska :convoy :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
@@ -1005,4 +998,4 @@
                         [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                         [:france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                         [:france :army :wal :support :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}}
-   :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}}}
+   :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}}
