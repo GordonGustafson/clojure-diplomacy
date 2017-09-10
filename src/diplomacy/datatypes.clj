@@ -155,10 +155,8 @@
 
 (s/def ::unit-positions-before ::unit-positions)
 (s/def ::unit-positions-after ::unit-positions)
-(s/def ::adjudication (s/keys :req-un [::unit-positions-before
-                                       ::validation-results
-                                       ::conflict-judgments
-                                       ::unit-positions-after]))
+(s/def ::adjudication (s/keys :req-un [::validation-results
+                                       ::conflict-judgments]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         only used by tests ;;

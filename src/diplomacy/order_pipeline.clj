@@ -12,18 +12,18 @@
            order
            (:order-used validation-result)))))
 
+;; TODO(unit-positions):
+;; 1. pass the current positions of all units to make sure players can't order
+;;    units that don't exist.
+;; 2. add :unit-positions-before and :unit-positions-after keys to the return
+;   ; value
 (defn-spec adjudicate-orders
-  [::dt/dmap ::dt/unit-positions ::dt/orders]
+  [::dt/dmap ::dt/orders]
   ::adjudication)
-(defn adjudicate-orders [dmap unit-positions orders]
-  ;; TODO: use unit-positions to make sure players can't order units that don't
-  ;; exist.
+(defn adjudicate-orders [dmap orders]
   (let [val-results (diplomacy.order-validation/validation-results dmap orders)
         orders-to-resolve (validation-results-to-orders-to-resolve val-results)
         conflict-judgments (diplomacy.resolution/conflict-judgments
                             orders-to-resolve)]
-    {:unit-positions-before unit-positions
-     :validation-results val-results
-     :conflict-judgments conflict-judgments
-     ;; TODO: compute unit-positions-after from conflict-judgments
-     :unit-positions-after []}))
+    {:validation-results val-results
+     :conflict-judgments conflict-judgments}))
