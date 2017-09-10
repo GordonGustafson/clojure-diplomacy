@@ -30,7 +30,7 @@
                       :assisted-order (apply create-order rest)))]
     (match [unit-type order-type rest]
       [_      :hold    nil]           basic-order
-      [_      :attack  ([(dest :guard (partial not= location))] :seq)]
+      [_      :attack  ([dest] :seq)]
       (assoc basic-order :destination dest)
       [_      :support ([_ _     _ :hold] :seq)]     (make-assisting-order)
       [_      :support ([_ _     _ :attack _] :seq)] (make-assisting-order)

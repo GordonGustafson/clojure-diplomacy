@@ -24,7 +24,9 @@
    :explanation "Order should fail."}
   "6.A.4. MOVE TO OWN SECTOR"
   {:summary "Moving to the same sector is an illegal move (2000 rulebook, page 4, \"An Army can be ordered to move into an adjacent inland or coastal province.\")."
-   :conflict-judgments {[:germany :fleet :kie :attack :kie] #{[:interfered? :interferer :rule]}}
+   :validation-results {[:germany :fleet :kie :attack :kie] [#{:attacks-current-location? :attacks-via-inaccessible-edge?}
+                                                             [:germany :fleet :kie :hold]]}
+   :conflict-judgments {[:germany :fleet :kie :hold] #{}}
    :explanation "Program should not crash."}
    ;; commented out because it uses a convoy
   #_"6.A.5. MOVE TO OWN SECTOR WITH CONVOY"
