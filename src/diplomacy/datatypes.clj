@@ -157,12 +157,3 @@
 (s/def ::unit-positions-after ::unit-positions)
 (s/def ::adjudication (s/keys :req-un [::validation-results
                                        ::conflict-judgments]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                         only used by tests ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(s/def ::summary string?)
-(s/def ::explanation string?)
-(s/def ::test-dict (s/keys :req-un #{::conflict-judgments}
-                           :opt-un #{::validation-results}))

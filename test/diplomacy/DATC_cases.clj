@@ -1014,8 +1014,7 @@
                         [:france :army :wal :support :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}}
    :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}})
 
-(defn-spec test-dict-incomplete? [::dt/test-dict] boolean?)
-(defn ^:private test-dict-incomplete?
+(defn ^:private test-incomplete?
   "Returns whether the argument has any placeholder conflict judgments."
   [{:keys [conflict-judgments]}]
   (not-any? (partial = #{[:interfered? :interferer :rule]})
@@ -1025,7 +1024,8 @@
   (->> DATC-cases-raw
        ;; Don't export test cases that don't have conflict judgments assigned.
        ;; Make sure that DATC-cases actually contains the tests you want to run!
-       (filter (comp test-dict-incomplete? second))
-       (map (fn [[name raw-test-dict]]
-                [name (diplomacy.test-utils/expand-test raw-test-dict)]))
+       (filter (comp test-incomplete? second))
+       (map (fn [[name raw-adjudication]]
+                [name (diplomacy.test-utils/expand-adjudication
+                       raw-adjudication)]))
        (into {})))

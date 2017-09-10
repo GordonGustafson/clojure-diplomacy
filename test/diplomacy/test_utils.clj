@@ -58,13 +58,16 @@
 ;;                                       inferring optional parts of the test ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec fill-in-missing-valid-orders [::dt/test-dict] ::dt/test-dict)
+(defn-spec fill-in-missing-valid-orders
+  [(s/keys :req-un [::conflict-judgments]
+           :opt-un [::validation-results])]
+  ::dt/adjudication)
 (defn ^:private fill-in-missing-valid-orders
   "Adds each key (order) from `:conflict-judgments` as a valid order in
   `:validation-results` if there is no entry in `:validation-results` specifying
   how that order was obtained from the orders the player gave."
-  [test-dict]
-  (let [raw-validation-results (get test-dict :validation-results {})
+  [adjudication]
+  (let [raw-validation-results (get adjudication :validation-results {})
         resolved-orders-accounted-for
         (set (map (fn [[order-given validation-result]]
                     (if (= validation-result :valid)
@@ -78,20 +81,20 @@
         ;; :validation-results if you specify them as keys in
         ;; :conflict-judgments.
         missing-resolved-orders
-        (set/difference (set (-> test-dict :conflict-judgments keys))
+        (set/difference (set (-> adjudication :conflict-judgments keys))
                         resolved-orders-accounted-for)
         filled-in-validation-results
         (merge raw-validation-results
                (zipmap missing-resolved-orders (repeat :valid)))]
-    (assoc test-dict :validation-results filled-in-validation-results)))
+    (assoc adjudication :validation-results filled-in-validation-results)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                     fully expanding a test ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn expand-test
-  [raw-test-dict]
-  (-> raw-test-dict
+(defn expand-adjudication
+  [raw-adjudication]
+  (-> raw-adjudication
       (update :conflict-judgments
               diplomacy.test-utils/create-conflict-judgments)
       (update :validation-results
