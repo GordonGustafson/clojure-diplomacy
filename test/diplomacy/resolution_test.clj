@@ -1,6 +1,5 @@
 (ns diplomacy.resolution-test
   (:require [clojure.test :as test]
-            [clojure.data]
             [diplomacy.datatypes :as dt]
             [diplomacy.resolution]
             [diplomacy.rulebook-sample-game]
