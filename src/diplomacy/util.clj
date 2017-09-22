@@ -2,16 +2,24 @@
   (:require [clojure.spec :as s]
             [clojure.set]))
 
-;; TODO: see if we can make this a function instead of a macro
-(defmacro fn-spec
+(defn ^:private cat-specs
+  ([a]           (s/cat :arg-1 a))
+  ([a b]         (s/cat :arg-1 a :arg-2 b))
+  ([a b c]       (s/cat :arg-1 a :arg-2 b :arg-3 c))
+  ([a b c d]     (s/cat :arg-1 a :arg-2 b :arg-3 c :arg-4 d))
+  ([a b c d e]   (s/cat :arg-1 a :arg-2 b :arg-3 c :arg-4 d :arg-5 e))
+  ([a b c d e f] (s/cat :arg-1 a :arg-2 b :arg-3 c :arg-4 d :arg-5 e :arg-6 f)))
+
+(defn fn-spec
   "Return a function spec taking arguments that conform to the corresponding
-  elements in `args-specs` and returning a value that conforms to `ret-spec`. If
-  `args-specs` is not a sequence, it is interpreted as the spec for the entire
-  argument list."
-  [arg-specs ret-spec]
-  (if (seq? arg-specs)
-    `(s/fspec :args (s/tuple ~@arg-specs) :ret ~ret-spec)
-    `(s/fspec :args ~arg-specs            :ret ~ret-spec)))
+  elements in `raw-arg-spec` and returning a value that conforms to `ret-spec`.
+  If `raw-arg-spec` is not a sequence, it is interpreted as the spec for the
+  entire argument list."
+  [raw-arg-spec ret-spec]
+  (s/fspec :args (if (sequential? raw-arg-spec)
+                   (apply cat-specs raw-arg-spec)
+                   raw-arg-spec)
+           :ret ret-spec))
 
 ;; Emacs' clojure-mode will indent and highlight functions that start with
 ;; `defn` as if they were a `defn`, which is convenient.
