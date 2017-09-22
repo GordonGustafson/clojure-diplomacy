@@ -5,7 +5,7 @@
             [diplomacy.rulebook-sample-game]
             [diplomacy.rulebook-diagrams]
             [diplomacy.util :refer [defn-spec map-difference]]
-            [clojure.spec :as s]))
+            [clojure.spec.alpha :as s]))
 
 (defn run-test-case [orders-map message]
   (let [actual-judgments (diplomacy.resolution/conflict-judgments

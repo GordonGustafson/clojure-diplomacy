@@ -3,7 +3,7 @@
             [diplomacy.datatypes :as dt]
             [diplomacy.orders :refer [create-order]]
             [diplomacy.util :refer [defn-spec]]
-            [clojure.spec :as s]))
+            [clojure.spec.alpha :as s]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                               expanding shorthand notation ;;

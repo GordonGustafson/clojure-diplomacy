@@ -1,6 +1,6 @@
 (ns diplomacy.map-functions
   (:require [clojure.set :as set]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [diplomacy.util :refer [defn-spec]]
             [diplomacy.datatypes :as dt]))
 

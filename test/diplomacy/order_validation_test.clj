@@ -7,7 +7,7 @@
             [diplomacy.rulebook-sample-game]
             [diplomacy.map-data]
             [diplomacy.util :refer [defn-spec fn-spec]]
-            [clojure.spec :as s]))
+            [clojure.spec.alpha :as s]))
 
 (defn-spec run-test-cases
   [(fn-spec [::dt/order]

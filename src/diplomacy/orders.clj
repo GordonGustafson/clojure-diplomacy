@@ -1,7 +1,7 @@
 (ns diplomacy.orders
   (:require [clojure.core.match :refer [match]]
             [clojure.set :as set]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [diplomacy.util :refer [defn-spec]]
             [diplomacy.datatypes :as dt]))
 

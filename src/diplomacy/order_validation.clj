@@ -3,7 +3,7 @@
             [diplomacy.map-functions :as map]
             [diplomacy.orders :as ord]
             [diplomacy.util :refer [defn-spec]]
-            [clojure.spec :as s]))
+            [clojure.spec.alpha :as s]))
 
 (defn-spec attacks-current-location?  [::dt/dmap ::dt/order] boolean?)
 (defn-spec supports-wrong-order-type? [::dt/dmap ::dt/order] boolean?)

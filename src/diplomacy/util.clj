@@ -1,5 +1,5 @@
 (ns diplomacy.util
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.set]))
 
 (defn ^:private cat-specs

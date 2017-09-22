@@ -1,7 +1,7 @@
 (ns diplomacy.order-pipeline
   (:require [diplomacy.order-validation]
             [diplomacy.resolution]
-            [clojure.spec :as s]))
+            [clojure.spec.alpha :as s]))
 
 (defn-spec validation-results-to-orders-to-resolve
   [::dt/validation-results] ::dt/orders)

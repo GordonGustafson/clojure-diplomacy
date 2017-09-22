@@ -1,5 +1,5 @@
 (ns diplomacy.datatypes
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.set :as set]
             [diplomacy.map-data]))
 

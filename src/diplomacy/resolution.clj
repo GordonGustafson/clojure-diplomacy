@@ -5,7 +5,7 @@
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]
             [clojure.set]
-            [clojure.spec :as s]))
+            [clojure.spec.alpha :as s]))
 
 ;; TODO: convoys
 ;; TODO: dislodging convoys
