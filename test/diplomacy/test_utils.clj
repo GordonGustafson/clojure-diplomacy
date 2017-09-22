@@ -11,8 +11,8 @@
 
 (defn-spec create-validation-result
   [(s/or :valid (partial = :valid)
-         :invalid (s/cat :failure-reasons ::validation-failure-reasons
-                         :order-used ::order-used))]
+         :invalid (s/cat :failure-reasons ::dt/validation-failure-reasons
+                         :order-used ::dt/order))]
   ::dt/validation-result)
 (defn create-validation-result
   [raw-validation-result]
@@ -26,8 +26,8 @@
   [(s/map-of ::dt/order-vector
              (s/or :valid (partial = :valid)
                    :invalid (s/cat :validation-failure-reasons
-                                   ::validation-failure-reasons
-                                   :order-used ::order-used)))]
+                                   ::dt/validation-failure-reasons
+                                   :order-used ::dt/order)))]
   ::dt/validation-results)
 (defn create-validation-results
   [order-vector-to-raw-validation-result]
@@ -38,9 +38,9 @@
 
 (defn-spec create-conflict-judgments
   [(s/map-of ::dt/order-vector
-             (s/coll-of (s/tuple ::interfered?
+             (s/coll-of (s/tuple ::dt/interfered?
                                  ::dt/order-vector
-                                 ::rule)))]
+                                 ::dt/conflict-rule)))]
   ::dt/conflict-judgments)
 (defn create-conflict-judgments [orders]
   "Judgment maps are verbose when written out in full (the keys are repeated
@@ -59,8 +59,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec fill-in-missing-valid-orders
-  [(s/keys :req-un [::conflict-judgments]
-           :opt-un [::validation-results])]
+  [(s/keys :req-un [::dt/conflict-judgments]
+           :opt-un [::dt/validation-results])]
   ::dt/adjudication)
 (defn ^:private fill-in-missing-valid-orders
   "Adds each key (order) from `:conflict-judgments` as a valid order in

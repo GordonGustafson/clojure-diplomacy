@@ -28,6 +28,7 @@
   [func arg-specs ret-spec]
   `(s/def ~func (fn-spec ~arg-specs ~ret-spec)))
 
+(defn-spec map-difference [map? map?] map?)
 (defn map-difference [lhs rhs]
   "A map of all the key-value pairs that are in `lhs` but not `rhs`"
   (into {} (clojure.set/difference (set lhs) (set rhs))))

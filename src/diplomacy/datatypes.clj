@@ -91,7 +91,7 @@
          ;; assisted hold or attack. I'm not going to bother making this
          ;; spec more specific, but unfortunately that means we can't use
          ;; `s/exercise-fn` with this spec.
-         ))
+         :rest (s/* any?)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                            validating and resolving orders ;;
