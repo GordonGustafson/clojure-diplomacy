@@ -159,3 +159,12 @@
                                        ::validation-results
                                        ::conflict-judgments
                                        ::unit-positions-after]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                         only used by tests ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(s/def ::summary string?)
+(s/def ::explanation string?)
+(s/def ::test-dict (s/keys :req-un #{::conflict-judgments}
+                           :opt-un #{::validation-results}))

@@ -1,18 +1,26 @@
 (ns diplomacy.DATC-cases
-  (:require [diplomacy.test-utils]))
+  (:require [diplomacy.test-utils]
+            [diplomacy.util :refer [defn-spec]]
+            [diplomacy.datatypes :as dt]))
 
 (def ^:private DATC-cases-raw
  {"6.A.1 MOVING TO AN AREA THAT IS NOT A NEIGHBOUR"
   {:summary "Check if an illegal move (without convoy) will fail."
-   :conflict-judgments {[:england :fleet :nth :attack :pic] #{[:interfered? :interferer :rule]}}
+   :validation-results {[:england :fleet :nth :attack :pic] [#{:attacks-via-inaccessible-edge?}
+                                                             [:england :fleet :nth :hold]]}
+   :conflict-judgments {[:england :fleet :nth :hold] #{}}
    :explanation "Order should fail."}
   "6.A.2. MOVE ARMY TO SEA"
   {:summary "Check if an army could not be moved to open sea."
-   :conflict-judgments {[:england :army :lvp :attack :iri] #{[:interfered? :interferer :rule]}}
+   :validation-results {[:england :army :lvp :attack :iri] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+                                                             [:england :army :lvp :hold]]}
+   :conflict-judgments {[:england :army :lvp :hold] #{}}
    :explanation "Order should fail."}
   "6.A.3. MOVE FLEET TO LAND"
   {:summary "Check whether a fleet can not move to land."
-   :conflict-judgments {[:germany :fleet :kie :attack :mun] #{[:interfered? :interferer :rule]}}
+   :validation-results {[:germany :fleet :kie :attack :mun] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+                                                             [:germany :fleet :kie :hold]]}
+   :conflict-judgments {[:germany :fleet :kie :hold] #{}}
    :explanation "Order should fail."}
   "6.A.4. MOVE TO OWN SECTOR"
   {:summary "Moving to the same sector is an illegal move (2000 rulebook, page 4, \"An Army can be ordered to move into an adjacent inland or coastal province.\")."
@@ -1004,15 +1012,18 @@
                         [:france :army :wal :support :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}}
    :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}})
 
+(defn-spec test-dict-incomplete? [::dt/test-dict] boolean?)
+(defn ^:private test-dict-incomplete?
+  "Returns whether the argument has any placeholder conflict judgments."
+  [{:keys [conflict-judgments]}]
+  (not-any? (partial = #{[:interfered? :interferer :rule]})
+            (vals conflict-judgments)))
+
 (def DATC-cases
-  ;; Don't export test cases that don't have conflict judgments assigned.
-  ;; Make sure that DATC-cases actually contains the tests you want to run!
-  (let [finished-cases
-        (into {}
-              (filter (fn [[test-name test-dict]]
-                        (not-any? (partial = #{[:interfered? :interferer :rule]})
-                                  (vals (:conflict-judgments test-dict))))
-                      DATC-cases-raw))]
-    (into {} (for [[test-name test-dict] finished-cases]
-               [test-name (update test-dict :conflict-judgments
-                                  diplomacy.test-utils/create-conflict-judgments)]))))
+  (->> DATC-cases-raw
+       ;; Don't export test cases that don't have conflict judgments assigned.
+       ;; Make sure that DATC-cases actually contains the tests you want to run!
+       (filter (comp test-dict-incomplete? second))
+       (map (fn [[name raw-test-dict]]
+                [name (diplomacy.test-utils/expand-test raw-test-dict)]))
+       (into {})))
