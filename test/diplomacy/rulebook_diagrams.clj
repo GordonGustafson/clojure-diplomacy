@@ -65,9 +65,10 @@
        [:russia :army :tyr :support :russia :army :boh :attack :mun] #{}}
    })
 
-(def rulebook-diagram-judgments
+(def rulebook-diagram-cases
   (into {} (for [[k v] rulebook-diagram-judgments-raw]
-             [k (diplomacy.test-utils/create-conflict-judgments v)])))
+             [k (diplomacy.test-utils/expand-adjudication
+                 {:conflict-judgments v})])))
 
    ;; have checked up to this line
 

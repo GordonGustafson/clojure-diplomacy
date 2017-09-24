@@ -99,28 +99,3 @@
     #{:supports-unsupportable-location?}
     [(create-order :france :army :por :support
                    :france :fleet :wes :attack :mid)]}))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                Rulebook Test Cases (orders that are valid) ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; TODO: document what these mean
-(defn orders-map-to-validation-test-cases
-  [orders-map]
-  ;; Use `(apply concat ...)` instead of `(flatten ...)` because `flatten`
-  ;; creates one giant order by flattening *all* the layers!
-  {#{} (->> orders-map
-            (vals)      ; the keys are the turn times or diagram numbers
-            (map keys)  ; the values are the failure-reason for the order
-            (apply concat))})
-
-(deftest test-rulebook-sample-game-validation
-  (run-test-cases validation-failure-reasons-in-classic-map
-                  (orders-map-to-validation-test-cases
-                   diplomacy.rulebook-diagrams/rulebook-diagram-judgments)))
-
-(deftest test-rulebook-diagrams-validation
-  (run-test-cases validation-failure-reasons-in-classic-map
-                  (orders-map-to-validation-test-cases
-                   diplomacy.rulebook-sample-game/rulebook-sample-game-judgments
-                   )))

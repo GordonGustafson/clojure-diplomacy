@@ -4,6 +4,8 @@
             [diplomacy.datatypes :as dt]
             [diplomacy.map-data]
             [diplomacy.DATC-cases]
+            [diplomacy.rulebook-sample-game]
+            [diplomacy.rulebook-diagrams]
             [diplomacy.util :refer [defn-spec map-difference]]))
 
 (defn-spec run-test-case [::dt/dmap ::dt/adjudication string?] any?)
@@ -40,3 +42,17 @@
     (run-test-case diplomacy.map-data/classic-map
                    expected-adjudication
                    test-name)))
+
+(test/deftest test-rulebook-sample-game
+  (doseq [[game-time expected-adjudication]
+          diplomacy.rulebook-sample-game/rulebook-sample-game-cases]
+    (run-test-case diplomacy.map-data/classic-map
+                   expected-adjudication
+                   (str (:season game-time) " " (:year game-time)))))
+
+(test/deftest test-rulebook-diagrams
+  (doseq [[diagram-number expected-adjudication]
+          diplomacy.rulebook-diagrams/rulebook-diagram-cases]
+    (run-test-case diplomacy.map-data/classic-map
+                   expected-adjudication
+                   (str "Rulebook diagram " diagram-number))))

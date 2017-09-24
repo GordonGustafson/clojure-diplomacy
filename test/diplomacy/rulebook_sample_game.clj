@@ -132,6 +132,7 @@
     [:turkey :fleet :bla :support :turkey :army :bul :attack :rum] #{}
     }})
 
-(def rulebook-sample-game-judgments
+(def rulebook-sample-game-cases
   (into {} (for [[k v] rulebook-sample-game-judgments-raw]
-             [k (diplomacy.test-utils/create-conflict-judgments v)])))
+             [k (diplomacy.test-utils/expand-adjudication
+                 {:conflict-judgments v})])))
