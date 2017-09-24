@@ -401,5 +401,9 @@
        [(attack-judgmento order judgment [])]
        [(support-judgmento order judgment)]))
      (map (fn [[attack judgment]] {attack #{judgment}}))
-     (apply merge-with clojure.set/union))))
-
+     (apply merge-with clojure.set/union)
+     (into {})
+     ;; Make sure that orders that have no conflict-judgments are mapped to an
+     ;; empty set of conflict-judgments in the output. Merge uses the values
+     ;; from the right-most map when there are conflicts.
+     (merge (zipmap orders (repeat #{}))))))
