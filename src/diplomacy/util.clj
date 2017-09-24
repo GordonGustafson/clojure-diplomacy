@@ -11,22 +11,40 @@
   ([a b c d e f] (s/cat :arg-1 a :arg-2 b :arg-3 c :arg-4 d :arg-5 e :arg-6 f)))
 
 (defn fn-spec
-  "Return a function spec taking arguments that conform to the corresponding
-  elements in `raw-arg-spec` and returning a value that conforms to `ret-spec`.
+  "Return a function spec that:
+  1. takes arguments :arg-1, :arg-2, etc. that conform to the corresponding
+     elements in `raw-arg-spec`.
+  2. returns a value that conforms to `ret-spec`.
+  3. optionally has post-conditions `fn-spec`.
+
   If `raw-arg-spec` is not a sequence, it is interpreted as the spec for the
-  entire argument list."
-  [raw-arg-spec ret-spec]
-  (s/fspec :args (if (sequential? raw-arg-spec)
-                   (apply cat-specs raw-arg-spec)
-                   raw-arg-spec)
-           :ret ret-spec))
+  entire argument list.
+
+  In clojure.spec, preconditions are supposed to be in the :args spec so they
+  can be checked before executing the function. If you want to do that with this
+  function you have to pass the spec for the whole argument list (including its
+  preconditions) as `raw-arg-spec`."
+  ([raw-arg-spec ret-spec]
+   (s/fspec :args (if (sequential? raw-arg-spec)
+                    (apply cat-specs raw-arg-spec)
+                    raw-arg-spec)
+            :ret ret-spec))
+  ([raw-arg-spec ret-spec fn-spec]
+   (s/fspec :args (if (sequential? raw-arg-spec)
+                    (apply cat-specs raw-arg-spec)
+                    raw-arg-spec)
+            :ret ret-spec
+            :fn fn-spec)))
 
 ;; Emacs' clojure-mode will indent and highlight functions that start with
 ;; `defn` as if they were a `defn`, which is convenient.
 (defmacro defn-spec
-  "Defines `func` to have spec `(fn-spec arg-specs ret-spec)`"
-  [func arg-specs ret-spec]
-  `(s/def ~func (fn-spec ~arg-specs ~ret-spec)))
+  "Defines `func` to have spec `(fn-spec arg-specs ret-spec)` or `(fn-spec
+  arg-specs ret-spec fn-spec)`"
+  ([func arg-specs ret-spec]
+   `(s/def ~func (fn-spec ~arg-specs ~ret-spec)))
+  ([func arg-specs ret-spec fn-spec]
+   `(s/def ~func (fn-spec ~arg-specs ~ret-spec ~fn-spec))))
 
 (defn-spec map-difference [map? map?] map?)
 (defn map-difference [lhs rhs]
