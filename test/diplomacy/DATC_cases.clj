@@ -49,43 +49,54 @@
    :explanation "Move from London to Belgium should fail."}
   "6.A.8. SUPPORT TO HOLD YOURSELF IS NOT POSSIBLE"
   {:summary "An army can not get an additional hold power by supporting itself."
-   :conflict-judgments {[:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
-                        [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
-                        [:austria :fleet :tri :support :austria :fleet :tri :hold] #{[:interfered? :interferer :rule]}}
+   :validation-results {[:austria :fleet :tri :support :austria :fleet :tri :hold] [#{:supports-unsupportable-location?} [:austria :fleet :tri :hold]]}
+   :conflict-judgments {[:italy :army :ven :attack :tri] #{[false [:austria :fleet :tri :hold] :destination-occupied]}
+                        [:italy :army :tyr :support :italy :army :ven :attack :tri] #{}
+                        [:austria :fleet :tri :hold] #{}}
    :explanation "The army in Trieste should be dislodged."}
   "6.A.9. FLEETS MUST FOLLOW COAST IF NOT ON SEA"
   {:summary "If two places are adjacent, that does not mean that a fleet can move between those two places. An implementation that only holds one list of adjacent places for each place, is incorrect."
-   :conflict-judgments {[:italy :fleet :rom :attack :ven] #{[:interfered? :interferer :rule]}}
+   :validation-results {[:italy :fleet :rom :attack :ven] [#{:attacks-via-inaccessible-edge?} [:italy :fleet :rom :hold]]}
+   :conflict-judgments {[:italy :fleet :rom :hold] #{}}
    :explanation "Move fails. An army can go from Rome to Venice, but a fleet can not."}
   "6.A.10. SUPPORT ON UNREACHABLE DESTINATION NOT POSSIBLE"
   {:summary "The destination of the move that is supported must be reachable by the supporting unit."
+   :validation-results {[:italy :fleet :rom :support :italy :army :apu :attack :ven] [#{:supports-unsupportable-location?} [:italy :fleet :rom :hold]]}
    :conflict-judgments {[:austria :army :ven :hold] #{}
-                        [:italy :fleet :rom :support :italy :army :apu :attack :ven] #{[:interfered? :interferer :rule]}
-                        [:italy :army :apu :attack :ven] #{[:interfered? :interferer :rule]}}
+                        [:italy :fleet :rom :hold] #{}
+                        [:italy :army :apu :attack :ven] #{[true [:austria :army :ven :hold] :destination-occupied]}}
    :explanation "The support of Rome is illegal, because Venice can not be reached from Rome by a fleet. Venice is not dislodged."}
   "6.A.11. SIMPLE BOUNCE"
   {:summary "Two armies bouncing on each other."
-   :conflict-judgments {[:austria :army :vie :attack :tyr] #{[:interfered? :interferer :rule]}
-                        [:italy :army :ven :attack :tyr] #{[:interfered? :interferer :rule]}}
+   :conflict-judgments {[:austria :army :vie :attack :tyr] #{[true [:italy :army :ven :attack :tyr] :attacked-same-destination]}
+                        [:italy :army :ven :attack :tyr] #{[true [:austria :army :vie :attack :tyr] :attacked-same-destination]}}
    :explanation "The two units bounce."}
   "6.A.12. BOUNCE OF THREE UNITS"
   {:summary "If three units move to the same place, the adjudicator should not bounce the first two units and then let the third unit go to the now open place."
-   :conflict-judgments {[:austria :army :vie :attack :tyr] #{[:interfered? :interferer :rule]}
-                        [:germany :army :mun :attack :tyr] #{[:interfered? :interferer :rule]}
-                        [:italy :army :ven :attack :tyr] #{[:interfered? :interferer :rule]}}
+   :conflict-judgments {[:austria :army :vie :attack :tyr] #{[true [:germany :army :mun :attack :tyr] :attacked-same-destination]
+                                                             [true [:italy :army :ven :attack :tyr] :attacked-same-destination]}
+                        [:germany :army :mun :attack :tyr] #{[true [:austria :army :vie :attack :tyr] :attacked-same-destination]
+                                                             [true [:italy :army :ven :attack :tyr] :attacked-same-destination]}
+                        [:italy :army :ven :attack :tyr] #{[true [:austria :army :vie :attack :tyr] :attacked-same-destination]
+                                                           [true [:germany :army :mun :attack :tyr] :attacked-same-destination]}}
    :explanation "The three units bounce."}
  "6.B.1. MOVING WITH UNSPECIFIED COAST WHEN COAST IS NECESSARY"
   {:summary "Coast is significant in this case:"
-   :conflict-judgments {[:france :fleet :por :attack :spa] #{[:interfered? :interferer :rule]}}
+   :validation-results {[:france :fleet :por :attack :spa] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?} [:france :fleet :por :hold]]}
+   :conflict-judgments {[:france :fleet :por :hold] #{}}
    :explanation "Some adjudicators take a default coast (see issue 4.B.1). <i>I prefer that the move fails.</i>"}
+  ;; TODO: Currently a fleet moving to a non-coastal version of a location with
+  ;; coasts results in the fleet holding, even if there was only one coast that
+  ;; was eligible to move to. Consider changing this.
   "6.B.2. MOVING WITH UNSPECIFIED COAST WHEN COAST IS NOT NECESSARY"
   {:summary "There is only one coast possible in this case:"
-   :conflict-judgments {[:france :fleet :gas :attack :spa] #{[:interfered? :interferer :rule]}}
+   :validation-results {[:france :fleet :gas :attack :spa] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
+   :conflict-judgments {[:france :fleet :gas :hold] #{}}
    :explanation "Since the North Coast is the only coast that can be reached, it seems logical that the a move is attempted to the north coast of Spain. Some adjudicators require that a coast is also specified in this case and will decide that the move fails or take a default coast (see issue 4.B.2). <i>I prefer that an attempt is made to the only possible coast, the north coast of Spain.</i>"}
-  ;; comment out because it uses a coast
-  #_"6.B.3. MOVING WITH WRONG COAST WHEN COAST IS NOT NECESSARY"
-  #_{:summary "If only one coast is possible, but the wrong coast can be specified."
-   :conflict-judgments {[:france :fleet :gas :attack :spa-sc] #{[:interfered? :interferer :rule]}}
+  "6.B.3. MOVING WITH WRONG COAST WHEN COAST IS NOT NECESSARY"
+  {:summary "If only one coast is possible, but the wrong coast can be specified."
+   :validation-results {[:france :fleet :gas :attack :spa-sc] [#{:attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
+   :conflict-judgments {[:france :fleet :gas :hold] #{}}
    :explanation "If the rules are played very clemently, a move will be attempted to the north coast of Spain. However, since this order is very clear and precise, it is more common that the move fails (see issue 4.B.3). <i>I prefer that the move fails.</i>"}
   ;; comment out because it uses a coast
   #_"6.B.4. SUPPORT TO UNREACHABLE COAST ALLOWED"
@@ -95,10 +106,11 @@
                         [:italy :fleet :wes :attack :spa-sc] #{[:interfered? :interferer :rule]}}
    :explanation "Although the fleet in Marseilles can not go to the north coast it can still support targeting the north coast. So, the support is successful, the move of the fleet in Gasgony succeeds and the move of the Italian fleet fails."}
   ;; comment out because it uses a coast
-  #_"6.B.5. SUPPORT FROM UNREACHABLE COAST NOT ALLOWED"
-  #_{:summary "A fleet can not give support to an area that can not be reached from the current coast of the fleet."
-   :conflict-judgments {[:france :fleet :mar :attack :gol] #{[:interfered? :interferer :rule]}
-                        [:france :fleet :spa-nc :support :france :fleet :mar :attack :gol] #{[:interfered? :interferer :rule]}
+  "6.B.5. SUPPORT FROM UNREACHABLE COAST NOT ALLOWED"
+  {:summary "A fleet can not give support to an area that can not be reached from the current coast of the fleet."
+   :validation-results {[:france :fleet :spa-nc :support :france :fleet :mar :attack :gol] [#{:supports-unsupportable-location?} [:france :fleet :spa-nc :hold]]}
+   :conflict-judgments {[:france :fleet :mar :attack :gol] #{[true [:italy :fleet :gol :hold] :destination-occupied]}
+                        [:france :fleet :spa-nc :hold] #{}
                         [:italy :fleet :gol :hold] #{}}
    :explanation "The Gulf of Lyon can not be reached from the North Coast of Spain. Therefore, the support of Spain is invalid and the fleet in the Gulf of Lyon is not dislodged."}
   ;; comment out because it uses a coast
@@ -157,23 +169,27 @@
    :explanation "Both moves fail."}
  "6.C.1. THREE ARMY CIRCULAR MOVEMENT"
   {:summary "Three units can change place, even in spring 1901."
-   :conflict-judgments {[:turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}
-                        [:turkey :army :con :attack :smy] #{[:interfered? :interferer :rule]}
-                        [:turkey :army :smy :attack :ank] #{[:interfered? :interferer :rule]}}
+   :conflict-judgments {[:turkey :fleet :ank :attack :con] #{}
+                        [:turkey :army :con :attack :smy] #{}
+                        [:turkey :army :smy :attack :ank] #{}}
    :explanation "All three units will move."}
   "6.C.2. THREE ARMY CIRCULAR MOVEMENT WITH SUPPORT"
   {:summary "Three units can change place, even when one gets support."
-   :conflict-judgments {[:turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}
-                        [:turkey :army :con :attack :smy] #{[:interfered? :interferer :rule]}
-                        [:turkey :army :smy :attack :ank] #{[:interfered? :interferer :rule]}
-                        [:turkey :army :bul :support :turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}}
+   :conflict-judgments {[:turkey :fleet :ank :attack :con] #{}
+                        [:turkey :army :con :attack :smy] #{}
+                        [:turkey :army :smy :attack :ank] #{}
+                        [:turkey :army :bul :support :turkey :fleet :ank :attack :con] #{}}
    :explanation "Of course the three units will move, but knowing how programs are written, this can confuse the adjudicator."}
   "6.C.3. A DISRUPTED THREE ARMY CIRCULAR MOVEMENT"
   {:summary "When one of the units bounces, the whole circular movement will hold."
-   :conflict-judgments {[:turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}
-                        [:turkey :army :con :attack :smy] #{[:interfered? :interferer :rule]}
-                        [:turkey :army :smy :attack :ank] #{[:interfered? :interferer :rule]}
-                        [:turkey :army :bul :attack :con] #{[:interfered? :interferer :rule]}}
+   ;; The first order doesn't have a :failed-to-leave-destination failure reason
+   ;; because it's failure was what caused the other unit to fail to leave it's
+   ;; destination.
+   :conflict-judgments {[:turkey :fleet :ank :attack :con] #{[true [:turkey :army :bul :attack :con] :attacked-same-destination]}
+                        [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
+                        [:turkey :army :smy :attack :ank] #{[true [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]}
+                        [:turkey :army :bul :attack :con] #{[true [:turkey :fleet :ank :attack :con] :attacked-same-destination]
+                                                            [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}}
    :explanation "Every unit will keep its place."}
   ;; commented out because it uses a convoy
   #_"6.C.4. A CIRCULAR MOVEMENT WITH ATTACKED CONVOY"
@@ -217,40 +233,40 @@
    :explanation "None of the units will succeed to move."}
  "6.D.1. SUPPORTED HOLD CAN PREVENT DISLODGEMENT"
   {:summary "The most simple support to hold order."
-   :conflict-judgments {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
-                        [:austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
+   :conflict-judgments {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{}
+                        [:austria :army :tri :attack :ven] #{[true [:italy :army :ven :hold] :destination-occupied]}
                         [:italy :army :ven :hold] #{}
-                        [:italy :army :tyr :support :italy :army :ven :hold] #{[:interfered? :interferer :rule]}}
+                        [:italy :army :tyr :support :italy :army :ven :hold] #{}}
    :explanation "The support of Tyrolia prevents that the army in Venice is dislodged. The army in Trieste will not move."}
   "6.D.2. A MOVE CUTS SUPPORT ON HOLD"
   {:summary "The most simple support on hold cut."
-   :conflict-judgments {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
-                        [:austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
-                        [:austria :army :vie :attack :tyr] #{[:interfered? :interferer :rule]}
+   :conflict-judgments {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{}
+                        [:austria :army :tri :attack :ven] #{[false [:italy :army :ven :hold] :destination-occupied]}
+                        [:austria :army :vie :attack :tyr] #{[true [:italy :army :tyr :support :italy :army :ven :hold] :destination-occupied]}
                         [:italy :army :ven :hold] #{}
-                        [:italy :army :tyr :support :italy :army :ven :hold] #{[:interfered? :interferer :rule]}}
+                        [:italy :army :tyr :support :italy :army :ven :hold] #{[true [:austria :army :vie :attack :tyr] :attacked]}}
    :explanation "The support of Tyrolia is cut by the army in Vienna. That means that the army in Venice is dislodged by the army from Trieste."}
   "6.D.3. A MOVE CUTS SUPPORT ON MOVE"
   {:summary "The most simple support on move cut."
-   :conflict-judgments {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
-                        [:austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
+   :conflict-judgments {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[true [:italy :fleet :ion :attack :adr] :attacked]}
+                        [:austria :army :tri :attack :ven] #{[true [:italy :army :ven :hold] :destination-occupied]}
                         [:italy :army :ven :hold] #{}
-                        [:italy :fleet :ion :attack :adr] #{[:interfered? :interferer :rule]}}
+                        [:italy :fleet :ion :attack :adr] #{[true [:austria :fleet :adr :support :austria :army :tri :attack :ven] :destination-occupied]}}
    :explanation "The support of the fleet in the Adriatic Sea is cut. That means that the army in Venice will not be dislodged and the army in Trieste stays in Trieste."}
   "6.D.4. SUPPORT TO HOLD ON UNIT SUPPORTING A HOLD ALLOWED"
   {:summary "A unit that is supporting a hold, can receive a hold support."
-   :conflict-judgments {[:germany :army :ber :support :germany :fleet :kie :hold] #{[:interfered? :interferer :rule]}
-                        [:germany :fleet :kie :support :germany :army :ber :hold] #{[:interfered? :interferer :rule]}
-                        [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}
-                        [:russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}}
+   :conflict-judgments {[:germany :army :ber :support :germany :fleet :kie :hold] #{[true [:russia :army :pru :attack :ber] :attacked]}
+                        [:germany :fleet :kie :support :germany :army :ber :hold] #{}
+                        [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{}
+                        [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :support :germany :fleet :kie :hold] :destination-occupied]}}
    :explanation "The Russian move from Prussia to Berlin fails."}
   "6.D.5. SUPPORT TO HOLD ON UNIT SUPPORTING A MOVE ALLOWED"
   {:summary "A unit that is supporting a move, can receive a hold support."
-   :conflict-judgments {[:germany :army :ber :support :germany :army :mun :attack :sil] #{[:interfered? :interferer :rule]}
-                        [:germany :fleet :kie :support :germany :army :ber :hold] #{[:interfered? :interferer :rule]}
-                        [:germany :army :mun :attack :sil] #{[:interfered? :interferer :rule]}
-                        [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}
-                        [:russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}}
+   :conflict-judgments {[:germany :army :ber :support :germany :army :mun :attack :sil] #{[true [:russia :army :pru :attack :ber] :attacked]}
+                        [:germany :fleet :kie :support :germany :army :ber :hold] #{}
+                        [:germany :army :mun :attack :sil] #{}
+                        [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{}
+                        [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :support :germany :army :mun :attack :sil] :destination-occupied]}}
    :explanation "The Russian move from Prussia to Berlin fails."}
   ;; commented out because it uses a convoy
   #_"6.D.6. SUPPORT TO HOLD ON CONVOYING UNIT ALLOWED"
