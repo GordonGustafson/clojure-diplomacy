@@ -4,10 +4,10 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
-                 [org.clojure/core.match "0.3.0-alpha4"]
+                 ;; Used extensively in the resolution engine
                  [org.clojure/core.logic "0.8.11"]
-                 ;; This isn't strictly necessary by why not
-                 ;; [org.clojure/algo.generic "0.1.2"]
+                 ;; Used occasionally for convenience
+                 [org.clojure/core.match "0.3.0-alpha4"]
                  ;; TODO: make this a :dev or :test dependency
                  [org.clojure/test.check "0.9.0"]]
   :main ^:skip-aot diplomacy.core
