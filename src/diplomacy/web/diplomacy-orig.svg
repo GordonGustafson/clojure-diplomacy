@@ -100,13 +100,13 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
 
 	text		{font-family:Arial,Helvetica,sans-serif; font-size:8px}
 
-	.Austria	{fill:#FF0000; stroke:black}
-	.England	{fill:#0000FF; stroke:black}
-	.France 	{fill:#00FFFF; stroke:black}
-	.Germany	{fill:#808080; stroke:black}
-	.Italy  	{fill:#00FF00; stroke:black}
-	.Russia 	{fill:#008000; stroke:black}
-	.Turkey 	{fill:#FFFF00; stroke:black}
+	.austria	{fill:#FF0000; stroke:black}
+	.england	{fill:#0000FF; stroke:black}
+	.france 	{fill:#00FFFF; stroke:black}
+	.germany	{fill:#808080; stroke:black}
+	.italy  	{fill:#00FF00; stroke:black}
+	.russia 	{fill:#008000; stroke:black}
+	.turkey 	{fill:#FFFF00; stroke:black}
 ]]>
 </style>
 </defs>
@@ -520,49 +520,49 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
 <use id="SC" xlink:href="#sc" class="Unowned"/>
 </defs>
 
-<g title="bud"><use xlink:href="#sc" class="Austria" transform="translate(&sc_bud;)"/></g>
-<g title="tri"><use xlink:href="#sc" class="Austria" transform="translate(&sc_tri;)"/></g>
-<g title="vie"><use xlink:href="#sc" class="Austria" transform="translate(&sc_vie;)"/></g>
-<g title="edi"><use xlink:href="#sc" class="England" transform="translate(&sc_edi;)"/></g>
-<g title="lvp"><use xlink:href="#sc" class="England" transform="translate(&sc_lvp;)"/></g>
-<g title="lon"><use xlink:href="#sc" class="England" transform="translate(&sc_lon;)"/></g>
-<g title="bre"><use xlink:href="#sc" class="France" transform="translate(&sc_bre;)"/></g>
-<g title="mar"><use xlink:href="#sc" class="France" transform="translate(&sc_mar;)"/></g>
-<g title="par"><use xlink:href="#sc" class="France" transform="translate(&sc_par;)"/></g>
-<g title="ber"><use xlink:href="#sc" class="Germany" transform="translate(&sc_ber;)"/></g>
-<g title="kie"><use xlink:href="#sc" class="Germany" transform="translate(&sc_kie;)"/></g>
-<g title="mun"><use xlink:href="#sc" class="Germany" transform="translate(&sc_mun;)"/></g>
-<g title="nap"><use xlink:href="#sc" class="Italy" transform="translate(&sc_nap;)"/></g>
-<g title="rom"><use xlink:href="#sc" class="Italy" transform="translate(&sc_rom;)"/></g>
-<g title="ven"><use xlink:href="#sc" class="Italy" transform="translate(&sc_ven;)"/></g>
-<g title="mos"><use xlink:href="#sc" class="Russia" transform="translate(&sc_mos;)"/></g>
-<g title="sev"><use xlink:href="#sc" class="Russia" transform="translate(&sc_sev;)"/></g>
-<g title="stp"><use xlink:href="#sc" class="Russia" transform="translate(&sc_stp;)"/></g>
-<g title="war"><use xlink:href="#sc" class="Russia" transform="translate(&sc_war;)"/></g>
-<g title="ank"><use xlink:href="#sc" class="Turkey" transform="translate(&sc_ank;)"/></g>
-<g title="con"><use xlink:href="#sc" class="Turkey" transform="translate(&sc_con;)"/></g>
-<g title="smy"><use xlink:href="#sc" class="Turkey" transform="translate(&sc_smy;)"/></g>
+<g title="bud"><use xlink:href="#sc" class="austria" transform="translate(&sc_bud;)"/></g>
+<g title="tri"><use xlink:href="#sc" class="austria" transform="translate(&sc_tri;)"/></g>
+<g title="vie"><use xlink:href="#sc" class="austria" transform="translate(&sc_vie;)"/></g>
+<g title="edi"><use xlink:href="#sc" class="england" transform="translate(&sc_edi;)"/></g>
+<g title="lvp"><use xlink:href="#sc" class="england" transform="translate(&sc_lvp;)"/></g>
+<g title="lon"><use xlink:href="#sc" class="england" transform="translate(&sc_lon;)"/></g>
+<g title="bre"><use xlink:href="#sc" class="france" transform="translate(&sc_bre;)"/></g>
+<g title="mar"><use xlink:href="#sc" class="france" transform="translate(&sc_mar;)"/></g>
+<g title="par"><use xlink:href="#sc" class="france" transform="translate(&sc_par;)"/></g>
+<g title="ber"><use xlink:href="#sc" class="germany" transform="translate(&sc_ber;)"/></g>
+<g title="kie"><use xlink:href="#sc" class="germany" transform="translate(&sc_kie;)"/></g>
+<g title="mun"><use xlink:href="#sc" class="germany" transform="translate(&sc_mun;)"/></g>
+<g title="nap"><use xlink:href="#sc" class="italy" transform="translate(&sc_nap;)"/></g>
+<g title="rom"><use xlink:href="#sc" class="italy" transform="translate(&sc_rom;)"/></g>
+<g title="ven"><use xlink:href="#sc" class="italy" transform="translate(&sc_ven;)"/></g>
+<g title="mos"><use xlink:href="#sc" class="russia" transform="translate(&sc_mos;)"/></g>
+<g title="sev"><use xlink:href="#sc" class="russia" transform="translate(&sc_sev;)"/></g>
+<g title="stp"><use xlink:href="#sc" class="russia" transform="translate(&sc_stp;)"/></g>
+<g title="war"><use xlink:href="#sc" class="russia" transform="translate(&sc_war;)"/></g>
+<g title="ank"><use xlink:href="#sc" class="turkey" transform="translate(&sc_ank;)"/></g>
+<g title="con"><use xlink:href="#sc" class="turkey" transform="translate(&sc_con;)"/></g>
+<g title="smy"><use xlink:href="#sc" class="turkey" transform="translate(&sc_smy;)"/></g>
 
-<g title="vie"><use xlink:href="#A" id="vie" class="Austria" transform="translate(&vie;)"/></g>
-<g title="bud"><use xlink:href="#A" id="bud" class="Austria" transform="translate(&bud;)"/></g>
-<g title="tri"><use xlink:href="#F" id="tri" class="Austria" transform="translate(&tri;)"/></g>
-<g title="lon"><use xlink:href="#F" id="lon" class="England" transform="translate(&lon;)"/></g>
-<g title="edi"><use xlink:href="#F" id="edi" class="England" transform="translate(&edi;)"/></g>
-<g title="lvp"><use xlink:href="#A" id="lvp" class="England" transform="translate(&lvp;)"/></g>
-<g title="par"><use xlink:href="#A" id="par" class="France" transform="translate(&par;)"/></g>
-<g title="mar"><use xlink:href="#A" id="mar" class="France" transform="translate(&mar;)"/></g>
-<g title="bre"><use xlink:href="#F" id="bre" class="France" transform="translate(&bre;)"/></g>
-<g title="ber"><use xlink:href="#A" id="ber" class="Germany" transform="translate(&ber;)"/></g>
-<g title="mun"><use xlink:href="#A" id="mun" class="Germany" transform="translate(&mun;)"/></g>
-<g title="kie"><use xlink:href="#F" id="kie" class="Germany" transform="translate(&kie;)"/></g>
-<g title="rom"><use xlink:href="#A" id="rom" class="Italy" transform="translate(&rom;)"/></g>
-<g title="ven"><use xlink:href="#A" id="ven" class="Italy" transform="translate(&ven;)"/></g>
-<g title="nap"><use xlink:href="#F" id="nap" class="Italy" transform="translate(&nap;)"/></g>
-<g title="mos"><use xlink:href="#A" id="mos" class="Russia" transform="translate(&mos;)"/></g>
-<g title="war"><use xlink:href="#A" id="war" class="Russia" transform="translate(&war;)"/></g>
-<g title="stp (sc)"><use xlink:href="#F" id="stp" class="Russia" transform="translate(&stp__sc;)"/></g>
-<g title="sev"><use xlink:href="#F" id="sev" class="Russia" transform="translate(&sev;)"/></g>
-<g title="con"><use xlink:href="#A" id="con" class="Turkey" transform="translate(&con;)"/></g>
-<g title="smy"><use xlink:href="#A" id="smy" class="Turkey" transform="translate(&smy;)"/></g>
-<g title="ank"><use xlink:href="#F" id="ank" class="Turkey" transform="translate(&ank;)"/></g>
+<g title="vie"><use xlink:href="#A" id="vie" class="austria" transform="translate(&vie;)"/></g>
+<g title="bud"><use xlink:href="#A" id="bud" class="austria" transform="translate(&bud;)"/></g>
+<g title="tri"><use xlink:href="#F" id="tri" class="austria" transform="translate(&tri;)"/></g>
+<g title="lon"><use xlink:href="#F" id="lon" class="england" transform="translate(&lon;)"/></g>
+<g title="edi"><use xlink:href="#F" id="edi" class="england" transform="translate(&edi;)"/></g>
+<g title="lvp"><use xlink:href="#A" id="lvp" class="england" transform="translate(&lvp;)"/></g>
+<g title="par"><use xlink:href="#A" id="par" class="france" transform="translate(&par;)"/></g>
+<g title="mar"><use xlink:href="#A" id="mar" class="france" transform="translate(&mar;)"/></g>
+<g title="bre"><use xlink:href="#F" id="bre" class="france" transform="translate(&bre;)"/></g>
+<g title="ber"><use xlink:href="#A" id="ber" class="germany" transform="translate(&ber;)"/></g>
+<g title="mun"><use xlink:href="#A" id="mun" class="germany" transform="translate(&mun;)"/></g>
+<g title="kie"><use xlink:href="#F" id="kie" class="germany" transform="translate(&kie;)"/></g>
+<g title="rom"><use xlink:href="#A" id="rom" class="italy" transform="translate(&rom;)"/></g>
+<g title="ven"><use xlink:href="#A" id="ven" class="italy" transform="translate(&ven;)"/></g>
+<g title="nap"><use xlink:href="#F" id="nap" class="italy" transform="translate(&nap;)"/></g>
+<g title="mos"><use xlink:href="#A" id="mos" class="russia" transform="translate(&mos;)"/></g>
+<g title="war"><use xlink:href="#A" id="war" class="russia" transform="translate(&war;)"/></g>
+<g title="stp (sc)"><use xlink:href="#F" id="stp" class="russia" transform="translate(&stp__sc;)"/></g>
+<g title="sev"><use xlink:href="#F" id="sev" class="russia" transform="translate(&sev;)"/></g>
+<g title="con"><use xlink:href="#A" id="con" class="turkey" transform="translate(&con;)"/></g>
+<g title="smy"><use xlink:href="#A" id="smy" class="turkey" transform="translate(&smy;)"/></g>
+<g title="ank"><use xlink:href="#F" id="ank" class="turkey" transform="translate(&ank;)"/></g>
 </svg>
