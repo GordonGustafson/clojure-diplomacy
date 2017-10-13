@@ -16,8 +16,8 @@
 <!ENTITY bre "125,334">	<!ENTITY sc_bre "106,322">
 <!ENTITY bud "353,378">	<!ENTITY sc_bud "326,376">
 <!ENTITY bul "395,443">	<!ENTITY sc_bul "377,444">
-<!ENTITY bul__ec "410,440">
-<!ENTITY bul__sc "399,462">
+<!ENTITY bul-ec "410,440">
+<!ENTITY bul-sc "399,462">
 <!ENTITY bur "191,360">
 <!ENTITY cly "139,188">
 <!ENTITY con "439,473">	<!ENTITY sc_con "429,460">
@@ -63,11 +63,11 @@
 <!ENTITY ska "260,212">
 <!ENTITY smy "490,505">	<!ENTITY sc_smy "424,502">
 <!ENTITY spa "64,439">	<!ENTITY sc_spa "80,432">
-<!ENTITY spa__nc "80,404">
-<!ENTITY spa__sc "52,475">
+<!ENTITY spa-nc "80,404">
+<!ENTITY spa-sc "52,475">
 <!ENTITY stp "500,140">	<!ENTITY sc_stp "418,187">
-<!ENTITY stp__nc "472,122">
-<!ENTITY stp__sc "418,205">
+<!ENTITY stp-nc "472,122">
+<!ENTITY stp-sc "418,205">
 <!ENTITY swe "315,140">	<!ENTITY sc_swe "323,196">
 <!ENTITY syr "570,520">
 <!ENTITY tri "305,412">	<!ENTITY sc_tri "284,396">
@@ -560,7 +560,7 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
 <g title="nap"><use xlink:href="#fleet" id="nap" class="italy" transform="translate(&nap;)"/></g>
 <g title="mos"><use xlink:href="#army" id="mos" class="russia" transform="translate(&mos;)"/></g>
 <g title="war"><use xlink:href="#army" id="war" class="russia" transform="translate(&war;)"/></g>
-<g title="stp (sc)"><use xlink:href="#fleet" id="stp" class="russia" transform="translate(&stp__sc;)"/></g>
+<g title="stp (sc)"><use xlink:href="#fleet" id="stp" class="russia" transform="translate(&stp-sc;)"/></g>
 <g title="sev"><use xlink:href="#fleet" id="sev" class="russia" transform="translate(&sev;)"/></g>
 <g title="con"><use xlink:href="#army" id="con" class="turkey" transform="translate(&con;)"/></g>
 <g title="smy"><use xlink:href="#army" id="smy" class="turkey" transform="translate(&smy;)"/></g>
