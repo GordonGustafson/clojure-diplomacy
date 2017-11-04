@@ -382,11 +382,11 @@
 ;;                                      Public Interface for Order Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec conflict-judgments
+(defn-spec compute-conflict-judgments
   [(s/coll-of ::dt/order)]
   ::dt/conflict-judgments
   #(= (set (-> % :args :arg-1)) (set (-> % :ret (keys)))))
-(defn conflict-judgments
+(defn compute-conflict-judgments
   "A map from each element of `orders` to the set of judgments that apply to it
   (the orders that may interfere with it, whether they successfully interfered,
   and the rule that determined that result)."
