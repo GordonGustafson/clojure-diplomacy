@@ -135,4 +135,4 @@
 (def rulebook-sample-game-cases
   (into {} (for [[k v] rulebook-sample-game-judgments-raw]
              [k (diplomacy.test-utils/expand-adjudication
-                 {:conflict-judgments v})])))
+                 {:conflict-judgments-abbr v})])))
