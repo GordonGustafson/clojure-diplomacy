@@ -26,8 +26,8 @@
 (defn locations-colocated?
   [diplomacy-map location-1 location-2]
   (or (= location-1 location-2)
-      (some #(set/subset? #{location-1 location-2} %)
-            (:colocation-sets diplomacy-map))))
+      (some? (some #(set/subset? #{location-1 location-2} %)
+                   (:colocation-sets diplomacy-map)))))
 
 (defn-spec colocation-set-for-location [::dt/dmap ::dt/location]
   (s/coll-of ::dt/location))
@@ -45,7 +45,8 @@
   [diplomacy-map location]
   (contains? (:supply-centers diplomacy-map) location))
 
-(defn-spec home-supply-centers [::dt/dmap ::dt/country] boolean?)
+(defn-spec home-supply-centers [::dt/dmap ::dt/country]
+  (s/coll-of ::dt/location))
 (defn home-supply-centers
   [diplomacy-map country]
   (get-in diplomacy-map [:home-supply-centers country]))

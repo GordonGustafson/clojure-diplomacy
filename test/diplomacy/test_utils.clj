@@ -10,10 +10,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec create-validation-result
-  [(s/or :valid (partial = :valid)
-         :invalid (s/cat :failure-reasons ::dt/validation-failure-reasons
-                         :order-used ::dt/order))]
-  ::dt/validation-result)
+  [::dt/validation-result-abbr] ::dt/validation-result)
 (defn create-validation-result
   [raw-validation-result]
   (if (= raw-validation-result :valid)
@@ -23,12 +20,7 @@
                         (second raw-validation-result))}))
 
 (defn-spec create-validation-results
-  [(s/map-of ::dt/order-vector
-             (s/or :valid (partial = :valid)
-                   :invalid (s/cat :validation-failure-reasons
-                                   ::dt/validation-failure-reasons
-                                   :order-used ::dt/order)))]
-  ::dt/validation-results)
+  [::dt/validation-results-abbr] ::dt/validation-results)
 (defn create-validation-results
   [order-vector-to-raw-validation-result]
   (into {} (map (fn [[order-vector raw-validation-result]]
@@ -37,11 +29,7 @@
                 order-vector-to-raw-validation-result)))
 
 (defn-spec create-conflict-judgments
-  [(s/map-of ::dt/order-vector
-             (s/coll-of (s/tuple ::dt/interfered?
-                                 ::dt/order-vector
-                                 ::dt/conflict-rule)))]
-  ::dt/conflict-judgments)
+  [::dt/conflict-judgments-abbr] ::dt/conflict-judgments)
 (defn create-conflict-judgments [orders]
   "Judgment maps are verbose when written out in full (the keys are repeated
   many times). This function converts a form using more concise order vectors
@@ -50,7 +38,7 @@
              [(apply create-order k)
               (set (map (fn [[interfered? interferer rule]]
                           {:interferer (apply create-order interferer)
-                           :rule rule
+                           :conflict-rule rule
                            :interfered? interfered?})
                         v))])))
 
@@ -92,11 +80,16 @@
 ;;                                                     fully expanding a test ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn-spec expand-adjudication
+  [::dt/adjudication-abbr] ::dt/adjudication)
 (defn expand-adjudication
-  [raw-adjudication]
-  (-> raw-adjudication
-      (update :conflict-judgments
-              diplomacy.test-utils/create-conflict-judgments)
-      (update :validation-results
-              diplomacy.test-utils/create-validation-results)
-      (fill-in-missing-valid-orders)))
+  [{:keys [conflict-judgments-abbr validation-results-abbr]
+    :as abbreviated-adjudication}]
+  (let [conflict-judgments (create-conflict-judgments conflict-judgments-abbr)
+        validation-results (create-validation-results validation-results-abbr)]
+    (-> abbreviated-adjudication
+        (assoc :conflict-judgments conflict-judgments)
+        (assoc :validation-results validation-results)
+        (dissoc :conflict-judgments-abbr)
+        (dissoc :validation-results-abbr)
+        (fill-in-missing-valid-orders))))

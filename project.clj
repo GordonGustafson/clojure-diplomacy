@@ -8,6 +8,10 @@
                  [org.clojure/core.logic "0.8.11"]
                  ;; Used occasionally for convenience
                  [org.clojure/core.match "0.3.0-alpha4"]
+                 ;; Used to get better spec instrumentation than core.spec
+                 ;; currently has (checking that return values conform to
+                 ;; specs).
+                 [orchestra "2017.08.13"]
                  ;; Web dependencies
                  [ring/ring-core "1.6.2"]
                  [ring/ring-devel "1.6.2"]

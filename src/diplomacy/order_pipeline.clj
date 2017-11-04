@@ -26,7 +26,7 @@
 (defn adjudicate-orders [dmap orders]
   (let [val-results (diplomacy.order-validation/validation-results dmap orders)
         orders-to-resolve (validation-results-to-orders-to-resolve val-results)
-        conflict-judgments (diplomacy.resolution/conflict-judgments
+        conflict-judgments (diplomacy.resolution/compute-conflict-judgments
                             orders-to-resolve)]
     {:validation-results val-results
      :conflict-judgments conflict-judgments}))

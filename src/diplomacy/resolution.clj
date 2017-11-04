@@ -17,7 +17,7 @@
   [judgment interferer rule interfered?]
   "Relation that destructures `judgment`"
   (== judgment {:interferer interferer
-                :rule rule
+                :conflict-rule rule
                 :interfered? interfered?}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -192,7 +192,7 @@
   (let [some-order-cut-us-goal
         (support-judgmento support
                            {:interferer (lvar 'cutter)
-                            :rule (lvar 'rule)
+                            :conflict-rule (lvar 'rule)
                             :interfered? true})]
     ;; `support` succeeds if *there does not exist an order that cuts it*.
     ;; Changing `true` to `false` in the call to `support-judgmento` gives a
@@ -368,7 +368,7 @@
   (let [some-order-bounced-us-goal
         (attack-judgmento attack
                           {:interferer (lvar 'bouncer)
-                           :rule (lvar 'rule)
+                           :conflict-rule (lvar 'rule)
                            :interfered? true}
                           attacks-assumed-successful)]
     ;; `attack` advances if *there does not exist an order that bounces it*.
@@ -382,11 +382,11 @@
 ;;                                      Public Interface for Order Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec conflict-judgments
+(defn-spec compute-conflict-judgments
   [(s/coll-of ::dt/order)]
   ::dt/conflict-judgments
   #(= (set (-> % :args :arg-1)) (set (-> % :ret (keys)))))
-(defn conflict-judgments
+(defn compute-conflict-judgments
   "A map from each element of `orders` to the set of judgments that apply to it
   (the orders that may interfere with it, whether they successfully interfered,
   and the rule that determined that result)."

@@ -68,7 +68,7 @@
 (def rulebook-diagram-cases
   (into {} (for [[k v] rulebook-diagram-judgments-raw]
              [k (diplomacy.test-utils/expand-adjudication
-                 {:conflict-judgments v})])))
+                 {:conflict-judgments-abbr v})])))
 
    ;; have checked up to this line
 
