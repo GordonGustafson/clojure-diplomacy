@@ -50,7 +50,7 @@
              [(apply create-order k)
               (set (map (fn [[interfered? interferer rule]]
                           {:interferer (apply create-order interferer)
-                           :rule rule
+                           :conflict-rule rule
                            :interfered? interfered?})
                         v))])))
 

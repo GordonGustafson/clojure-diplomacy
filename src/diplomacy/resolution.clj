@@ -17,7 +17,7 @@
   [judgment interferer rule interfered?]
   "Relation that destructures `judgment`"
   (== judgment {:interferer interferer
-                :rule rule
+                :conflict-rule rule
                 :interfered? interfered?}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -192,7 +192,7 @@
   (let [some-order-cut-us-goal
         (support-judgmento support
                            {:interferer (lvar 'cutter)
-                            :rule (lvar 'rule)
+                            :conflict-rule (lvar 'rule)
                             :interfered? true})]
     ;; `support` succeeds if *there does not exist an order that cuts it*.
     ;; Changing `true` to `false` in the call to `support-judgmento` gives a
@@ -368,7 +368,7 @@
   (let [some-order-bounced-us-goal
         (attack-judgmento attack
                           {:interferer (lvar 'bouncer)
-                           :rule (lvar 'rule)
+                           :conflict-rule (lvar 'rule)
                            :interfered? true}
                           attacks-assumed-successful)]
     ;; `attack` advances if *there does not exist an order that bounces it*.
