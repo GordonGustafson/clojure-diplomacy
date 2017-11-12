@@ -5,7 +5,11 @@
     <title>Ring Demo!</title>
   </head>
   <body>
-    <object data="diplomacy-orig.svg" type="image/svg+xml"
-            id="alphasvg" width="100%" height="100%"></object>
+    <object data="diplomacy-classic-map.svg" type="image/svg+xml"
+            id="mapObjectTag" width="100%" height="100%"></object>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- render-gamestate.js depends on map-svg-positioning.js -->
+    <script src="/map-svg-positioning.js"></script>
+    <script src="/render-gamestate.js"></script>
   </body>
 </html>

@@ -83,7 +83,7 @@
 <!ENTITY wes "140,492">
 <!ENTITY yor "161,254">
 ]>
-<svg viewBox="0 0 610 560" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg id="mapSvgTag" viewBox="0 0 610 560" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <title>Diplomacy</title>
 <desc>
 Variant SVG coding 2006 by Martin Asal
@@ -503,7 +503,6 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
 	<text x="155" y="254">Yor</text>
 </g>
 
-
 <defs>
 <g id="army">
 	<path d="M9,-6 L2,0 M9,6 L0,0"/>
@@ -519,15 +518,5 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
 </g>
 <use id="SC" xlink:href="#sc" class="Unowned"/>
 </defs>
-
-<g id="game-time">
-	<text x="5" y="20" style="font-size: 20px">
-	{{turn-season|capitalize}} {{turn-year}}
-	</text>
-</g>
-
-{{unit-positions}}
-
-{{supply-center-ownership}}
 
 </svg>

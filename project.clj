@@ -15,9 +15,8 @@
                  ;; Web dependencies
                  [ring/ring-core "1.6.2"]
                  [ring/ring-devel "1.6.2"]
-                 ;; Used for templating, seems to pull in a LOT of transitive
-                 ;; dependencies.
-                 [selmer "1.11.1"]
+                 ;; Converting Clojure data structures to and from JSON
+                 [org.clojure/data.json "0.2.6"]
                  ;; TODO: make this a :dev or :test dependency
                  [org.clojure/test.check "0.9.0"]]
   :plugins [[lein-ring "0.9.7"]]
