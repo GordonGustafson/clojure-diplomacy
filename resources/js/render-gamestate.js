@@ -12,15 +12,19 @@ function addSvgNode(parent, tagName, attributes) {
 }
 
 function renderGamestate(parent, {"unit-positions": unitPositions,
-                                   "supply-center-ownership": scOwnership,
-                                   "game-time": {year, season}}) {
+                                  "supply-center-ownership": scOwnership,
+                                  "game-time": {year, season}}) {
+    parent.innerHTML += '<g id="insertedByJS"></g>';
+    const insertedByJSContainer = parent.getElementById("insertedByJS");
+    console.log(insertedByJSContainer);
+
     const capitalizedSeason = season.charAt(0).toUpperCase() + season.slice(1);
-    parent.innerHTML +=
+    insertedByJSContainer.innerHTML +=
         '<text x="5" y="20" style="font-size: 20px">' + capitalizedSeason + " "
         + year.toString() + "</text>";
 
     for (const [location, unit] of Object.entries(unitPositions)) {
-        addSvgNode(parent, "use",
+        addSvgNode(insertedByJSContainer, "use",
                    {"xlink:href": "#" + unit["unit-type"],
                     "class": unit["country"],
                     "transform":
@@ -30,7 +34,7 @@ function renderGamestate(parent, {"unit-positions": unitPositions,
 
     for (const [country, supplyCenters] of Object.entries(scOwnership)) {
         for (const location of supplyCenters) {
-            addSvgNode(parent, "use",
+            addSvgNode(insertedByJSContainer, "use",
                        {"xlink:href": "#sc",
                         "class": country,
                         "transform":
@@ -41,6 +45,13 @@ function renderGamestate(parent, {"unit-positions": unitPositions,
     }
 }
 
+// Clear all gamestate that was rendered directly to `parent` by
+// `renderGamestate`.
+function clearRenderedGamestate(parent) {
+    const insertedByJSContainer = parent.getElementById("insertedByJS");
+    insertedByJSContainer.parentNode.removeChild(insertedByJSContainer);
+}
+
 document.getElementById("mapObjectTag").addEventListener("load", function() {
     // The <object> tag 'contains' the SVG DOM, which 'contains' the <svg> tag
     // for the map.
@@ -48,7 +59,15 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
                      .contentDocument
                      .getElementById("mapSvgTag"));
 
-    axios({url: "/gamestate", responseType: "json"})
-        .then(response => { renderGamestate(rootSvg, response.data); })
-        .catch(err => { console.log(err.message); });
+    const renderButtons = document.getElementsByClassName("render-button");
+    for (var i = 0; i < renderButtons.length; i++) {
+        renderButtons[i].addEventListener("click", function(event) {
+            axios({url: event.target.dataset.gamestateUrl, responseType: "json"})
+                .then(response => { renderGamestate(rootSvg, response.data); })
+                .catch(err => { console.log(err.message); });
+        });
+    }
+
+    document.getElementById("clear-rendered-gamestate").addEventListener(
+        "click", function() { clearRenderedGamestate(rootSvg); });
 });
