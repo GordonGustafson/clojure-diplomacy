@@ -120,8 +120,7 @@
       {:validation-failure-reasons failure-reasons
        :order-used (ord/create-order country unit-type location :hold)})))
 
-(defn-spec validation-results
-  [::dt/dmap (s/coll-of ::dt/order)] ::dt/validation-results)
+(defn-spec validation-results [::dt/dmap ::dt/orders] ::dt/validation-results)
 (defn validation-results
   "The ::dt/validation-results for `orders` in `diplomacy-map`"
   [diplomacy-map orders]

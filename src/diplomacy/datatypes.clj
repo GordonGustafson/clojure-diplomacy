@@ -80,6 +80,7 @@
              (= (set (keys order)) expected-keys)))))
 (s/def ::assisted-order (s/and ::order
                                #(contains? #{:hold :attack} (:order-type %))))
+(s/def ::orders (s/coll-of ::order))
 
 ;; More concise way of writing an order in Clojure.
 (s/def ::order-vector

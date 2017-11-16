@@ -17,7 +17,7 @@
   [(fn-spec [::dt/order]
             (s/coll-of ::dt/validation-failure-reason))
    (s/map-of (s/coll-of ::dt/validation-failure-reason)
-             (s/coll-of ::dt/order))]
+             ::dt/orders)]
   any?)
 (defn run-test-cases [func test-case-dict]
   "`test-case-dict` is a mapping of the expected outputs of `func` to a sequence
