@@ -1,7 +1,7 @@
 (ns diplomacy.test-utils
   (:require [clojure.set :as set]
             [diplomacy.datatypes :as dt]
-            [diplomacy.orders :refer [create-order]]
+            [diplomacy.orders :refer [expand-order]]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
 
@@ -9,35 +9,35 @@
 ;;                                               expanding shorthand notation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec create-validation-result
+(defn-spec expand-validation-result
   [::dt/validation-result-abbr] ::dt/validation-result)
-(defn create-validation-result
+(defn expand-validation-result
   [raw-validation-result]
   (if (= raw-validation-result :valid)
     :valid
     {:validation-failure-reasons (first raw-validation-result)
-     :order-used (apply create-order
+     :order-used (apply expand-order
                         (second raw-validation-result))}))
 
-(defn-spec create-validation-results
+(defn-spec expand-validation-results
   [::dt/validation-results-abbr] ::dt/validation-results)
-(defn create-validation-results
+(defn expand-validation-results
   [order-vector-to-raw-validation-result]
   (into {} (map (fn [[order-vector raw-validation-result]]
-                  [(apply create-order order-vector)
-                   (create-validation-result raw-validation-result)])
+                  [(apply expand-order order-vector)
+                   (expand-validation-result raw-validation-result)])
                 order-vector-to-raw-validation-result)))
 
-(defn-spec create-conflict-judgments
+(defn-spec expand-conflict-judgments
   [::dt/conflict-judgments-abbr] ::dt/conflict-judgments)
-(defn create-conflict-judgments [orders]
+(defn expand-conflict-judgments [orders]
   "Judgment maps are verbose when written out in full (the keys are repeated
   many times). This function converts a form using more concise order vectors
   and judgment vectors into a judgments map."
   (into {} (for [[k v] orders]
-             [(apply create-order k)
+             [(apply expand-order k)
               (set (map (fn [[interfered? interferer rule]]
-                          {:interferer (apply create-order interferer)
+                          {:interferer (apply expand-order interferer)
                            :conflict-rule rule
                            :interfered? interfered?})
                         v))])))
@@ -85,8 +85,8 @@
 (defn expand-adjudication
   [{:keys [conflict-judgments-abbr validation-results-abbr]
     :as abbreviated-adjudication}]
-  (let [conflict-judgments (create-conflict-judgments conflict-judgments-abbr)
-        validation-results (create-validation-results validation-results-abbr)]
+  (let [conflict-judgments (expand-conflict-judgments conflict-judgments-abbr)
+        validation-results (expand-validation-results validation-results-abbr)]
     (-> abbreviated-adjudication
         (assoc :conflict-judgments conflict-judgments)
         (assoc :validation-results validation-results)

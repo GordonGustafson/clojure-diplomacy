@@ -7,16 +7,16 @@
 
 ;;; Functions for creating and working with Diplomacy orders.
 
-(defn-spec create-order ::dt/order-vector ::dt/order)
-(defn create-order
+(defn-spec expand-order ::dt/order-vector ::dt/order)
+(defn expand-order
   "A shorthand for writing orders in Clojure. Intended for 'order literals' in
   source code rather than taking user input, so errors are handled with
   exceptions. Usage:
 
-  (create-order :england :army  :wal :hold)
-  (create-order :england :army  :lvp :support :england :army :wal :hold)
-  (create-order :france  :army  :bre :attack  :lon)
-  (create-order :france  :fleet :eng :convoy  :france  :army :bre :attack :lon)
+  (expand-order :england :army  :wal :hold)
+  (expand-order :england :army  :lvp :support :england :army :wal :hold)
+  (expand-order :france  :army  :bre :attack  :lon)
+  (expand-order :france  :fleet :eng :convoy  :france  :army :bre :attack :lon)
 
   PRECONDITION: Constructed order must be valid in some diplomacy map.
   "
@@ -27,7 +27,7 @@
         ;; put the expression in a thunk to avoid duplication.
         make-assisting-order
         (fn [] (assoc basic-order
-                      :assisted-order (apply create-order rest)))]
+                      :assisted-order (apply expand-order rest)))]
     (match [unit-type order-type rest]
       [_      :hold    nil]           basic-order
       [_      :attack  ([dest] :seq)]

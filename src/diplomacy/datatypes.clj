@@ -61,7 +61,7 @@
 
 (s/def ::destination ::location)
 (s/def ::order-type #{:hold :attack :support :convoy})
-;; This documents what keys orders must have. See `create-order` and
+;; This documents what keys orders must have. See `expand-order` and
 ;; order_validation.clj for further constraints on VALID orders.
 (s/def ::order
   (s/and (s/keys :req-un #{::country  ::unit-type

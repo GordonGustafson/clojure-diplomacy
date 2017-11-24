@@ -17,14 +17,14 @@
   {:country :france  :unit-type :fleet :location :eng :order-type :convoy
    :assisted-order french-army-bre-to-lon})
 
-(deftest test-create-order
-  (is (create-order :england :army :wal :hold) english-army-wal-holds)
-  (is (create-order :england :army :lvp :support :england :army :wal :hold)
+(deftest test-expand-order
+  (is (expand-order :england :army :wal :hold) english-army-wal-holds)
+  (is (expand-order :england :army :lvp :support :england :army :wal :hold)
       english-army-lvp-supports-wal-hold)
-  (is (create-order :france :army :bre :attack :lon) french-army-bre-to-lon)
-  (is (create-order :france :army :yor :support :france :army :bre :attack :lon)
+  (is (expand-order :france :army :bre :attack :lon) french-army-bre-to-lon)
+  (is (expand-order :france :army :yor :support :france :army :bre :attack :lon)
       french-army-yor-supports-bre-to-lon)
-  (is (create-order :france :fleet :eng :convoy :france :army :bre :attack :lon)
+  (is (expand-order :france :fleet :eng :convoy :france :army :bre :attack :lon)
       french-fleet-eng-convoys-bre-to-lon))
 
 
