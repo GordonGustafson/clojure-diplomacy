@@ -7,7 +7,7 @@
 
 ;;; Functions for creating and working with Diplomacy orders.
 
-(defn-spec expand-order ::dt/order-vector ::dt/order)
+(defn-spec expand-order ::dt/order-abbr ::dt/order)
 (defn expand-order
   "A shorthand for writing orders in Clojure. Intended for 'order literals' in
   source code rather than taking user input, so errors are handled with

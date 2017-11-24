@@ -83,7 +83,7 @@
 (s/def ::orders (s/coll-of ::order))
 
 ;; More concise way of writing an order in Clojure.
-(s/def ::order-vector
+(s/def ::order-abbr
   (s/cat :country    ::country
          :unit-type  ::unit-type
          :location   ::location

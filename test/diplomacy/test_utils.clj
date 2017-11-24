@@ -22,18 +22,18 @@
 (defn-spec expand-validation-results
   [::dt/validation-results-abbr] ::dt/validation-results)
 (defn expand-validation-results
-  [order-vector-to-raw-validation-result]
-  (into {} (map (fn [[order-vector raw-validation-result]]
-                  [(apply expand-order order-vector)
+  [order-abbr-to-raw-validation-result]
+  (into {} (map (fn [[order-abbr raw-validation-result]]
+                  [(apply expand-order order-abbr)
                    (expand-validation-result raw-validation-result)])
-                order-vector-to-raw-validation-result)))
+                order-abbr-to-raw-validation-result)))
 
 (defn-spec expand-conflict-judgments
   [::dt/conflict-judgments-abbr] ::dt/conflict-judgments)
 (defn expand-conflict-judgments [orders]
   "Judgment maps are verbose when written out in full (the keys are repeated
-  many times). This function converts a form using more concise order vectors
-  and judgment vectors into a judgments map."
+  many times). This function converts a form using more concise order
+  abbreviations and judgment abbreviations into a judgments map."
   (into {} (for [[k v] orders]
              [(apply expand-order k)
               (set (map (fn [[interfered? interferer rule]]
