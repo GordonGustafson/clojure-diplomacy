@@ -11,10 +11,41 @@
 ;;; that can be derived or automatically generated.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                               specs for shorthand notation ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(s/def ::order-abbr
+  (s/cat :country    ::dt/country
+         :unit-type  ::dt/unit-type
+         :location   ::dt/location
+         :order-type ::dt/order-type
+         ;; `rest` could be empty, a destination, or the arguments for the
+         ;; assisted hold or attack. I'm not going to bother making this
+         ;; spec more specific, but unfortunately that means we can't use
+         ;; `s/exercise-fn` with this spec.
+         :rest (s/* any?)))
+
+(s/def ::validation-result-abbr
+  (s/or :valid (partial = :valid)
+        :invalid (s/cat :failure-reasons ::dt/validation-failure-reasons
+                        :order-used ::dt/order)))
+(s/def ::validation-results-abbr (s/map-of ::dt/order ::validation-result-abbr))
+
+(s/def ::conflict-judgment-abbr (s/tuple ::dt/interfered?
+                                         ::dt/interferer
+                                         ::dt/conflict-rule))
+(s/def ::conflict-judgments-abbr (s/map-of
+                                  ::dt/order
+                                  (s/coll-of ::conflict-judgment-abbr)))
+
+(s/def ::adjudication-abbr (s/keys :req-un [::validation-results-abbr
+                                            ::conflict-judgments-abbr]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                               expanding shorthand notation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec expand-order ::dt/order-abbr ::dt/order)
+(defn-spec expand-order ::order-abbr ::dt/order)
 (defn expand-order
   "A shorthand for writing orders in Clojure. Intended for 'order literals' in
   source code rather than taking user input, so errors are handled with
@@ -44,7 +75,7 @@
       [:fleet :convoy  ([_ :army _ :attack _] :seq)] (make-assisting-order))))
 
 (defn-spec expand-validation-result
-  [::dt/validation-result-abbr] ::dt/validation-result)
+  [::validation-result-abbr] ::dt/validation-result)
 (defn expand-validation-result
   [raw-validation-result]
   (if (= raw-validation-result :valid)
@@ -54,7 +85,7 @@
                         (second raw-validation-result))}))
 
 (defn-spec expand-validation-results
-  [::dt/validation-results-abbr] ::dt/validation-results)
+  [::validation-results-abbr] ::dt/validation-results)
 (defn expand-validation-results
   [order-abbr-to-raw-validation-result]
   (into {} (map (fn [[order-abbr raw-validation-result]]
@@ -63,7 +94,7 @@
                 order-abbr-to-raw-validation-result)))
 
 (defn-spec expand-conflict-judgments
-  [::dt/conflict-judgments-abbr] ::dt/conflict-judgments)
+  [::conflict-judgments-abbr] ::dt/conflict-judgments)
 (defn expand-conflict-judgments [orders]
   "Judgment maps are verbose when written out in full (the keys are repeated
   many times). This function converts a form using more concise order
@@ -115,7 +146,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec expand-adjudication
-  [::dt/adjudication-abbr] ::dt/adjudication)
+  [::adjudication-abbr] ::dt/adjudication)
 (defn expand-adjudication
   [{:keys [conflict-judgments-abbr validation-results-abbr]
     :as abbreviated-adjudication}]
