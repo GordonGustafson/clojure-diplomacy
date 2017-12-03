@@ -6,7 +6,7 @@
             [clojure.spec.alpha :as s]))
 
 (defn-spec validation-results-to-orders-to-resolve
-  [::dt/validation-results] (s/coll-of ::dt/order))
+  [::dt/validation-results] ::dt/orders)
 (defn validation-results-to-orders-to-resolve
   [validation-results]
   (map (fn [[order validation-result]]
@@ -20,9 +20,7 @@
 ;;    units that don't exist.
 ;; 2. add :unit-positions-before and :unit-positions-after keys to the return
 ;   ; value
-(defn-spec adjudicate-orders
-  [::dt/dmap (s/coll-of ::dt/order)]
-  ::dt/adjudication)
+(defn-spec adjudicate-orders [::dt/dmap ::dt/orders] ::dt/adjudication)
 (defn adjudicate-orders [dmap orders]
   (let [val-results (diplomacy.order-validation/validation-results dmap orders)
         orders-to-resolve (validation-results-to-orders-to-resolve val-results)

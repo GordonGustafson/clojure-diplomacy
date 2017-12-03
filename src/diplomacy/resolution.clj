@@ -383,7 +383,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec compute-conflict-judgments
-  [(s/coll-of ::dt/order)]
+  [::dt/orders]
   ::dt/conflict-judgments
   #(= (set (-> % :args :arg-1)) (set (-> % :ret (keys)))))
 (defn compute-conflict-judgments

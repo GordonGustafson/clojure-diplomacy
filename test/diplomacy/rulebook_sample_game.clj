@@ -1,5 +1,5 @@
 (ns diplomacy.rulebook-sample-game
-  (:require [diplomacy.test-utils]))
+  (:require [diplomacy.test-expansion]))
 
 ;; this contains a good amount of supports, but only one convoy, and almost no
 ;; use of coasts. Be sure to add your own test cases to cover those!
@@ -134,5 +134,5 @@
 
 (def rulebook-sample-game-cases
   (into {} (for [[k v] rulebook-sample-game-judgments-raw]
-             [k (diplomacy.test-utils/expand-adjudication
+             [k (diplomacy.test-expansion/expand-adjudication
                  {:conflict-judgments-abbr v})])))

@@ -1,7 +1,7 @@
 (ns diplomacy.order-validation-test
   (:require [clojure.test :refer [deftest is]]
             [diplomacy.datatypes :as dt]
-            [diplomacy.orders :refer [create-order]]
+            [diplomacy.test-expansion :refer [expand-order]]
             [diplomacy.order-validation :refer [validation-failure-reasons]]
             [diplomacy.rulebook-diagrams]
             [diplomacy.rulebook-sample-game]
@@ -17,7 +17,7 @@
   [(fn-spec [::dt/order]
             (s/coll-of ::dt/validation-failure-reason))
    (s/map-of (s/coll-of ::dt/validation-failure-reason)
-             (s/coll-of ::dt/order))]
+             ::dt/orders)]
   any?)
 (defn run-test-cases [func test-case-dict]
   "`test-case-dict` is a mapping of the expected outputs of `func` to a sequence
@@ -55,52 +55,52 @@
       :unit-type  :fleet
       :location   :ank
       :order-type :support
-      :assisted-order (create-order :turkey :fleet :con :support
+      :assisted-order (expand-order :turkey :fleet :con :support
                                     :turkey :army :bul :attack :smy)}
      {:country    :turkey
       :unit-type  :fleet
       :location   :ank
       :order-type :support
-      :assisted-order (create-order :turkey :fleet :con :convoy
+      :assisted-order (expand-order :turkey :fleet :con :convoy
                                     :turkey :army :bul :attack :smy)}]}))
 
 (deftest test-uses-nonexistent-location?
   (run-test-cases validation-failure-reasons-in-classic-map
    {#{:uses-nonexistent-location?}
-    [(create-order :turkey :army :cleveland :hold)]
+    [(expand-order :turkey :army :cleveland :hold)]
     #{:uses-nonexistent-location? :attacks-via-inaccessible-edge?}
-     [(create-order :italy :army :disneyland :attack :ven)]
+     [(expand-order :italy :army :disneyland :attack :ven)]
     #{:uses-nonexistent-location? :attacks-inaccessible-location?
       :attacks-via-inaccessible-edge?}
-    [(create-order :italy :army :ven :attack :disneyland)]
+    [(expand-order :italy :army :ven :attack :disneyland)]
     #{:uses-nonexistent-location? :supports-unsupportable-location?}
-    [(create-order :england :fleet :eng :support
+    [(expand-order :england :fleet :eng :support
                    :england :army :chipotle :hold)
-     (create-order :france :fleet :par :support
+     (expand-order :france :fleet :par :support
                    :france :army :arbys :attack :bre)
-     (create-order :france :fleet :par :support
+     (expand-order :france :fleet :par :support
                    :france :army :bre :attack :arbys)]}))
 
 (deftest test-attacks-inaccessible-location?
   (run-test-cases validation-failure-reasons-in-classic-map
    { #{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
-    [(create-order :italy :fleet :ven :attack :tyr)
-     (create-order :italy :army :ven :attack :adr)]}))
+    [(expand-order :italy :fleet :ven :attack :tyr)
+     (expand-order :italy :army :ven :attack :adr)]}))
 
 (deftest test-attacks-via-inaccessible-edge?
   (run-test-cases validation-failure-reasons-in-classic-map
    {#{:attacks-via-inaccessible-edge?}
-    [(create-order :italy :fleet :ven :attack :lon)
-     (create-order :italy :army :spa :attack :syr)
-     (create-order :turkey :fleet :ank :attack :smy)]}))
+    [(expand-order :italy :fleet :ven :attack :lon)
+     (expand-order :italy :army :spa :attack :syr)
+     (expand-order :turkey :fleet :ank :attack :smy)]}))
 
 (deftest test-supports-unsupportable-location?
   (run-test-cases validation-failure-reasons-in-classic-map
    {#{}
-    [(create-order :france :army :por :support
+    [(expand-order :france :army :por :support
                    :france :fleet :wes :attack :spa-sc)
-     (create-order :france :army :por :support
+     (expand-order :france :army :por :support
                    :france :army :gas :attack :spa)]
     #{:supports-unsupportable-location?}
-    [(create-order :france :army :por :support
+    [(expand-order :france :army :por :support
                    :france :fleet :wes :attack :mid)]}))

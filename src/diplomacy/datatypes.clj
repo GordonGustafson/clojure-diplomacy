@@ -61,8 +61,6 @@
 
 (s/def ::destination ::location)
 (s/def ::order-type #{:hold :attack :support :convoy})
-;; This documents what keys orders must have. See `create-order` and
-;; order_validation.clj for further constraints on VALID orders.
 (s/def ::order
   (s/and (s/keys :req-un #{::country  ::unit-type
                            ::location ::order-type}
@@ -80,18 +78,7 @@
              (= (set (keys order)) expected-keys)))))
 (s/def ::assisted-order (s/and ::order
                                #(contains? #{:hold :attack} (:order-type %))))
-
-;; More concise way of writing an order in Clojure.
-(s/def ::order-vector
-  (s/cat :country    ::country
-         :unit-type  ::unit-type
-         :location   ::location
-         :order-type ::order-type
-         ;; `rest` could be empty, a destination, or the arguments for the
-         ;; assisted hold or attack. I'm not going to bother making this
-         ;; spec more specific, but unfortunately that means we can't use
-         ;; `s/exercise-fn` with this spec.
-         :rest (s/* any?)))
+(s/def ::orders (s/coll-of ::order))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                            validating and resolving orders ;;
@@ -157,23 +144,3 @@
 (s/def ::unit-positions-after ::unit-positions)
 (s/def ::adjudication (s/keys :req-un [::validation-results
                                        ::conflict-judgments]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                       shorthand notation for writing tests ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(s/def ::validation-result-abbr
-  (s/or :valid (partial = :valid)
-        :invalid (s/cat :failure-reasons ::validation-failure-reasons
-                        :order-used ::order)))
-(s/def ::validation-results-abbr (s/map-of ::order ::validation-result-abbr))
-
-(s/def ::conflict-judgment-abbr (s/tuple ::interfered?
-                                         ::interferer
-                                         ::conflict-rule))
-(s/def ::conflict-judgments-abbr (s/map-of
-                                  ::order
-                                  (s/coll-of ::conflict-judgment-abbr)))
-
-(s/def ::adjudication-abbr (s/keys :req-un [::validation-results-abbr
-                                            ::conflict-judgments-abbr]))
