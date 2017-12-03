@@ -118,7 +118,10 @@
       ;; TODO: For now any validation failure causes the unit to hold. Consider
       ;; whether we want to change this (low priority).
       {:validation-failure-reasons failure-reasons
-       :order-used (ord/expand-order country unit-type location :hold)})))
+       :order-used {:country country
+                    :unit-type unit-type
+                    :location location
+                    :order-type :hold}})))
 
 (defn-spec validation-results [::dt/dmap ::dt/orders] ::dt/validation-results)
 (defn validation-results

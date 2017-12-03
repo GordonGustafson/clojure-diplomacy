@@ -1,7 +1,7 @@
 (ns diplomacy.test-expansion
   (:require [clojure.set :as set]
+            [clojure.core.match :refer [match]]
             [diplomacy.datatypes :as dt]
-            [diplomacy.orders :refer [expand-order]]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
 
@@ -13,6 +13,35 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                               expanding shorthand notation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec expand-order ::dt/order-abbr ::dt/order)
+(defn expand-order
+  "A shorthand for writing orders in Clojure. Intended for 'order literals' in
+  source code rather than taking user input, so errors are handled with
+  exceptions. Usage:
+
+  (expand-order :england :army  :wal :hold)
+  (expand-order :england :army  :lvp :support :england :army :wal :hold)
+  (expand-order :france  :army  :bre :attack  :lon)
+  (expand-order :france  :fleet :eng :convoy  :france  :army :bre :attack :lon)
+
+  PRECONDITION: Constructed order must be valid in some diplomacy map.
+  "
+  [country unit-type location order-type & rest]
+  (let [basic-order {:country  country  :unit-type  unit-type
+                     :location location :order-type order-type}
+        ;; `match` won't let multiple patterns map to the same expression, so we
+        ;; put the expression in a thunk to avoid duplication.
+        make-assisting-order
+        (fn [] (assoc basic-order
+                      :assisted-order (apply expand-order rest)))]
+    (match [unit-type order-type rest]
+      [_      :hold    nil]           basic-order
+      [_      :attack  ([dest] :seq)]
+      (assoc basic-order :destination dest)
+      [_      :support ([_ _     _ :hold] :seq)]     (make-assisting-order)
+      [_      :support ([_ _     _ :attack _] :seq)] (make-assisting-order)
+      [:fleet :convoy  ([_ :army _ :attack _] :seq)] (make-assisting-order))))
 
 (defn-spec expand-validation-result
   [::dt/validation-result-abbr] ::dt/validation-result)

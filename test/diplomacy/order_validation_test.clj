@@ -1,7 +1,7 @@
 (ns diplomacy.order-validation-test
   (:require [clojure.test :refer [deftest is]]
             [diplomacy.datatypes :as dt]
-            [diplomacy.orders :refer [expand-order]]
+            [diplomacy.test-expansion :refer [expand-order]]
             [diplomacy.order-validation :refer [validation-failure-reasons]]
             [diplomacy.rulebook-diagrams]
             [diplomacy.rulebook-sample-game]

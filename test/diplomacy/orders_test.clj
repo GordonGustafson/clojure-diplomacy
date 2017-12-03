@@ -1,5 +1,6 @@
 (ns diplomacy.orders-test
   (:require [clojure.test :refer [deftest is]]
+            [diplomacy.test-expansion :refer [expand-order]]
             [diplomacy.orders :refer :all]))
 
 (def english-army-wal-holds
