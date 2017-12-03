@@ -1,4 +1,4 @@
-(ns diplomacy.test-utils
+(ns diplomacy.test-expansion
   (:require [clojure.set :as set]
             [diplomacy.datatypes :as dt]
             [diplomacy.orders :refer [expand-order]]

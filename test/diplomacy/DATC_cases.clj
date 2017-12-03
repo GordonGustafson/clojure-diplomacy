@@ -1,5 +1,5 @@
 (ns diplomacy.DATC-cases
-  (:require [diplomacy.test-utils]
+  (:require [diplomacy.test-expansion]
             [diplomacy.util :refer [defn-spec]]
             [diplomacy.datatypes :as dt]))
 
@@ -1042,6 +1042,6 @@
        ;; Make sure that DATC-cases actually contains the tests you want to run!
        (filter (comp test-incomplete? second))
        (map (fn [[name abbreviated-adjudication]]
-                [name (diplomacy.test-utils/expand-adjudication
+                [name (diplomacy.test-expansion/expand-adjudication
                        abbreviated-adjudication)]))
        (into {})))
