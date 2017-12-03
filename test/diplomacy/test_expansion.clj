@@ -5,6 +5,11 @@
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
 
+;;; Verbose test cases are difficult ot write, nad difficult to understand when
+;;; they fail. This module reduces the verbosity of test cases by expanding
+;;; abbreviated notation used in test cases, and filling in parts of the test
+;;; that can be derived or automatically generated.
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                               expanding shorthand notation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -43,7 +48,7 @@
                         v))])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                       inferring optional parts of the test ;;
+;;                                      filling in optional parts of the test ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec fill-in-missing-valid-orders
