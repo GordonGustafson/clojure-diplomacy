@@ -1,5 +1,5 @@
 (ns diplomacy.rulebook-diagrams
-  (:require [diplomacy.test-expansion]))
+  (:require [diplomacy.test-expansion :as test-expansion]))
 
 (def ^:private rulebook-diagram-judgments-raw
   {3 {[:italy :fleet :rom :attack :nap] #{}}
@@ -67,7 +67,7 @@
 
 (def rulebook-diagram-cases
   (into {} (for [[k v] rulebook-diagram-judgments-raw]
-             [k (diplomacy.test-expansion/expand-adjudication
+             [k (test-expansion/expand-and-fill-in-orders-phase-test
                  {:conflict-judgments-abbr v})])))
 
    ;; have checked up to this line

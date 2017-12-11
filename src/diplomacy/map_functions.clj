@@ -21,6 +21,15 @@
   (let [edge-accessibility (get-in diplomacy-map [:edge-accessibility from to])]
     (contains? edge-accessibility unit-type)))
 
+(defn-spec get-adjacent-accessible-locations
+  [::dt/dmap ::dt/location ::dt/unit-type] (s/coll-of ::dt/location))
+(defn get-adjacent-accessible-locations
+  [diplomacy-map location unit-type]
+  (->> (get-in diplomacy-map [:edge-accessibility location])
+       (filter (fn [[bordering-location accessibility]]
+                 (contains? accessibility unit-type)))
+       (map first)))
+
 (defn-spec locations-colocated? [::dt/dmap ::dt/location ::dt/location]
   boolean?)
 (defn locations-colocated?

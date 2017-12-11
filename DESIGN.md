@@ -41,3 +41,21 @@ between sea and land nodes, and can traverse edges between land nodes IF both
 land nodes border the same sea node. However, I think 'precomputing'
 edge-accessibility leads to a simpler implementation.
 
+testing orders phase
+====================
+Our implementation breaks the orders phase down into three steps:
+1. Validation - making sure the orders given are permitted in the current game
+   state.
+2. Resolution - feeding the orders into a resolution engine written with
+   core.logic that determines which orders fail and succeed.
+3. Post-resolution - Updating the unit positions and determining what choices
+   are available in the retreat phase.
+
+We only test the `diplomacy.order-pipeline/orders-phase` function, since its
+output contains the result of every stage.
+
+To make it easier to write concise tests that check one piece of functionality,
+`test_expansion.clj` contains functions for expanding shorthand notation, and
+optionally filling in optional parts of the test (parts that are redundant when
+every unit is given a valid order, and parts that are unused in the orders
+phase, like :game-time and :supply-center-ownership).

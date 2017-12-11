@@ -140,7 +140,26 @@
 (s/def ::conflict-judgments (s/map-of ::order
                                       (s/coll-of ::conflict-judgment)))
 
-(s/def ::unit-positions-before ::unit-positions)
-(s/def ::unit-positions-after ::unit-positions)
-(s/def ::adjudication (s/keys :req-un [::validation-results
-                                       ::conflict-judgments]))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                        retreats, builds, and full pipeline ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(s/def ::retreatable-locations (s/coll-of ::location))
+(s/def ::pending-retreat (s/keys :req-un [::location
+                                          ::unit
+                                          ::retreatable-locations]))
+(s/def ::pending-retreats (s/coll-of ::pending-retreat))
+
+(s/def ::game-state-with-pending-retreats (s/and ::game-state
+                                                 (s/keys :req-un
+                                                         [::pending-retreats])))
+
+(s/def ::game-state-before-orders ::game-state)
+(s/def ::game-state-after-orders ::game-state-with-pending-retreats)
+
+;; There's no ::orders here because ::validation-results already contains every
+;; order.
+(s/def ::completed-orders-phase (s/keys :req-un [::game-state-before-orders
+                                                 ::validation-results
+                                                 ::conflict-judgments
+                                                 ::game-state-after-orders]))

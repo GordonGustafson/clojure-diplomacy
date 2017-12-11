@@ -1,5 +1,6 @@
 (ns diplomacy.DATC-cases
-  (:require [diplomacy.test-expansion]
+  (:require [diplomacy.test-expansion
+             :refer [expand-and-fill-in-orders-phase-test]]
             [diplomacy.util :refer [defn-spec]]
             [diplomacy.datatypes :as dt]))
 
@@ -1041,7 +1042,6 @@
        ;; Don't export test cases that don't have conflict judgments assigned.
        ;; Make sure that DATC-cases actually contains the tests you want to run!
        (filter (comp test-incomplete? second))
-       (map (fn [[name abbreviated-adjudication]]
-                [name (diplomacy.test-expansion/expand-adjudication
-                       abbreviated-adjudication)]))
+       (map (fn [[name abbreviated-test]]
+                [name (expand-and-fill-in-orders-phase-test abbreviated-test)]))
        (into {})))

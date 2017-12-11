@@ -21,6 +21,10 @@
 (defn support? [order] (= (:order-type order) :support))
 (defn convoy?  [order] (= (:order-type order) :convoy))
 
+(defn-spec get-unit [::dt/order] ::dt/unit)
+(defn get-unit [order]
+  (select-keys order #{:unit-type :country}))
+
 (defn-spec next-intended-location [::dt/order] ::dt/location)
 (defn next-intended-location
   [order]

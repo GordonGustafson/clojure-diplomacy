@@ -1,6 +1,8 @@
 (ns diplomacy.order-pipeline-test
   (:require [clojure.test :as test]
+            [clojure.set :as set]
             [diplomacy.order-pipeline]
+            [diplomacy.test-expansion :as te]
             [diplomacy.datatypes :as dt]
             [diplomacy.map-data]
             [diplomacy.DATC-cases]
@@ -8,17 +10,30 @@
             [diplomacy.rulebook-diagrams]
             [diplomacy.util :refer [defn-spec map-difference]]))
 
-(defn-spec run-test-case [::dt/dmap ::dt/adjudication string?] any?)
-(defn run-test-case [dmap expected-adjudication test-identifier]
-  (let [actual-adjudication
-        (diplomacy.order-pipeline/adjudicate-orders dmap
-                                                    (-> expected-adjudication
-                                                        (:validation-results)
-                                                        (keys)))
-        expected-val (:validation-results expected-adjudication)
-        actual-val   (:validation-results actual-adjudication)
-        expected-jud (:conflict-judgments expected-adjudication)
-        actual-jud   (:conflict-judgments actual-adjudication)]
+(defn-spec run-test-case [::dt/dmap ::te/orders-phase-test string?] any?)
+(defn run-test-case [dmap orders-phase-test test-identifier]
+  (let [game-state-before
+        {:unit-positions (:unit-positions-before orders-phase-test)
+         :supply-center-ownership (:supply-center-ownership-before
+                                   orders-phase-test)
+         :game-time (:game-time-before orders-phase-test)}
+        completed-orders-phase
+        (diplomacy.order-pipeline/orders-phase dmap
+                                               game-state-before
+                                               (-> orders-phase-test
+                                                   (:validation-results)
+                                                   (keys)))
+        expected-val (:validation-results orders-phase-test)
+        actual-val   (:validation-results completed-orders-phase)
+        expected-jud (:conflict-judgments orders-phase-test)
+        actual-jud   (:conflict-judgments completed-orders-phase)]
+    (test/is (= (:supply-center-ownership-after orders-phase-test)
+                (get-in completed-orders-phase
+                        [:game-state-after-orders :supply-center-ownership])))
+    (test/is (= (:game-time-after orders-phase-test)
+                (get-in completed-orders-phase
+                        [:game-state-after-orders :game-time])))
+
     ;; Don't use `clojure.data/diff` here because "Maps are subdiffed where keys
     ;; match and values differ". We want to output exactly what orders failed,
     ;; and not do any sort of analysis on how the failing orders differed (the
@@ -35,24 +50,39 @@
                   " - resolution step SHOULD produce these CORRECT conflict judgments"))
     (test/is (empty? (map-difference actual-jud expected-jud))
              (str test-identifier
-                  " - resolution step SHOULD NOT produce these INCORRECT conflict judgments"))))
+                  " - resolution step SHOULD NOT produce these INCORRECT conflict judgments"))
+
+    (when (contains? orders-phase-test :unit-positions-after)
+      (test/is (= (:unit-positions-after orders-phase-test)
+                  (get-in completed-orders-phase
+                          [:game-state-after-orders :unit-positions]))))
+
+    (when (contains? orders-phase-test :pending-retreats)
+      (let [expected-retreats (set (:pending-retreats orders-phase-test))
+            actual-retreats   (set (get-in completed-orders-phase
+                                           [:game-state-after-orders
+                                            :pending-retreats]))]
+        (test/is (empty? (set/difference expected-retreats actual-retreats))
+                 (str test-identifier
+                      " - post-resolution step SHOULD produce these CORRECT retreats"))
+        (test/is (empty? (set/difference actual-retreats expected-retreats))
+                 (str test-identifier
+                      " - post-resolution step SHOULD NOT produce these INCORRECT retreats"))))))
 
 (test/deftest test-DATC
-  (doseq [[test-name expected-adjudication] diplomacy.DATC-cases/DATC-cases]
-    (run-test-case diplomacy.map-data/classic-map
-                   expected-adjudication
-                   test-name)))
+  (doseq [[test-name test] diplomacy.DATC-cases/DATC-cases]
+    (run-test-case diplomacy.map-data/classic-map test test-name)))
 
 (test/deftest test-rulebook-sample-game
-  (doseq [[game-time expected-adjudication]
+  (doseq [[game-time test]
           diplomacy.rulebook-sample-game/rulebook-sample-game-cases]
     (run-test-case diplomacy.map-data/classic-map
-                   expected-adjudication
+                   test
                    (str (:season game-time) " " (:year game-time)))))
 
 (test/deftest test-rulebook-diagrams
-  (doseq [[diagram-number expected-adjudication]
+  (doseq [[diagram-number test]
           diplomacy.rulebook-diagrams/rulebook-diagram-cases]
     (run-test-case diplomacy.map-data/classic-map
-                   expected-adjudication
+                   test
                    (str "Rulebook diagram " diagram-number))))
