@@ -5,12 +5,12 @@
     <title>Ring Demo!</title>
   </head>
   <body>
-    <object data="diplomacy-classic-map.svg" type="image/svg+xml"
+    <object data="/svg/diplomacy-classic-map.svg" type="image/svg+xml"
             id="mapObjectTag" width="100%" height="100%"></object>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <!-- render-gamestate.js depends on map-svg-positioning.js -->
-    <script src="/map-svg-positioning.js"></script>
-    <script src="/render-gamestate.js"></script>
+    <script src="/js/map-svg-positioning.js"></script>
+    <script src="/js/render-gamestate.js"></script>
 
     <button class="render-button" data-gamestate-url="/gamestate1">Render gamestate 1</button>
     <button class="render-button" data-gamestate-url="/gamestate2">Render gamestate 2</button>

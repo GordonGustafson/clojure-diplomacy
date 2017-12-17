@@ -15,12 +15,13 @@
                  ;; Web dependencies
                  [ring/ring-core "1.6.2"]
                  [ring/ring-devel "1.6.2"]
+                 [compojure "1.6.0"]
                  ;; Converting Clojure data structures to and from JSON
                  [org.clojure/data.json "0.2.6"]
                  ;; TODO: make this a :dev or :test dependency
                  [org.clojure/test.check "0.9.0"]]
   :plugins [[lein-ring "0.9.7"]]
-  :ring {:handler diplomacy.web.demo/handler}
+  :ring {:handler diplomacy.web.routes/app}
   :main ^:skip-aot diplomacy.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
