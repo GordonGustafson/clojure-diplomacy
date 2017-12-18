@@ -1154,7 +1154,7 @@
                                 [:france :army :wal :support :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}}
       :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}})
 
-(defn ^:private test-incomplete?
+(defn ^:private test-complete?
   "Returns whether the argument has any placeholder conflict judgments."
   [{:keys [conflict-judgments-abbr]}]
   (not-any? (partial = #{[:interfered? :interferer :rule]})
@@ -1164,7 +1164,7 @@
   (->> DATC-cases-abbr
        ;; Don't export test cases that don't have conflict judgments assigned.
        ;; Make sure that DATC-cases actually contains the tests you want to run!
-       (filter (comp test-incomplete? second))
+       (filter (comp test-complete? second))
        (map (fn [[name abbreviated-test]]
               [name (expand-and-fill-in-orders-phase-test abbreviated-test)]))
        (into {})))
