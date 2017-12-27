@@ -153,10 +153,11 @@
 
 (defn-spec expand-conflict-judgments
   [::conflict-judgments-abbr] ::dt/conflict-judgments)
-(defn expand-conflict-judgments [orders]
+(defn expand-conflict-judgments
   "Judgment maps are verbose when written out in full (the keys are repeated
   many times). This function converts a form using more concise order
   abbreviations and judgment abbreviations into a judgments map."
+  [orders]
   (into {} (for [[k v] orders]
              [(apply expand-order k)
               (set (map (fn [[interfered? interferer rule]]
@@ -167,7 +168,9 @@
 
 (defn-spec expand-orders-phase-test-options
   [::orders-phase-test-options-abbr] ::orders-phase-test-options)
-(defn expand-orders-phase-test-options [test-options-abbr]
+(defn expand-orders-phase-test-options
+  "Expands all abbreviated components of an `::orders-phase-test-options-abbr`."
+  [test-options-abbr]
   (let [validation-results-provided?
         (contains? test-options-abbr :validation-results-abbr)]
     (cond-> test-options-abbr
@@ -273,6 +276,8 @@
 (defn-spec expand-and-fill-in-orders-phase-test
   [::orders-phase-test-options-abbr] ::orders-phase-test)
 (defn expand-and-fill-in-orders-phase-test
+  "Fully expands and fills in all optional components of an
+  `::orders-phase-test-options-abbr`."
   [test-options-abbr]
   (-> test-options-abbr
       expand-orders-phase-test-options
