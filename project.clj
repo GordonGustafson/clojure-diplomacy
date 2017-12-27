@@ -15,6 +15,7 @@
                  ;; Web dependencies
                  [ring/ring-core "1.6.2"]
                  [ring/ring-devel "1.6.2"]
+                 [ring/ring-json "0.4.0"]
                  [compojure "1.6.0"]
                  ;; Converting Clojure data structures to and from JSON
                  [org.clojure/data.json "0.2.6"]
