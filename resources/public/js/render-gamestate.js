@@ -77,8 +77,16 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
             // for that button.
             clearRenderedGamestate(rootSvg);
 
-            axios({url: event.target.dataset.gamestateUrl, responseType: "json"})
-                .then(response => { renderGamestate(rootSvg, response.data); })
+            axios({url: event.target.dataset.ordersPhaseTestUrl, responseType: "json"})
+                .then(response => {
+                    const d = response.data;
+                    const gamestateBefore = {
+                        "unit-positions":          d["unit-positions-before"],
+                        "supply-center-ownership": d["supply-center-ownership-before"],
+                        "game-time":               d["game-time-before"]
+                    }
+                    renderGamestate(rootSvg, gamestateBefore);
+                })
                 .catch(err => { console.log(err.message); });
         });
     }

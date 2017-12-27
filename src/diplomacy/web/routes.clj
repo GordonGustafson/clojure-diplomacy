@@ -12,5 +12,5 @@
   ;; Serve static assets from "resources/public" directory in this project.
   (route/resources "/")
   ;; Serve DATC game states
-  (GET "/DATC/:test-letter-number/gamestate-before" [test-letter-number]
-       ((wrap-json-response views/DATC-gamestate-before) test-letter-number)))
+  (GET "/DATC/:test-letter-number/orders-phase-test" [test-letter-number]
+       ((wrap-json-response views/DATC-orders-phase-test) test-letter-number)))

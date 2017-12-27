@@ -285,30 +285,3 @@
       fill-in-supply-center-ownerships
       fill-in-missing-valid-orders
       fill-in-unit-positions-before))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                extracting data from a test ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn-spec get-gamestate-before [::orders-phase-test] ::dt/game-state)
-(defn get-gamestate-before
-  [orders-phase-test]
-  (let [gamestate-before-key-rename-map
-        {:unit-positions-before          :unit-positions
-         :supply-center-ownership-before :supply-center-ownership
-         :game-time-before               :game-time}]
-    (-> orders-phase-test
-        (set/rename-keys gamestate-before-key-rename-map)
-        (select-keys (vals gamestate-before-key-rename-map)))))
-
-(defn-spec get-gamestate-after [::orders-phase-test] ::dt/game-state)
-(defn get-gamestate-after
-  [orders-phase-test]
-  (let [gamestate-after-key-rename-map
-        {:unit-positions-after          :unit-positions
-         :supply-center-ownership-after :supply-center-ownership
-         :game-time-after               :game-time
-         :pending-retreats              :pending-retreats}]
-    (-> orders-phase-test
-        (set/rename-keys gamestate-after-key-rename-map)
-        (select-keys (vals gamestate-after-key-rename-map)))))
