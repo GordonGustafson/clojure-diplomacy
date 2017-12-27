@@ -45,11 +45,12 @@ function renderGamestate(parent, {"unit-positions": unitPositions,
     }
 }
 
-// Clear all gamestate that was rendered directly to `parent` by
-// `renderGamestate`.
+// Clear all gamestate that was rendered directly to `parent`.
 function clearRenderedGamestate(parent) {
     const insertedByJSContainer = parent.getElementById("insertedByJS");
-    insertedByJSContainer.parentNode.removeChild(insertedByJSContainer);
+    if (insertedByJSContainer !== null) {
+        insertedByJSContainer.parentNode.removeChild(insertedByJSContainer);
+    }
 }
 
 document.getElementById("mapObjectTag").addEventListener("load", function() {
@@ -62,12 +63,13 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
     const renderButtons = document.getElementsByClassName("render-button");
     for (var i = 0; i < renderButtons.length; i++) {
         renderButtons[i].addEventListener("click", function(event) {
+            // When the user presses a button they expect to see only the gamestate
+            // for that button.
+            clearRenderedGamestate(rootSvg);
+
             axios({url: event.target.dataset.gamestateUrl, responseType: "json"})
                 .then(response => { renderGamestate(rootSvg, response.data); })
                 .catch(err => { console.log(err.message); });
         });
     }
-
-    document.getElementById("clear-rendered-gamestate").addEventListener(
-        "click", function() { clearRenderedGamestate(rootSvg); });
 });
