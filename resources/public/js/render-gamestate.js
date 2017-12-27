@@ -11,20 +11,28 @@ function addSvgNode(parent, tagName, attributes) {
     parent.innerHTML += newTag;
 }
 
+// Returns the child of `parent` that should be used for inserting content
+// rendered via javascript, creating it if it deosn't exist. `parent` must be an
+// element in an SVG DOM.
+function getChildElementForGeneratedContent(parent) {
+    if (parent.getElementById("insertedByJS") === null) {
+        parent.innerHTML += '<g id="insertedByJS"></g>';
+    }
+    return parent.getElementById("insertedByJS");
+}
+
 function renderGamestate(parent, {"unit-positions": unitPositions,
                                   "supply-center-ownership": scOwnership,
                                   "game-time": {year, season}}) {
-    parent.innerHTML += '<g id="insertedByJS"></g>';
-    const insertedByJSContainer = parent.getElementById("insertedByJS");
-    console.log(insertedByJSContainer);
+    const renderTarget = getChildElementForGeneratedContent(parent);
 
     const capitalizedSeason = season.charAt(0).toUpperCase() + season.slice(1);
-    insertedByJSContainer.innerHTML +=
+    renderTarget.innerHTML +=
         '<text x="5" y="20" style="font-size: 20px">' + capitalizedSeason + " "
         + year.toString() + "</text>";
 
     for (const [location, unit] of Object.entries(unitPositions)) {
-        addSvgNode(insertedByJSContainer, "use",
+        addSvgNode(renderTarget, "use",
                    {"xlink:href": "#" + unit["unit-type"],
                     "class": unit["country"],
                     "transform":
@@ -34,7 +42,7 @@ function renderGamestate(parent, {"unit-positions": unitPositions,
 
     for (const [country, supplyCenters] of Object.entries(scOwnership)) {
         for (const location of supplyCenters) {
-            addSvgNode(insertedByJSContainer, "use",
+            addSvgNode(renderTarget, "use",
                        {"xlink:href": "#sc",
                         "class": country,
                         "transform":
@@ -47,10 +55,12 @@ function renderGamestate(parent, {"unit-positions": unitPositions,
 
 // Clear all gamestate that was rendered directly to `parent`.
 function clearRenderedGamestate(parent) {
-    const insertedByJSContainer = parent.getElementById("insertedByJS");
-    if (insertedByJSContainer !== null) {
-        insertedByJSContainer.parentNode.removeChild(insertedByJSContainer);
-    }
+    // If it doesn't already exist, `getChildElementForGeneratedContent` will
+    // create the child element for generated content, which we will immediately
+    // remove. We could avoid the unnecessary insert and remove in that case,
+    // but it's not worth it.
+    const renderTarget = getChildElementForGeneratedContent(parent);
+    parent.removeChild(renderTarget);
 }
 
 document.getElementById("mapObjectTag").addEventListener("load", function() {
