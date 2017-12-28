@@ -382,11 +382,11 @@
 ;;                                      Public Interface for Order Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec compute-conflict-judgments
+(defn-spec compute-resolution-results
   [::dt/orders]
-  ::dt/conflict-judgments
+  ::dt/resolution-results
   #(= (set (-> % :args :arg-1)) (set (-> % :ret (keys)))))
-(defn compute-conflict-judgments
+(defn compute-resolution-results
   "A map from each element of `orders` to the set of judgments that apply to it
   (the orders that may interfere with it, whether they successfully interfered,
   and the rule that determined that result)."
@@ -404,7 +404,7 @@
      (map (fn [[attack judgment]] {attack #{judgment}}))
      (apply merge-with clojure.set/union)
      (into {})
-     ;; Make sure that orders that have no conflict-judgments are mapped to an
-     ;; empty set of conflict-judgments in the output. Merge uses the values
+     ;; Make sure that orders that have no resolution-results are mapped to an
+     ;; empty set of resolution-results in the output. Merge uses the values
      ;; from the right-most map when there are conflicts.
      (merge (zipmap orders (repeat #{}))))))

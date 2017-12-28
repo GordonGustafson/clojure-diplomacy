@@ -10,34 +10,34 @@
     :summary "Check if an illegal move (without convoy) will fail."
     :validation-results-abbr {[:england :fleet :nth :attack :pic] [#{:attacks-via-inaccessible-edge?}
                                                                    [:england :fleet :nth :hold]]}
-    :conflict-judgments-abbr {[:england :fleet :nth :hold] #{}}
+    :resolution-results-abbr {[:england :fleet :nth :hold] #{}}
     :explanation "Order should fail."}
    "A2"
    {:long-name "6.A.2. MOVE ARMY TO SEA"
     :summary "Check if an army could not be moved to open sea."
     :validation-results-abbr {[:england :army :lvp :attack :iri] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
                                                                   [:england :army :lvp :hold]]}
-    :conflict-judgments-abbr {[:england :army :lvp :hold] #{}}
+    :resolution-results-abbr {[:england :army :lvp :hold] #{}}
     :explanation "Order should fail."}
    "A3"
    {:long-name "6.A.3. MOVE FLEET TO LAND"
     :summary "Check whether a fleet can not move to land."
     :validation-results-abbr {[:germany :fleet :kie :attack :mun] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
                                                                    [:germany :fleet :kie :hold]]}
-    :conflict-judgments-abbr {[:germany :fleet :kie :hold] #{}}
+    :resolution-results-abbr {[:germany :fleet :kie :hold] #{}}
     :explanation "Order should fail."}
    "A4"
    {:long-name "6.A.4. MOVE TO OWN SECTOR"
     :summary "Moving to the same sector is an illegal move (2000 rulebook, page 4, \"An Army can be ordered to move into an adjacent inland or coastal province.\")."
     :validation-results-abbr {[:germany :fleet :kie :attack :kie] [#{:attacks-current-location? :attacks-via-inaccessible-edge?}
                                                                    [:germany :fleet :kie :hold]]}
-    :conflict-judgments-abbr {[:germany :fleet :kie :hold] #{}}
+    :resolution-results-abbr {[:germany :fleet :kie :hold] #{}}
     :explanation "Program should not crash."}
    ;; commented out because it uses a convoy
    #_"A5"
    #_{:long-name "6.A.5. MOVE TO OWN SECTOR WITH CONVOY"
       :summary "Moving to the same sector is still illegal with convoy (2000 rulebook, page 4, \"Note: An Army can move across water provinces from one coastal province to another...\")."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :yor :attack :yor] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :yor :attack :yor] #{[:interfered? :interferer :rule]}
                                 [:england :army :yor :attack :yor] #{[:interfered? :interferer :rule]}
                                 [:england :army :lvp :support :england :army :yor :attack :yor] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :lon :attack :yor] #{[:interfered? :interferer :rule]}
@@ -46,20 +46,20 @@
    #_"A6"
    #_{:long-name "6.A.6. ORDERING A UNIT OF ANOTHER COUNTRY"
       :summary "Check whether someone can not order a unit that is not his own unit. England has a fleet in London."
-      :conflict-judgments-abbr {[:germany :fleet :lon :attack :nth] #{[:interfered? :interferer :rule]}}
+      :resolution-results-abbr {[:germany :fleet :lon :attack :nth] #{[:interfered? :interferer :rule]}}
       :explanation "Order should fail."}
    ;; commented out because it uses a convoy
    #_"A7"
    #_{:long-name "6.A.7. ONLY ARMIES CAN BE CONVOYED"
       :summary "A fleet can not be convoyed."
-      :conflict-judgments-abbr {[:england :fleet :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}}
       :explanation "Move from London to Belgium should fail."}
    "A8"
    {:long-name "6.A.8. SUPPORT TO HOLD YOURSELF IS NOT POSSIBLE"
     :summary "An army can not get an additional hold power by supporting itself."
     :validation-results-abbr {[:austria :fleet :tri :support :austria :fleet :tri :hold] [#{:supports-unsupportable-location?} [:austria :fleet :tri :hold]]}
-    :conflict-judgments-abbr {[:italy :army :ven :attack :tri] #{[false [:austria :fleet :tri :hold] :destination-occupied]}
+    :resolution-results-abbr {[:italy :army :ven :attack :tri] #{[false [:austria :fleet :tri :hold] :destination-occupied]}
                               [:italy :army :tyr :support :italy :army :ven :attack :tri] #{}
                               [:austria :fleet :tri :hold] #{}}
     :explanation "The army in Trieste should be dislodged."}
@@ -67,26 +67,26 @@
    {:long-name "6.A.9. FLEETS MUST FOLLOW COAST IF NOT ON SEA"
     :summary "If two places are adjacent, that does not mean that a fleet can move between those two places. An implementation that only holds one list of adjacent places for each place, is incorrect."
     :validation-results-abbr {[:italy :fleet :rom :attack :ven] [#{:attacks-via-inaccessible-edge?} [:italy :fleet :rom :hold]]}
-    :conflict-judgments-abbr {[:italy :fleet :rom :hold] #{}}
+    :resolution-results-abbr {[:italy :fleet :rom :hold] #{}}
     :explanation "Move fails. An army can go from Rome to Venice, but a fleet can not."}
    "A10"
    {:long-name "6.A.10. SUPPORT ON UNREACHABLE DESTINATION NOT POSSIBLE"
     :summary "The destination of the move that is supported must be reachable by the supporting unit."
     :validation-results-abbr {[:italy :fleet :rom :support :italy :army :apu :attack :ven] [#{:supports-unsupportable-location?} [:italy :fleet :rom :hold]]}
-    :conflict-judgments-abbr {[:austria :army :ven :hold] #{}
+    :resolution-results-abbr {[:austria :army :ven :hold] #{}
                               [:italy :fleet :rom :hold] #{}
                               [:italy :army :apu :attack :ven] #{[true [:austria :army :ven :hold] :destination-occupied]}}
     :explanation "The support of Rome is illegal, because Venice can not be reached from Rome by a fleet. Venice is not dislodged."}
    "A11"
    {:long-name "6.A.11. SIMPLE BOUNCE"
     :summary "Two armies bouncing on each other."
-    :conflict-judgments-abbr {[:austria :army :vie :attack :tyr] #{[true [:italy :army :ven :attack :tyr] :attacked-same-destination]}
+    :resolution-results-abbr {[:austria :army :vie :attack :tyr] #{[true [:italy :army :ven :attack :tyr] :attacked-same-destination]}
                               [:italy :army :ven :attack :tyr] #{[true [:austria :army :vie :attack :tyr] :attacked-same-destination]}}
     :explanation "The two units bounce."}
    "A12"
    {:long-name "6.A.12. BOUNCE OF THREE UNITS"
     :summary "If three units move to the same place, the adjudicator should not bounce the first two units and then let the third unit go to the now open place."
-    :conflict-judgments-abbr {[:austria :army :vie :attack :tyr] #{[true [:germany :army :mun :attack :tyr] :attacked-same-destination]
+    :resolution-results-abbr {[:austria :army :vie :attack :tyr] #{[true [:germany :army :mun :attack :tyr] :attacked-same-destination]
                                                                    [true [:italy :army :ven :attack :tyr] :attacked-same-destination]}
                               [:germany :army :mun :attack :tyr] #{[true [:austria :army :vie :attack :tyr] :attacked-same-destination]
                                                                    [true [:italy :army :ven :attack :tyr] :attacked-same-destination]}
@@ -97,7 +97,7 @@
    {:long-name "6.B.1. MOVING WITH UNSPECIFIED COAST WHEN COAST IS NECESSARY"
     :summary "Coast is significant in this case:"
     :validation-results-abbr {[:france :fleet :por :attack :spa] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?} [:france :fleet :por :hold]]}
-    :conflict-judgments-abbr {[:france :fleet :por :hold] #{}}
+    :resolution-results-abbr {[:france :fleet :por :hold] #{}}
     :explanation "Some adjudicators take a default coast (see issue 4.B.1). <i>I prefer that the move fails.</i>"}
    ;; TODO: Currently a fleet moving to a non-coastal version of a location with
    ;; coasts results in the fleet holding, even if there was only one coast that
@@ -106,19 +106,19 @@
    {:long-name "6.B.2. MOVING WITH UNSPECIFIED COAST WHEN COAST IS NOT NECESSARY"
     :summary "There is only one coast possible in this case:"
     :validation-results-abbr {[:france :fleet :gas :attack :spa] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
-    :conflict-judgments-abbr {[:france :fleet :gas :hold] #{}}
+    :resolution-results-abbr {[:france :fleet :gas :hold] #{}}
     :explanation "Since the North Coast is the only coast that can be reached, it seems logical that the a move is attempted to the north coast of Spain. Some adjudicators require that a coast is also specified in this case and will decide that the move fails or take a default coast (see issue 4.B.2). <i>I prefer that an attempt is made to the only possible coast, the north coast of Spain.</i>"}
    "B3"
    {:long-name "6.B.3. MOVING WITH WRONG COAST WHEN COAST IS NOT NECESSARY"
     :summary "If only one coast is possible, but the wrong coast can be specified."
     :validation-results-abbr {[:france :fleet :gas :attack :spa-sc] [#{:attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
-    :conflict-judgments-abbr {[:france :fleet :gas :hold] #{}}
+    :resolution-results-abbr {[:france :fleet :gas :hold] #{}}
     :explanation "If the rules are played very clemently, a move will be attempted to the north coast of Spain. However, since this order is very clear and precise, it is more common that the move fails (see issue 4.B.3). <i>I prefer that the move fails.</i>"}
    ;; comment out because it uses a coast
    #_"B4"
    #_{:long-name "6.B.4. SUPPORT TO UNREACHABLE COAST ALLOWED"
       :summary "A fleet can give support to a coast where it can not go."
-      :conflict-judgments-abbr {[:france :fleet :gas :attack :spa-nc] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :fleet :gas :attack :spa-nc] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :mar :support :france :fleet :gas :attack :spa-nc] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :wes :attack :spa-sc] #{[:interfered? :interferer :rule]}}
       :explanation "Although the fleet in Marseilles can not go to the north coast it can still support targeting the north coast. So, the support is successful, the move of the fleet in Gasgony succeeds and the move of the Italian fleet fails."}
@@ -127,7 +127,7 @@
    {:long-name "6.B.5. SUPPORT FROM UNREACHABLE COAST NOT ALLOWED"
     :summary "A fleet can not give support to an area that can not be reached from the current coast of the fleet."
     :validation-results-abbr {[:france :fleet :spa-nc :support :france :fleet :mar :attack :gol] [#{:supports-unsupportable-location?} [:france :fleet :spa-nc :hold]]}
-    :conflict-judgments-abbr {[:france :fleet :mar :attack :gol] #{[true [:italy :fleet :gol :hold] :destination-occupied]}
+    :resolution-results-abbr {[:france :fleet :mar :attack :gol] #{[true [:italy :fleet :gol :hold] :destination-occupied]}
                               [:france :fleet :spa-nc :hold] #{}
                               [:italy :fleet :gol :hold] #{}}
     :explanation "The Gulf of Lyon can not be reached from the North Coast of Spain. Therefore, the support of Spain is invalid and the fleet in the Gulf of Lyon is not dislodged."}
@@ -135,7 +135,7 @@
    #_"B6"
    #_{:long-name "6.B.6. SUPPORT CAN BE CUT WITH OTHER COAST"
       :summary "Support can be cut from the other coast."
-      :conflict-judgments-abbr {[:england :fleet :iri :support :england :fleet :nat :attack :mid] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :iri :support :england :fleet :nat :attack :mid] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nat :attack :mid] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :spa-nc :support :france :fleet :mid :hold] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :mid :hold] #{}
@@ -145,7 +145,7 @@
    #_"B7"
    #_{:long-name "6.B.7. SUPPORTING WITH UNSPECIFIED COAST"
       :summary "Most house rules accept support orders without coast specification."
-      :conflict-judgments-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :mid :attack :spa-nc] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :wes :attack :spa-sc] #{[:interfered? :interferer :rule]}}
@@ -154,7 +154,7 @@
    #_"B8"
    #_{:long-name "6.B.8. SUPPORTING WITH UNSPECIFIED COAST WHEN ONLY ONE COAST IS POSSIBLE"
       :summary "Some hardliners require a coast in a support order even when only  one coast is possible."
-      :conflict-judgments-abbr {[:france :fleet :por :support :france :fleet :gas :attack :spa] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :fleet :por :support :france :fleet :gas :attack :spa] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :gas :attack :spa-nc] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :wes :attack :spa-sc] #{[:interfered? :interferer :rule]}}
@@ -163,7 +163,7 @@
    #_"B9"
    #_{:long-name "6.B.9. SUPPORTING WITH WRONG COAST"
       :summary "Coasts can be specified in a support, but the result depends on the house rules."
-      :conflict-judgments-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa-nc] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa-nc] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :mid :attack :spa-sc] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :wes :attack :spa-sc] #{[:interfered? :interferer :rule]}}
@@ -172,38 +172,38 @@
    #_"B10"
    #_{:long-name "6.B.10. UNIT ORDERED WITH WRONG COAST"
       :summary "A player might specify the wrong coast for the ordered unit. France has a fleet on the south coast of Spain and orders:"
-      :conflict-judgments-abbr {[:france :fleet :spa-nc :attack :gol] #{[:interfered? :interferer :rule]}}
+      :resolution-results-abbr {[:france :fleet :spa-nc :attack :gol] #{[:interfered? :interferer :rule]}}
       :explanation "If only perfect orders are accepted, then the move will fail, but since the coast for the ordered unit has no purpose, it might also be ignored (see issue 4.B.5). <i>I prefer that a move will be attempted.</i>"}
    ;; comment out because it uses a coast
    #_"B11"
    #_{:long-name "6.B.11. COAST CAN NOT BE ORDERED TO CHANGE"
       :summary "The coast can not change by just ordering the other coast. France has a fleet on the north coast of Spain and orders:"
-      :conflict-judgments-abbr {[:france :fleet :spa-sc :attack :gol] #{[:interfered? :interferer :rule]}}
+      :resolution-results-abbr {[:france :fleet :spa-sc :attack :gol] #{[:interfered? :interferer :rule]}}
       :explanation "The move fails."}
    ;; comment out because it uses a coast
    #_"B12"
    #_{:long-name "6.B.12. ARMY MOVEMENT WITH COASTAL SPECIFICATION"
       :summary "For armies the coasts are irrelevant:"
-      :conflict-judgments-abbr {[:france :army :gas :attack :spa-nc] #{[:interfered? :interferer :rule]}}
+      :resolution-results-abbr {[:france :army :gas :attack :spa-nc] #{[:interfered? :interferer :rule]}}
       :explanation "If only perfect orders are accepted, then the move will fail. But it is also possible that coasts are ignored in this case and a move will be attempted (see issue 4.B.6). <i>I prefer that a move will be attempted.</i>"}
    ;; comment out because it uses a coast
    #_"B13"
    #_{:long-name "6.B.13. COASTAL CRAWL NOT ALLOWED"
       :summary "If a fleet is leaving a sector from a certain coast while in the opposite direction another fleet is moving to another coast of the sector, it is still a head to head battle. This has been decided in the great revision of the 1961 rules that resulted in the 1971 rules."
-      :conflict-judgments-abbr {[:turkey :fleet :bul-sc :attack :con] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:turkey :fleet :bul-sc :attack :con] #{[:interfered? :interferer :rule]}
                                 [:turkey :fleet :con :attack :bul-ec] #{[:interfered? :interferer :rule]}}
       :explanation "Both moves fail."}
    "C1"
    {:long-name "6.C.1. THREE ARMY CIRCULAR MOVEMENT"
     :summary "Three units can change place, even in spring 1901."
-    :conflict-judgments-abbr {[:turkey :fleet :ank :attack :con] #{}
+    :resolution-results-abbr {[:turkey :fleet :ank :attack :con] #{}
                               [:turkey :army :con :attack :smy] #{}
                               [:turkey :army :smy :attack :ank] #{}}
     :explanation "All three units will move."}
    "C2"
    {:long-name "6.C.2. THREE ARMY CIRCULAR MOVEMENT WITH SUPPORT"
     :summary "Three units can change place, even when one gets support."
-    :conflict-judgments-abbr {[:turkey :fleet :ank :attack :con] #{}
+    :resolution-results-abbr {[:turkey :fleet :ank :attack :con] #{}
                               [:turkey :army :con :attack :smy] #{}
                               [:turkey :army :smy :attack :ank] #{}
                               [:turkey :army :bul :support :turkey :fleet :ank :attack :con] #{}}
@@ -214,7 +214,7 @@
     ;; The first order doesn't have a :failed-to-leave-destination failure reason
     ;; because it's failure was what caused the other unit to fail to leave it's
     ;; destination.
-    :conflict-judgments-abbr {[:turkey :fleet :ank :attack :con] #{[true [:turkey :army :bul :attack :con] :attacked-same-destination]}
+    :resolution-results-abbr {[:turkey :fleet :ank :attack :con] #{[true [:turkey :army :bul :attack :con] :attacked-same-destination]}
                               [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
                               [:turkey :army :smy :attack :ank] #{[true [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:turkey :army :bul :attack :con] #{[true [:turkey :fleet :ank :attack :con] :attacked-same-destination]
@@ -224,7 +224,7 @@
    #_"C4"
    #_{:long-name "6.C.4. A CIRCULAR MOVEMENT WITH ATTACKED CONVOY"
       :summary "When the circular movement contains an attacked convoy, the circular movement succeeds. The adjudication algorithm should handle attack of convoys before calculating circular movement."
-      :conflict-judgments-abbr {[:austria :army :tri :attack :ser] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:austria :army :tri :attack :ser] #{[:interfered? :interferer :rule]}
                                 [:austria :army :ser :attack :bul] #{[:interfered? :interferer :rule]}
                                 [:turkey :army :bul :attack :tri] #{[:interfered? :interferer :rule]}
                                 [:turkey :fleet :aeg :convoy :turkey :army :bul :attack :tri] #{[:interfered? :interferer :rule]}
@@ -236,7 +236,7 @@
    #_"C5"
    #_{:long-name "6.C.5. A DISRUPTED CIRCULAR MOVEMENT DUE TO DISLODGED CONVOY"
       :summary "When the circular movement contains a convoy, the circular movement is disrupted when the convoying fleet is dislodged. The adjudication algorithm should disrupt convoys before calculating circular movement."
-      :conflict-judgments-abbr {[:austria :army :tri :attack :ser] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:austria :army :tri :attack :ser] #{[:interfered? :interferer :rule]}
                                 [:austria :army :ser :attack :bul] #{[:interfered? :interferer :rule]}
                                 [:turkey :army :bul :attack :tri] #{[:interfered? :interferer :rule]}
                                 [:turkey :fleet :aeg :convoy :turkey :army :bul :attack :tri] #{[:interfered? :interferer :rule]}
@@ -249,7 +249,7 @@
    #_"C6"
    #_{:long-name "6.C.6. TWO ARMIES WITH TWO CONVOYS"
       :summary "Two armies can swap places even when they are not adjacent."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}}
@@ -258,7 +258,7 @@
    #_"C7"
    #_{:long-name "6.C.7. DISRUPTED UNIT SWAP"
       :summary "If in a swap one of the unit bounces, then the swap fails."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
@@ -267,7 +267,7 @@
    "D1"
    {:long-name "6.D.1. SUPPORTED HOLD CAN PREVENT DISLODGEMENT"
     :summary "The most simple support to hold order."
-    :conflict-judgments-abbr {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{}
+    :resolution-results-abbr {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{}
                               [:austria :army :tri :attack :ven] #{[true [:italy :army :ven :hold] :destination-occupied]}
                               [:italy :army :ven :hold] #{}
                               [:italy :army :tyr :support :italy :army :ven :hold] #{}}
@@ -275,7 +275,7 @@
    "D2"
    {:long-name "6.D.2. A MOVE CUTS SUPPORT ON HOLD"
     :summary "The most simple support on hold cut."
-    :conflict-judgments-abbr {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{}
+    :resolution-results-abbr {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{}
                               [:austria :army :tri :attack :ven] #{[false [:italy :army :ven :hold] :destination-occupied]}
                               [:austria :army :vie :attack :tyr] #{[true [:italy :army :tyr :support :italy :army :ven :hold] :destination-occupied]}
                               [:italy :army :ven :hold] #{}
@@ -284,7 +284,7 @@
    "D3"
    {:long-name "6.D.3. A MOVE CUTS SUPPORT ON MOVE"
     :summary "The most simple support on move cut."
-    :conflict-judgments-abbr {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[true [:italy :fleet :ion :attack :adr] :attacked]}
+    :resolution-results-abbr {[:austria :fleet :adr :support :austria :army :tri :attack :ven] #{[true [:italy :fleet :ion :attack :adr] :attacked]}
                               [:austria :army :tri :attack :ven] #{[true [:italy :army :ven :hold] :destination-occupied]}
                               [:italy :army :ven :hold] #{}
                               [:italy :fleet :ion :attack :adr] #{[true [:austria :fleet :adr :support :austria :army :tri :attack :ven] :destination-occupied]}}
@@ -292,7 +292,7 @@
    "D4"
    {:long-name "6.D.4. SUPPORT TO HOLD ON UNIT SUPPORTING A HOLD ALLOWED"
     :summary "A unit that is supporting a hold, can receive a hold support."
-    :conflict-judgments-abbr {[:germany :army :ber :support :germany :fleet :kie :hold] #{[true [:russia :army :pru :attack :ber] :attacked]}
+    :resolution-results-abbr {[:germany :army :ber :support :germany :fleet :kie :hold] #{[true [:russia :army :pru :attack :ber] :attacked]}
                               [:germany :fleet :kie :support :germany :army :ber :hold] #{}
                               [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{}
                               [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :support :germany :fleet :kie :hold] :destination-occupied]}}
@@ -300,7 +300,7 @@
    "D5"
    {:long-name "6.D.5. SUPPORT TO HOLD ON UNIT SUPPORTING A MOVE ALLOWED"
     :summary "A unit that is supporting a move, can receive a hold support."
-    :conflict-judgments-abbr {[:germany :army :ber :support :germany :army :mun :attack :sil] #{[true [:russia :army :pru :attack :ber] :attacked]}
+    :resolution-results-abbr {[:germany :army :ber :support :germany :army :mun :attack :sil] #{[true [:russia :army :pru :attack :ber] :attacked]}
                               [:germany :fleet :kie :support :germany :army :ber :hold] #{}
                               [:germany :army :mun :attack :sil] #{}
                               [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{}
@@ -310,7 +310,7 @@
    #_"D6"
    #_{:long-name "6.D.6. SUPPORT TO HOLD ON CONVOYING UNIT ALLOWED"
       :summary "A unit that is convoying, can receive a hold support."
-      :conflict-judgments-abbr {[:germany :army :ber :attack :swe] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:germany :army :ber :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :bal :convoy :germany :army :ber :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :pru :support :germany :fleet :bal :hold] #{[:interfered? :interferer :rule]}
                                 [:russia :fleet :lvn :attack :bal] #{[:interfered? :interferer :rule]}
@@ -319,7 +319,7 @@
    "D7"
    {:long-name "6.D.7. SUPPORT TO HOLD ON MOVING UNIT NOT ALLOWED"
     :summary "A unit that is moving, can not receive a hold support for the situation that the move fails."
-    :conflict-judgments-abbr {[:germany :fleet :bal :attack :swe] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :fleet :bal :attack :swe] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :pru :support :germany :fleet :bal :hold] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :lvn :attack :bal] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :bot :support :russia :fleet :lvn :attack :bal] #{[:interfered? :interferer :rule]}
@@ -328,7 +328,7 @@
    "D8"
    {:long-name "6.D.8. FAILED CONVOY CAN NOT RECEIVE HOLD SUPPORT"
     :summary "If a convoy fails because of disruption of the convoy or when the right convoy orders are not given, then the army to be convoyed can not receive support in  hold, since it still tried to move."
-    :conflict-judgments-abbr {[:austria :fleet :ion :hold] #{}
+    :resolution-results-abbr {[:austria :fleet :ion :hold] #{}
                               [:austria :army :ser :support :austria :army :alb :attack :gre] #{[:interfered? :interferer :rule]}
                               [:austria :army :alb :attack :gre] #{[:interfered? :interferer :rule]}
                               [:turkey :army :gre :attack :nap] #{[:interfered? :interferer :rule]}
@@ -337,7 +337,7 @@
    "D9"
    {:long-name "6.D.9. SUPPORT TO MOVE ON HOLDING UNIT NOT ALLOWED"
     :summary "A unit that is holding can not receive a support in moving."
-    :conflict-judgments-abbr {[:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:austria :army :alb :support :austria :army :tri :attack :ser] #{[:interfered? :interferer :rule]}
                               [:austria :army :tri :hold] #{}}
@@ -345,14 +345,14 @@
    "D10"
    {:long-name "6.D.10. SELF DISLODGMENT PROHIBITED"
     :summary "A unit may not dislodge a unit of the same great power."
-    :conflict-judgments-abbr {[:germany :army :ber :hold] #{}
+    :resolution-results-abbr {[:germany :army :ber :hold] #{}
                               [:germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}
                               [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}}
     :explanation "Move to Berlin fails."}
    "D11"
    {:long-name "6.D.11. NO SELF DISLODGMENT OF RETURNING UNIT"
     :summary "Idem."
-    :conflict-judgments-abbr {[:germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}
                               [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}
                               [:russia :army :war :attack :pru] #{[:interfered? :interferer :rule]}}
@@ -360,14 +360,14 @@
    "D12"
    {:long-name "6.D.12. SUPPORTING A FOREIGN UNIT TO DISLODGE OWN UNIT PROHIBITED"
     :summary "You may not help another power in dislodging your own unit."
-    :conflict-judgments-abbr {[:austria :fleet :tri :hold] #{}
+    :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
                               [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}}
     :explanation "No dislodgment of fleet in Trieste."}
    "D13"
    {:long-name "6.D.13. SUPPORTING A FOREIGN UNIT TO DISLODGE A RETURNING OWN UNIT PROHIBITED"
     :summary "Idem."
-    :conflict-judgments-abbr {[:austria :fleet :tri :attack :adr] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:austria :fleet :tri :attack :adr] #{[:interfered? :interferer :rule]}
                               [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:italy :fleet :apu :attack :adr] #{[:interfered? :interferer :rule]}}
@@ -375,7 +375,7 @@
    "D14"
    {:long-name "6.D.14. SUPPORTING A FOREIGN UNIT IS NOT ENOUGH TO PREVENT DISLODGEMENT"
     :summary "If a foreign unit has enough support to dislodge your unit, you may not prevent that dislodgement by supporting the attack."
-    :conflict-judgments-abbr {[:austria :fleet :tri :hold] #{}
+    :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
                               [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
@@ -384,7 +384,7 @@
    "D15"
    {:long-name "6.D.15. DEFENDER CAN NOT CUT SUPPORT FOR ATTACK ON ITSELF"
     :summary "A unit that is attacked by a supported unit can not prevent dislodgement by guessing which of the units will do the support."
-    :conflict-judgments-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
                               [:turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}}
     :explanation "The support of Constantinople is not cut and the fleet in Ankara is dislodged by the fleet in the Black Sea."}
@@ -392,7 +392,7 @@
    #_"D16"
    #_{:long-name "6.D.16. CONVOYING A UNIT DISLODGING A UNIT OF SAME POWER IS ALLOWED"
       :summary "It is allowed to convoy a foreign unit that dislodges your own unit is allowed."
-      :conflict-judgments-abbr {[:england :army :lon :hold] #{}
+      :resolution-results-abbr {[:england :army :lon :hold] #{}
                                 [:england :fleet :nth :convoy :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :support :france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :army :bel :attack :lon] #{[:interfered? :interferer :rule]}}
@@ -400,7 +400,7 @@
    "D17"
    {:long-name "6.D.17. DISLODGEMENT CUTS SUPPORTS"
     :summary "The famous dislodge rule."
-    :conflict-judgments-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
                               [:turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}
                               [:turkey :army :smy :support :turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}
@@ -409,7 +409,7 @@
    "D18"
    {:long-name "6.D.18. A SURVIVING UNIT WILL SUSTAIN SUPPORT"
     :summary "Idem. But now with an additional hold that prevents dislodgement."
-    :conflict-judgments-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
                               [:russia :army :bul :support :russia :fleet :con :hold] #{[:interfered? :interferer :rule]}
                               [:turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}
@@ -419,7 +419,7 @@
    "D19"
    {:long-name "6.D.19. EVEN WHEN SURVIVING IS IN ALTERNATIVE WAY"
     :summary "Now, the dislodgement is prevented because the supports comes from a Russian army:"
-    :conflict-judgments-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :bla :attack :ank] #{[:interfered? :interferer :rule]}
                               [:russia :army :smy :support :turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}
                               [:turkey :fleet :ank :attack :con] #{[:interfered? :interferer :rule]}}
@@ -427,7 +427,7 @@
    "D20"
    {:long-name "6.D.20. UNIT CAN NOT CUT SUPPORT OF ITS OWN COUNTRY"
     :summary "Although this is not mentioned in all rulebooks, it is generally accepted that when a unit attacks another unit of the same Great Power, it will not cut support."
-    :conflict-judgments-abbr {[:england :fleet :lon :support :england :fleet :nth :attack :eng] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :nth :attack :eng] #{[:interfered? :interferer :rule]}
                               [:england :fleet :nth :attack :eng] #{[:interfered? :interferer :rule]}
                               [:england :army :yor :attack :lon] #{[:interfered? :interferer :rule]}
                               [:france :fleet :eng :hold] #{}}
@@ -435,7 +435,7 @@
    "D21"
    {:long-name "6.D.21. DISLODGING DOES NOT CANCEL A SUPPORT CUT"
     :summary "Sometimes there is the question whether a dislodged moving unit does not cut support (similar to the dislodge rule). This is not the case."
-    :conflict-judgments-abbr {[:austria :fleet :tri :hold] #{}
+    :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
                               [:italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? :interferer :rule]}
                               [:germany :army :mun :attack :tyr] #{[:interfered? :interferer :rule]}
@@ -445,7 +445,7 @@
    "D22"
    {:long-name "6.D.22. IMPOSSIBLE FLEET MOVE CAN NOT BE SUPPORTED"
     :summary "If a fleet tries moves to a land area it seems pointless to support the fleet, since the move will fail anyway. However, in such case, the support is also invalid for defense purposes."
-    :conflict-judgments-abbr {[:germany :fleet :kie :attack :mun] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :fleet :kie :attack :mun] #{[:interfered? :interferer :rule]}
                               [:germany :army :bur :support :germany :fleet :kie :attack :mun] #{[:interfered? :interferer :rule]}
                               [:russia :army :mun :attack :kie] #{[:interfered? :interferer :rule]}
                               [:russia :army :ber :support :russia :army :mun :attack :kie] #{[:interfered? :interferer :rule]}}
@@ -454,7 +454,7 @@
    #_"D23"
    #_{:long-name "6.D.23. IMPOSSIBLE COAST MOVE CAN NOT BE SUPPORTED"
       :summary "Comparable with the previous test case, but now the fleet move is impossible for coastal reasons."
-      :conflict-judgments-abbr {[:italy :fleet :gol :attack :spa-sc] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:italy :fleet :gol :attack :spa-sc] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :wes :support :italy :fleet :gol :attack :spa-sc] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :spa-nc :attack :gol] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :mar :support :france :fleet :spa-nc :attack :gol] #{[:interfered? :interferer :rule]}}
@@ -463,7 +463,7 @@
    #_"D24"
    #_{:long-name "6.D.24. IMPOSSIBLE ARMY MOVE CAN NOT BE SUPPORTED"
       :summary "Comparable with the previous test case, but now an army tries to move into sea and the support is used in a beleaguered garrison."
-      :conflict-judgments-abbr {[:france :army :mar :attack :gol] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :army :mar :attack :gol] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :spa-sc :support :france :army :mar :attack :gol] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :gol :hold] #{}
                                 [:turkey :fleet :tyn :support :turkey :fleet :wes :attack :gol] #{[:interfered? :interferer :rule]}
@@ -472,7 +472,7 @@
    "D25"
    {:long-name "6.D.25. FAILING HOLD SUPPORT CAN BE SUPPORTED"
     :summary "If an adjudicator fails on one of the previous three test cases, then the bug should be removed with care. A failing move can not be supported, but a failing hold support, because of some preconditions (unmatching order) can still be supported."
-    :conflict-judgments-abbr {[:germany :army :ber :support :russia :army :pru :hold] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :army :ber :support :russia :army :pru :hold] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :kie :support :germany :army :ber :hold] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}
                               [:russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}}
@@ -480,7 +480,7 @@
    "D26"
    {:long-name "6.D.26. FAILING MOVE SUPPORT CAN BE SUPPORTED"
     :summary "Similar as the previous test case, but now with an unmatched support to move."
-    :conflict-judgments-abbr {[:germany :army :ber :support :russia :army :pru :attack :sil] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :army :ber :support :russia :army :pru :attack :sil] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :kie :support :germany :army :ber :hold] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}
                               [:russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}}
@@ -489,7 +489,7 @@
    #_"D27"
    #_{:long-name "6.D.27. FAILING CONVOY CAN BE SUPPORTED"
       :summary "Similar as the previous test case, but now with an unmatched convoy."
-      :conflict-judgments-abbr {[:england :fleet :swe :attack :bal] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :swe :attack :bal] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :den :support :england :fleet :swe :attack :bal] #{[:interfered? :interferer :rule]}
                                 [:germany :army :ber :hold] #{}
                                 [:russia :fleet :bal :convoy :germany :army :ber :attack :lvn] #{[:interfered? :interferer :rule]}
@@ -498,7 +498,7 @@
    "D28"
    {:long-name "6.D.28. IMPOSSIBLE MOVE AND SUPPORT"
     :summary "If a move is impossible then it can be treated as \"illegal\", which makes a hold support possible."
-    :conflict-judgments-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :rum :attack :hol] #{[:interfered? :interferer :rule]}
                               [:turkey :fleet :bla :attack :rum] #{[:interfered? :interferer :rule]}
                               [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{[:interfered? :interferer :rule]}}
@@ -507,7 +507,7 @@
    #_"D29"
    #_{:long-name "6.D.29. MOVE TO IMPOSSIBLE COAST AND SUPPORT"
       :summary "Similar to the previous test case, but now the move can be \"illegal\" because of the wrong coast."
-      :conflict-judgments-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{[:interfered? :interferer :rule]}
                                 [:russia :fleet :rum :attack :bul-sc] #{[:interfered? :interferer :rule]}
                                 [:turkey :fleet :bla :attack :rum] #{[:interfered? :interferer :rule]}
                                 [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{[:interfered? :interferer :rule]}}
@@ -515,7 +515,7 @@
    "D30"
    {:long-name "6.D.30. MOVE WITHOUT COAST AND SUPPORT"
     :summary "Similar to the previous test case, but now the move can be \"illegal\" because of missing coast."
-    :conflict-judgments-abbr {[:italy :fleet :aeg :support :russia :fleet :con :hold] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:italy :fleet :aeg :support :russia :fleet :con :hold] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :con :attack :bul] #{[:interfered? :interferer :rule]}
                               [:turkey :fleet :bla :attack :con] #{[:interfered? :interferer :rule]}
                               [:turkey :army :bul :support :turkey :fleet :bla :attack :con] #{[:interfered? :interferer :rule]}}
@@ -523,13 +523,13 @@
    "D31"
    {:long-name "6.D.31. A TRICKY IMPOSSIBLE SUPPORT"
     :summary "A support order can be impossible for complex reasons."
-    :conflict-judgments-abbr {[:austria :army :rum :attack :arm] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:austria :army :rum :attack :arm] #{[:interfered? :interferer :rule]}
                               [:turkey :fleet :bla :support :austria :army :rum :attack :arm] #{[:interfered? :interferer :rule]}}
     :explanation "Although the army in Rumania can move to Armenia and the fleet in the Black Sea can also go to Armenia, the support is still not possible. The reason is that the only possible convoy is through the Black Sea and a fleet can not convoy and support at the same time. This is relevant for computer programs that show only the possible orders. In the list of possible orders, the support as given to the fleet in the Black Sea, should not be listed. Furthermore, if the fleet in the Black Sea gets a second order, then this may fail, because of double orders (although it can also be ruled differently, see issue 4.D.3). However, when the support order is considered \"illegal\" (see issue 4.E.1), then this impossible support must be ignored and the second order must be carried out. <i>I prefer that impossible orders are \"illegal\" and ignored. If there would be a second order for the fleet in the Black Sea, that order should be carried out.</i>"}
    "D32"
    {:long-name "6.D.32. A MISSING FLEET"
     :summary "The previous test cases contained an order that was impossible even when some other pieces on the board where changed. In this  test case, the order is impossible, but only for that situation."
-    :conflict-judgments-abbr {[:england :fleet :edi :support :england :army :lvp :attack :yor] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:england :fleet :edi :support :england :army :lvp :attack :yor] #{[:interfered? :interferer :rule]}
                               [:england :army :lvp :attack :yor] #{[:interfered? :interferer :rule]}
                               [:france :fleet :lon :support :germany :army :yor :hold] #{[:interfered? :interferer :rule]}
                               [:germany :army :yor :attack :hol] #{[:interfered? :interferer :rule]}}
@@ -537,7 +537,7 @@
    "D33"
    {:long-name "6.D.33. UNWANTED SUPPORT ALLOWED"
     :summary "A self stand-off can be broken by an unwanted support."
-    :conflict-judgments-abbr {[:austria :army :ser :attack :bud] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:austria :army :ser :attack :bud] #{[:interfered? :interferer :rule]}
                               [:austria :army :vie :attack :bud] #{[:interfered? :interferer :rule]}
                               [:russia :army :gal :support :austria :army :ser :attack :bud] #{[:interfered? :interferer :rule]}
                               [:turkey :army :bul :attack :ser] #{[:interfered? :interferer :rule]}}
@@ -545,7 +545,7 @@
    "D34"
    {:long-name "6.D.34. SUPPORT TARGETING OWN AREA NOT ALLOWED"
     :summary "Support targeting the area where the supporting unit is standing, is illegal."
-    :conflict-judgments-abbr {[:germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
                               [:germany :army :sil :support :germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :bal :support :germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
                               [:italy :army :pru :support :russia :army :lvn :attack :pru] #{[:interfered? :interferer :rule]}
@@ -555,7 +555,7 @@
    "E1"
    {:long-name "6.E.1. DISLODGED UNIT HAS NO EFFECT ON ATTACKERS AREA"
     :summary "An army can follow."
-    :conflict-judgments-abbr {[:germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}
                               [:germany :army :sil :support :germany :army :ber :attack :pru] #{[:interfered? :interferer :rule]}
                               [:russia :army :pru :attack :ber] #{[:interfered? :interferer :rule]}}
@@ -563,21 +563,21 @@
    "E2"
    {:long-name "6.E.2. NO SELF DISLODGEMENT IN HEAD TO HEAD BATTLE"
     :summary "Self dislodgement is not allowed. This also counts for head to head battles."
-    :conflict-judgments-abbr {[:germany :army :ber :attack :kie] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}
                               [:germany :army :mun :support :germany :army :ber :attack :kie] #{[:interfered? :interferer :rule]}}
     :explanation "No unit will move."}
    "E3"
    {:long-name "6.E.3. NO HELP IN DISLODGING OWN UNIT"
     :summary "To help a foreign power to dislodge own unit in head to head battle is not possible."
-    :conflict-judgments-abbr {[:germany :army :ber :attack :kie] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[:interfered? :interferer :rule]}
                               [:germany :army :mun :support :england :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}
                               [:england :fleet :kie :attack :ber] #{[:interfered? :interferer :rule]}}
     :explanation "No unit will move."}
    "E4"
    {:long-name "6.E.4. NON-DISLODGED LOSER HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is not dislodged, it has still effect on the area of the attacker."
-    :conflict-judgments-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :ska :support :germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
                               [:france :fleet :nth :attack :hol] #{[:interfered? :interferer :rule]}
@@ -591,7 +591,7 @@
    "E5"
    {:long-name "6.E.5. LOSER DISLODGED BY ANOTHER ARMY HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is dislodged by a unit not part of the head to head battle, the loser has still effect on the place of the winner of the head to head battle."
-    :conflict-judgments-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :ska :support :germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
                               [:france :fleet :nth :attack :hol] #{[:interfered? :interferer :rule]}
@@ -606,7 +606,7 @@
    "E6"
    {:long-name "6.E.6. NOT DISLODGE BECAUSE OF OWN SUPPORT HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is not dislodged because the winner had help of a unit of the loser, the loser has still effect on the area of the winner."
-    :conflict-judgments-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{[:interfered? :interferer :rule]}
                               [:france :fleet :nth :attack :hol] #{[:interfered? :interferer :rule]}
                               [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{[:interfered? :interferer :rule]}
@@ -617,7 +617,7 @@
    "E7"
    {:long-name "6.E.7. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
     :summary "An attempt to self dislodgement can be combined with a beleaguered garrison. Such self dislodgment is still not possible."
-    :conflict-judgments-abbr {[:england :fleet :nth :hold] #{}
+    :resolution-results-abbr {[:england :fleet :nth :hold] #{}
                               [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
@@ -627,7 +627,7 @@
    "E8"
    {:long-name "6.E.8. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON AND HEAD TO HEAD BATTLE"
     :summary "Similar to the previous test case, but now the beleaguered fleet is also engaged in a head to head battle."
-    :conflict-judgments-abbr {[:england :fleet :nth :attack :nwy] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:england :fleet :nth :attack :nwy] #{[:interfered? :interferer :rule]}
                               [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
@@ -637,7 +637,7 @@
    "E9"
    {:long-name "6.E.9. ALMOST SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
     :summary "Similar to the previous test case, but now the beleaguered fleet is moving away."
-    :conflict-judgments-abbr {[:england :fleet :nth :attack :nrg] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:england :fleet :nth :attack :nrg] #{[:interfered? :interferer :rule]}
                               [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
@@ -647,7 +647,7 @@
    "E10"
    {:long-name "6.E.10. ALMOST CIRCULAR MOVEMENT WITH NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
     :summary "Similar to the previous test case, but now the beleaguered fleet is in circular movement with the weaker attacker. So, the circular movement fails."
-    :conflict-judgments-abbr {[:england :fleet :nth :attack :den] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:england :fleet :nth :attack :den] #{[:interfered? :interferer :rule]}
                               [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
                               [:germany :fleet :hel :attack :nth] #{[:interfered? :interferer :rule]}
@@ -659,7 +659,7 @@
    #_"E11"
    #_{:long-name "6.E.11. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON, UNIT SWAP WITH ADJACENT CONVOYING AND TWO COASTS"
       :summary "Similar to the previous test case, but now the beleaguered fleet is in a unit swap with the stronger attacker. So, the unit swap succeeds. To make the situation more complex, the swap is on an area with two coasts."
-      :conflict-judgments-abbr {[:france :army :spa :attack :por] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :army :spa :attack :por] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :mid :convoy :france :army :spa :attack :por] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :gol :support :italy :fleet :por :attack :spa-nc] #{[:interfered? :interferer :rule]}
                                 [:germany :army :mar :support :germany :army :gas :attack :spa] #{[:interfered? :interferer :rule]}
@@ -670,7 +670,7 @@
    "E12"
    {:long-name "6.E.12. SUPPORT ON ATTACK ON OWN UNIT CAN BE USED FOR OTHER MEANS"
     :summary "A support on an attack on your own unit has still effect. It can prevent that another army will dislodge the unit."
-    :conflict-judgments-abbr {[:austria :army :bud :attack :rum] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:austria :army :bud :attack :rum] #{[:interfered? :interferer :rule]}
                               [:austria :army :ser :support :italy :army :vie :attack :bud] #{[:interfered? :interferer :rule]}
                               [:italy :army :vie :attack :bud] #{[:interfered? :interferer :rule]}
                               [:russia :army :gal :attack :bud] #{[:interfered? :interferer :rule]}
@@ -679,7 +679,7 @@
    "E13"
    {:long-name "6.E.13. THREE WAY BELEAGUERED GARRISON"
     :summary "In a beleaguered garrison from three sides, the adjudicator may not  let two attacks fail and then let the third succeed."
-    :conflict-judgments-abbr {[:england :fleet :edi :support :england :fleet :yor :attack :nth] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:england :fleet :edi :support :england :fleet :yor :attack :nth] #{[:interfered? :interferer :rule]}
                               [:england :fleet :yor :attack :nth] #{[:interfered? :interferer :rule]}
                               [:france :fleet :bel :attack :nth] #{[:interfered? :interferer :rule]}
                               [:france :fleet :eng :support :france :fleet :bel :attack :nth] #{[:interfered? :interferer :rule]}
@@ -690,13 +690,13 @@
    "E14"
    {:long-name "6.E.14. ILLEGAL HEAD TO HEAD BATTLE CAN STILL DEFEND"
     :summary "If in a head to head battle, one of the units makes an illegal move, than that unit has still the possibility to defend against attacks with strength of one."
-    :conflict-judgments-abbr {[:england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
                               [:russia :fleet :edi :attack :lvp] #{[:interfered? :interferer :rule]}}
     :explanation "The move of the Russian fleet is illegal, but can still prevent the English army to enter Edinburgh. So, none of the units move."}
    "E15"
    {:long-name "6.E.15. THE FRIENDLY HEAD TO HEAD BATTLE"
     :summary "In this case both units in the head to head battle prevent that the other one is dislodged."
-    :conflict-judgments-abbr {[:england :fleet :hol :support :england :army :ruh :attack :kie] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:england :fleet :hol :support :england :army :ruh :attack :kie] #{[:interfered? :interferer :rule]}
                               [:england :army :ruh :attack :kie] #{[:interfered? :interferer :rule]}
                               [:france :army :kie :attack :ber] #{[:interfered? :interferer :rule]}
                               [:france :army :mun :support :france :army :kie :attack :ber] #{[:interfered? :interferer :rule]}
@@ -711,7 +711,7 @@
    #_"F1"
    #_{:long-name "6.F.1. NO CONVOY IN COASTAL AREAS"
       :summary "A fleet in a coastal area may not convoy."
-      :conflict-judgments-abbr {[:turkey :army :gre :attack :sev] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:turkey :army :gre :attack :sev] #{[:interfered? :interferer :rule]}
                                 [:turkey :fleet :aeg :convoy :turkey :army :gre :attack :sev] #{[:interfered? :interferer :rule]}
                                 [:turkey :fleet :con :convoy :turkey :army :gre :attack :sev] #{[:interfered? :interferer :rule]}
                                 [:turkey :fleet :bla :convoy :turkey :army :gre :attack :sev] #{[:interfered? :interferer :rule]}}
@@ -720,7 +720,7 @@
    #_"F2"
    #_{:long-name "6.F.2. AN ARMY BEING CONVOYED CAN BOUNCE AS NORMAL"
       :summary "Armies being convoyed bounce on other units just as armies that are not being convoyed."
-      :conflict-judgments-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bre] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bre] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bre] #{[:interfered? :interferer :rule]}
                                 [:france :army :par :attack :bre] #{[:interfered? :interferer :rule]}}
       :explanation "The English army in London bounces on the French army in Paris. Both units do not move."}
@@ -728,7 +728,7 @@
    #_"F3"
    #_{:long-name "6.F.3. AN ARMY BEING CONVOYED CAN RECEIVE SUPPORT"
       :summary "Armies being convoyed can receive support as in any other move."
-      :conflict-judgments-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bre] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bre] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bre] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :mid :support :england :army :lon :attack :bre] #{[:interfered? :interferer :rule]}
                                 [:france :army :par :attack :bre] #{[:interfered? :interferer :rule]}}
@@ -737,7 +737,7 @@
    #_"F4"
    #_{:long-name "6.F.4. AN ATTACKED CONVOY IS NOT DISRUPTED"
       :summary "A convoy can only be disrupted by dislodging the fleets. Attacking is not sufficient."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :ska :attack :nth] #{[:interfered? :interferer :rule]}}
       :explanation "The army in London will successfully convoy and end in Holland."}
@@ -745,7 +745,7 @@
    #_"F5"
    #_{:long-name "6.F.5. A BELEAGUERED CONVOY IS NOT DISRUPTED"
       :summary "Even when a convoy is in a beleaguered garrison it is not disrupted."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :bel :support :france :fleet :eng :attack :nth] #{[:interfered? :interferer :rule]}
@@ -756,7 +756,7 @@
    #_"F6"
    #_{:long-name "6.F.6. DISLODGED CONVOY DOES NOT CUT SUPPORT"
       :summary "When a fleet of a convoy is dislodged, the convoy is completely cancelled. So, no support is cut."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:germany :army :hol :support :germany :army :bel :hold] #{[:interfered? :interferer :rule]}
                                 [:germany :army :bel :support :germany :army :hol :hold] #{[:interfered? :interferer :rule]}
@@ -769,7 +769,7 @@
    #_"F7"
    #_{:long-name "6.F.7. DISLODGED CONVOY DOES NOT CAUSE CONTESTED AREA"
       :summary "When a fleet of a convoy is dislodged, the landing area is not contested, so other units can retreat to that area."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :hel :support :germany :fleet :ska :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :ska :attack :nth] #{[:interfered? :interferer :rule]}}
@@ -778,7 +778,7 @@
    #_"F8"
    #_{:long-name "6.F.8. DISLODGED CONVOY DOES NOT CAUSE A BOUNCE"
       :summary "When a fleet of a convoy is dislodged, then there will be no bounce in the landing area."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :hol] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :hel :support :germany :fleet :ska :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :ska :attack :nth] #{[:interfered? :interferer :rule]}
@@ -788,7 +788,7 @@
    #_"F9"
    #_{:long-name "6.F.9. DISLODGE OF MULTI-ROUTE CONVOY"
       :summary "When a fleet of a convoy with multiple routes is dislodged, the result depends on the rulebook that is used."
-      :conflict-judgments-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{[:interfered? :interferer :rule]}
@@ -798,7 +798,7 @@
    #_"F10"
    #_{:long-name "6.F.10. DISLODGE OF MULTI-ROUTE CONVOY WITH FOREIGN FLEET"
       :summary "When the 1971 rulebook is used \"unwanted\" multi-route convoys are possible."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :eng :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{[:interfered? :interferer :rule]}
@@ -808,7 +808,7 @@
    #_"F11"
    #_{:long-name "6.F.11. DISLODGE OF MULTI-ROUTE CONVOY WITH ONLY FOREIGN FLEETS"
       :summary "When the 1971 rulebook is used, \"unwanted\" convoys can not be ignored in all cases."
-      :conflict-judgments-abbr {[:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :eng :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:russia :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{[:interfered? :interferer :rule]}
@@ -818,7 +818,7 @@
    #_"F12"
    #_{:long-name "6.F.12. DISLODGED CONVOYING FLEET NOT ON ROUTE"
       :summary "When the rule is used that convoys are disrupted when one of the routes is disrupted (see issue 4.A.1), the convoy is not necessarily disrupted when one of the fleets ordered to convoy is dislodged."
-      :conflict-judgments-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :iri :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :nat :support :france :fleet :mid :attack :iri] #{[:interfered? :interferer :rule]}
@@ -828,7 +828,7 @@
    #_"F13"
    #_{:long-name "6.F.13. THE UNWANTED ALTERNATIVE"
       :summary "This situation is not difficult to adjudicate, but it shows that even if someone wants to convoy, the player might not want an alternative route for the convoy."
-      :conflict-judgments-abbr {[:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :hol :support :germany :fleet :den :attack :nth] #{[:interfered? :interferer :rule]}
@@ -838,7 +838,7 @@
    #_"F14"
    #_{:long-name "6.F.14. SIMPLE CONVOY PARADOX"
       :summary "The most common paradox is when the attacked unit supports an attack on one of the convoying fleets."
-      :conflict-judgments-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}}
@@ -847,7 +847,7 @@
    #_"F15"
    #_{:long-name "6.F.15. SIMPLE CONVOY PARADOX WITH ADDITIONAL CONVOY"
       :summary "Paradox rules only apply on the paradox core."
-      :conflict-judgments-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
@@ -859,7 +859,7 @@
    #_"F16"
    #_{:long-name "6.F.16. PANDIN'S PARADOX"
       :summary "In Pandin's paradox, the attacked unit protects the convoying fleet by a beleaguered garrison."
-      :conflict-judgments-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
@@ -870,7 +870,7 @@
    #_"F17"
    #_{:long-name "6.F.17. PANDIN'S EXTENDED PARADOX"
       :summary "In Pandin's extended paradox, the attacked unit protects the convoying fleet by a beleaguered garrison and the attacked unit can dislodge the unit that gives the protection."
-      :conflict-judgments-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :wal :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
@@ -882,7 +882,7 @@
    #_"F18"
    #_{:long-name "6.F.18. BETRAYAL PARADOX"
       :summary "The betrayal paradox is comparable to Pandin's paradox, but now the attacked unit direct supports the convoying fleet. Of course, this will only happen when the player of the attacked unit is betrayed."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :eng :support :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :bel :support :england :fleet :nth :hold] #{[:interfered? :interferer :rule]}
@@ -893,7 +893,7 @@
    #_"F19"
    #_{:long-name "6.F.19. MULTI-ROUTE CONVOY DISRUPTION PARADOX"
       :summary "The situation becomes more complex when the convoy has alternative routes."
-      :conflict-judgments-abbr {[:france :army :tun :attack :nap] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :army :tun :attack :nap] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :tyn :convoy :france :army :tun :attack :nap] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :ion :convoy :france :army :tun :attack :nap] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :nap :support :italy :fleet :rom :attack :tyn] #{[:interfered? :interferer :rule]}
@@ -903,7 +903,7 @@
    #_"F20"
    #_{:long-name "6.F.20. UNWANTED MULTI-ROUTE CONVOY PARADOX"
       :summary "The 1982 paradox rule allows some creative defense."
-      :conflict-judgments-abbr {[:france :army :tun :attack :nap] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :army :tun :attack :nap] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :tyn :convoy :france :army :tun :attack :nap] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :nap :support :italy :fleet :ion :hold] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :ion :convoy :france :army :tun :attack :nap] #{[:interfered? :interferer :rule]}
@@ -914,7 +914,7 @@
    #_"F21"
    #_{:long-name "6.F.21. DAD'S ARMY CONVOY"
       :summary "The 1982 paradox rule has as side effect that convoying armies do not cut support in some situations that are not paradoxical."
-      :conflict-judgments-abbr {[:russia :army :edi :support :russia :army :nwy :attack :cly] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:russia :army :edi :support :russia :army :nwy :attack :cly] #{[:interfered? :interferer :rule]}
                                 [:russia :fleet :nrg :convoy :russia :army :nwy :attack :cly] #{[:interfered? :interferer :rule]}
                                 [:russia :army :nwy :attack :cly] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :iri :support :france :fleet :mid :attack :nat] #{[:interfered? :interferer :rule]}
@@ -927,7 +927,7 @@
    #_"F22"
    #_{:long-name "6.F.22. SECOND ORDER PARADOX WITH TWO RESOLUTIONS"
       :summary "Two convoys are involved in a second order paradox."
-      :conflict-judgments-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :lon :support :england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
@@ -940,7 +940,7 @@
    #_"F23"
    #_{:long-name "6.F.23. SECOND ORDER PARADOX WITH TWO EXCLUSIVE CONVOYS"
       :summary "In this paradox there are two consistent resolutions, but where the two convoys do not fail or succeed at the same time. This fact is important for the DPTG resolution."
-      :conflict-judgments-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :yor :support :england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{[:interfered? :interferer :rule]}
@@ -955,7 +955,7 @@
    #_"F24"
    #_{:long-name "6.F.24. SECOND ORDER PARADOX WITH NO RESOLUTION"
       :summary "As first order paradoxes, second order paradoxes come in two flavors, with two resolutions or no resolution."
-      :conflict-judgments-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :lon :support :england :fleet :edi :attack :nth] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :iri :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :mid :support :england :fleet :iri :attack :eng] #{[:interfered? :interferer :rule]}
@@ -969,7 +969,7 @@
    #_"G1"
    #_{:long-name "6.G.1. TWO UNITS CAN SWAP PLACES BY CONVOY"
       :summary "The only way to swap two units, is by convoy."
-      :conflict-judgments-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :ska :convoy :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:russia :army :swe :attack :nwy] #{[:interfered? :interferer :rule]}}
       :explanation "In most interpretation of the rules, the units in Norway and Sweden will be swapped. However, if explicit adjacent convoying is used (see issue 4.A.3), then it is just a head to head battle. <i>I prefer the 2000 rules, so the units are swapped.</i>"}
@@ -977,7 +977,7 @@
    #_"G2"
    #_{:long-name "6.G.2. KIDNAPPING AN ARMY"
       :summary "Germany promised England to support to dislodge the Russian fleet in Sweden and it promised Russia to support to dislodge the English army in Norway. Instead, the joking German orders a convoy."
-      :conflict-judgments-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:russia :fleet :swe :attack :nwy] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :ska :convoy :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}}
       :explanation "See issue 4.A.3.  When the 1982/2000 rulebook is used (<i>which I prefer</i>), England has no intent to swap and it is just a head to head battle were both units will fail to move. When explicit adjacent convoying is used (DPTG), the English move is not a convoy and again it just a head to head battle were both units will fail to move. In all other interpretations, the army in Norway will be convoyed and swap its place with the fleet in Sweden."}
@@ -985,7 +985,7 @@
    #_"G3"
    #_{:long-name "6.G.3. KIDNAPPING WITH A DISRUPTED CONVOY"
       :summary "When kidnapping of armies is allowed, a move can be sabotaged by a fleet that is almost certainly dislodged."
-      :conflict-judgments-abbr {[:france :fleet :bre :attack :eng] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :fleet :bre :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:france :army :pic :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :army :bur :support :france :army :pic :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :mid :support :france :fleet :bre :attack :eng] #{[:interfered? :interferer :rule]}
@@ -995,7 +995,7 @@
    #_"G4"
    #_{:long-name "6.G.4. KIDNAPPING WITH A DISRUPTED CONVOY AND OPPOSITE MOVE"
       :summary "In the situation of the previous test case it was rather clear that the army didn't want to take the convoy. But what if there is an army moving in opposite direction?"
-      :conflict-judgments-abbr {[:france :fleet :bre :attack :eng] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:france :fleet :bre :attack :eng] #{[:interfered? :interferer :rule]}
                                 [:france :army :pic :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :army :bur :support :france :army :pic :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :mid :support :france :fleet :bre :attack :eng] #{[:interfered? :interferer :rule]}
@@ -1006,7 +1006,7 @@
    #_"G5"
    #_{:long-name "6.G.5. SWAPPING WITH INTENT"
       :summary "When one of the convoying fleets is of the same nationality of the convoyed army, the \"intent\" is to convoy."
-      :conflict-judgments-abbr {[:italy :army :rom :attack :apu] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:italy :army :rom :attack :apu] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :tyn :convoy :turkey :army :apu :attack :rom] #{[:interfered? :interferer :rule]}
                                 [:turkey :army :apu :attack :rom] #{[:interfered? :interferer :rule]}
                                 [:turkey :fleet :ion :convoy :turkey :army :apu :attack :rom] #{[:interfered? :interferer :rule]}}
@@ -1015,7 +1015,7 @@
    #_"G6"
    #_{:long-name "6.G.6. SWAPPING WITH UNINTENDED INTENT"
       :summary "The intent is questionable."
-      :conflict-judgments-abbr {[:england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :eng :convoy :england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
                                 [:germany :army :edi :attack :lvp] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :iri :hold] #{}
@@ -1027,7 +1027,7 @@
    #_"G7"
    #_{:long-name "6.G.7. SWAPPING WITH ILLEGAL INTENT"
       :summary "Can the intent made clear with an impossible order?"
-      :conflict-judgments-abbr {[:england :fleet :ska :convoy :russia :army :swe :attack :nwy] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :ska :convoy :russia :army :swe :attack :nwy] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:russia :army :swe :attack :nwy] #{[:interfered? :interferer :rule]}
                                 [:russia :fleet :bot :convoy :russia :army :swe :attack :nwy] #{[:interfered? :interferer :rule]}}
@@ -1035,7 +1035,7 @@
    "G8"
    {:long-name "6.G.8. EXPLICIT CONVOY THAT ISN'T THERE"
     :summary "What to do when a unit is explicitly ordered to move via convoy and the convoy is not there?"
-    :conflict-judgments-abbr {[:france :army :bel :attack :hol] #{[:interfered? :interferer :rule]}
+    :resolution-results-abbr {[:france :army :bel :attack :hol] #{[:interfered? :interferer :rule]}
                               [:england :fleet :nth :attack :hel] #{[:interfered? :interferer :rule]}
                               [:england :army :hol :attack :kie] #{[:interfered? :interferer :rule]}}
     :explanation "The French army in Belgium intended to move convoyed with the English fleet in the North Sea. But the English changed their plans. See issue 4.A.3. If choice a, b or c has been taken, then the 'via Convoy' directive has no meaning and the army in Belgium will move to Holland. If the 1982/2000 rulebook is used (choice d, <i>which I prefer</i>), the \"via Convoy\" has meaning, but only when there is both a land route and a convoy route. Since there is no convoy the \"via Convoy\" directive should be ignored. And the move from Belgium to Holland succeeds. If explicit adjacent convoying is used (DPTG, choice e),  then the unit can only go by convoy. Since there is no convoy, the move from Belgium to Holland fails."}
@@ -1043,7 +1043,7 @@
    #_"G9"
    #_{:long-name "6.G.9. SWAPPED OR DISLODGED?"
       :summary "The 1982 rulebook says that whether the move is over land or via convoy depends on the \"intent\" as shown by the totality of the orders written by the player governing the army (see issue 4.A.3). In this test case the English army in Norway will end in all cases in Sweden. But whether it is convoyed or not has effect on the Russian army. In case of convoy the Russian army ends in Norway and in case of a land route the Russian army is dislodged."
-      :conflict-judgments-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :ska :convoy :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :fin :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:russia :army :swe :attack :nwy] #{[:interfered? :interferer :rule]}}
@@ -1052,7 +1052,7 @@
    #_"G10"
    #_{:long-name "6.G.10. SWAPPED OR AN HEAD TO HEAD BATTLE?"
       :summary "Can a dislodged unit have effect on the attackers area, when the attacker moved by convoy?"
-      :conflict-judgments-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :den :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :fin :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:germany :fleet :ska :convoy :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
@@ -1065,7 +1065,7 @@
    #_"G11"
    #_{:long-name "6.G.11. A CONVOY TO AN ADJACENT PLACE WITH A PARADOX"
       :summary "In this case the convoy route is available when the land route is chosen and the convoy route is not available when the convoy route is chosen."
-      :conflict-judgments-abbr {[:england :fleet :nwy :support :england :fleet :nth :attack :ska] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nwy :support :england :fleet :nth :attack :ska] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nth :attack :ska] #{[:interfered? :interferer :rule]}
                                 [:russia :army :swe :attack :nwy] #{[:interfered? :interferer :rule]}
                                 [:russia :fleet :ska :convoy :russia :army :swe :attack :nwy] #{[:interfered? :interferer :rule]}
@@ -1075,7 +1075,7 @@
    #_"G12"
    #_{:long-name "6.G.12. SWAPPING TWO UNITS WITH TWO CONVOYS"
       :summary "Of course, two armies can also swap by when they are both convoyed."
-      :conflict-judgments-abbr {[:england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nat :convoy :england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nrg :convoy :england :army :lvp :attack :edi] #{[:interfered? :interferer :rule]}
                                 [:germany :army :edi :attack :lvp] #{[:interfered? :interferer :rule]}
@@ -1087,7 +1087,7 @@
    #_"G13"
    #_{:long-name "6.G.13. SUPPORT CUT ON ATTACK ON ITSELF VIA CONVOY"
       :summary "If a unit is attacked by a supported unit, it is not possible to prevent  dislodgement by trying to cut the support. But what, if a move is attempted via a convoy?"
-      :conflict-judgments-abbr {[:austria :fleet :adr :convoy :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:austria :fleet :adr :convoy :austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
                                 [:austria :army :tri :attack :ven] #{[:interfered? :interferer :rule]}
                                 [:italy :army :ven :support :italy :fleet :alb :attack :tri] #{[:interfered? :interferer :rule]}
                                 [:italy :fleet :alb :attack :tri] #{[:interfered? :interferer :rule]}}
@@ -1096,7 +1096,7 @@
    #_"G14"
    #_{:long-name "6.G.14. BOUNCE BY CONVOY TO ADJACENT PLACE"
       :summary "Similar to test case 6.G.10, but now the other unit is taking the convoy."
-      :conflict-judgments-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :den :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :fin :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:france :fleet :nrg :attack :nwy] #{[:interfered? :interferer :rule]}
@@ -1109,7 +1109,7 @@
    #_"G15"
    #_{:long-name "6.G.15. BOUNCE AND DISLODGE WITH DOUBLE CONVOY"
       :summary "Similar to test case 6.G.10, but now both units use a convoy and without some support."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :hol :support :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :yor :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
@@ -1120,7 +1120,7 @@
    #_"G16"
    #_{:long-name "6.G.16. THE TWO UNIT IN ONE AREA BUG, MOVING BY CONVOY"
       :summary "If the adjudicator is not correctly implemented, this may lead to  a resolution where two units end up in the same area."
-      :conflict-judgments-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :army :den :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :bal :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :nth :attack :nwy] #{[:interfered? :interferer :rule]}
@@ -1132,7 +1132,7 @@
    #_"G17"
    #_{:long-name "6.G.17. THE TWO UNIT IN ONE AREA BUG, MOVING OVER LAND"
       :summary "Similar to the previous test case, but now the other unit moves by convoy."
-      :conflict-judgments-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :army :den :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :bal :support :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
                                 [:england :fleet :ska :convoy :england :army :nwy :attack :swe] #{[:interfered? :interferer :rule]}
@@ -1144,7 +1144,7 @@
    #_"G18"
    #_{:long-name "6.G.18. THE TWO UNIT IN ONE AREA BUG, WITH DOUBLE CONVOY"
       :summary "Similar to the previous test case, but now both units move by convoy."
-      :conflict-judgments-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :hol :support :england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
                                 [:england :army :yor :attack :lon] #{[:interfered? :interferer :rule]}
                                 [:england :army :lon :attack :bel] #{[:interfered? :interferer :rule]}
@@ -1156,9 +1156,9 @@
 
 (defn ^:private test-complete?
   "Returns whether the argument has any placeholder conflict judgments."
-  [{:keys [conflict-judgments-abbr]}]
+  [{:keys [resolution-results-abbr]}]
   (not-any? (partial = #{[:interfered? :interferer :rule]})
-            (vals conflict-judgments-abbr)))
+            (vals resolution-results-abbr)))
 
 (def DATC-cases
   (->> DATC-cases-abbr

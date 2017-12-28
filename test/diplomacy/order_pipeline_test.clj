@@ -25,8 +25,8 @@
                                                    (keys)))
         expected-val (:validation-results orders-phase-test)
         actual-val   (:validation-results completed-orders-phase)
-        expected-jud (:conflict-judgments orders-phase-test)
-        actual-jud   (:conflict-judgments completed-orders-phase)]
+        expected-res (:resolution-results orders-phase-test)
+        actual-res   (:resolution-results completed-orders-phase)]
     (test/is (= (:supply-center-ownership-after orders-phase-test)
                 (get-in completed-orders-phase
                         [:game-state-after-orders :supply-center-ownership])))
@@ -45,10 +45,10 @@
              (str test-identifier
                   " - validation step SHOULD NOT produce these INCORRECT validation results"))
 
-    (test/is (empty? (map-difference expected-jud actual-jud))
+    (test/is (empty? (map-difference expected-res actual-res))
              (str test-identifier
                   " - resolution step SHOULD produce these CORRECT conflict judgments"))
-    (test/is (empty? (map-difference actual-jud expected-jud))
+    (test/is (empty? (map-difference actual-res expected-res))
              (str test-identifier
                   " - resolution step SHOULD NOT produce these INCORRECT conflict judgments"))
 

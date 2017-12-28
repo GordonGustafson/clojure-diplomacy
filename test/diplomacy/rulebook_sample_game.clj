@@ -135,4 +135,4 @@
 (def rulebook-sample-game-cases
   (into {} (for [[k v] rulebook-sample-game-judgments-raw]
              [k (test-expansion/expand-and-fill-in-orders-phase-test
-                 {:conflict-judgments-abbr v})])))
+                 {:resolution-results-abbr v})])))

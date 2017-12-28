@@ -6,7 +6,7 @@
 ;; (def my-cases-abbr
 ;;  {"Moving a unit that doesn't exist"
 ;;   :unit-positions-before {}
-;;   :conflict-judgments-abbr {[:england :fleet :nth :hold] #{}}})
+;;   :resolution-results-abbr {[:england :fleet :nth :hold] #{}}})
 
 ;; (def my-cases
 ;;   (->> DATC-cases-abbr

@@ -137,7 +137,7 @@
                                             ::interfered?]))
 ;; Map from *every* order that went into the resolution engine to the rules
 ;; governing how it was resolved.
-(s/def ::conflict-judgments (s/map-of ::order
+(s/def ::resolution-results (s/map-of ::order
                                       (s/coll-of ::conflict-judgment)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -161,5 +161,5 @@
 ;; order.
 (s/def ::completed-orders-phase (s/keys :req-un [::game-state-before-orders
                                                  ::validation-results
-                                                 ::conflict-judgments
+                                                 ::resolution-results
                                                  ::game-state-after-orders]))

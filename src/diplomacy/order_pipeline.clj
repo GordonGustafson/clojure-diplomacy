@@ -25,15 +25,15 @@
                     orders]
   (let [val-results (order-validation/validation-results dmap orders)
         orders-to-resolve (validation-results-to-orders-to-resolve val-results)
-        conflict-judgments (resolution/compute-conflict-judgments
+        resolution-results (resolution/compute-resolution-results
                             orders-to-resolve)
         unit-positions-after (post-resolution/unit-positions-after-orders
-                              conflict-judgments unit-positions-before)
+                              resolution-results unit-positions-before)
         pending-retreats (post-resolution/get-pending-retreats
-                          dmap conflict-judgments)]
+                          dmap resolution-results)]
     {:game-state-before-orders game-state-before
      :validation-results val-results
-     :conflict-judgments conflict-judgments
+     :resolution-results resolution-results
      :game-state-after-orders {:unit-positions unit-positions-after
                                ;; The game season and supply-center-ownership
                                ;; change during the build phase, and stay the

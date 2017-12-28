@@ -68,7 +68,7 @@
 (def rulebook-diagram-cases
   (into {} (for [[k v] rulebook-diagram-judgments-raw]
              [k (test-expansion/expand-and-fill-in-orders-phase-test
-                 {:conflict-judgments-abbr v})])))
+                 {:resolution-results-abbr v})])))
 
    ;; have checked up to this line
 
