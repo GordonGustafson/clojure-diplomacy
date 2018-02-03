@@ -135,10 +135,11 @@
 (s/def ::conflict-judgment (s/keys :req-un [::interferer
                                             ::conflict-rule
                                             ::interfered?]))
+(s/def ::conflict-judgments (s/coll-of ::conflict-judgment))
 ;; Map from *every* order that went into the resolution engine to the rules
 ;; governing how it was resolved.
 (s/def ::resolution-results (s/map-of ::order
-                                      (s/coll-of ::conflict-judgment)))
+                                      ::conflict-judgments))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                        retreats, builds, and full pipeline ;;

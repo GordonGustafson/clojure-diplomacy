@@ -53,6 +53,28 @@ function renderGamestate(parent, {"unit-positions": unitPositions,
     }
 }
 
+function renderResolutionResults(parent, resolutionResults) {
+    const renderTarget = getChildElementForGeneratedContent(parent);
+    for (const [order, conflictJudgments] of resolutionResults) {
+        const {"country": country,
+               "unit-type": unitType,
+               "location": location,
+               "order-type": orderType,
+               "destination": destination = null} = order;
+
+        if (orderType === "attack") {
+            let pathString =
+                "M" + unitSVGPointString(location) +
+                "L" + unitSVGPointString(destination);
+            addSvgNode(renderTarget, "path",
+                       {"class": country + "-attack",
+                        "d": pathString
+                       });
+        }
+    }
+}
+
+
 // Clear all gamestate that was rendered directly to `parent`.
 function clearRenderedGamestate(parent) {
     // If it doesn't already exist, `getChildElementForGeneratedContent` will
@@ -86,6 +108,8 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
                         "game-time":               d["game-time-before"]
                     }
                     renderGamestate(rootSvg, gamestateBefore);
+
+                    renderResolutionResults(rootSvg, d["resolution-results"]);
                 })
                 .catch(err => { console.log(err.message); });
         });

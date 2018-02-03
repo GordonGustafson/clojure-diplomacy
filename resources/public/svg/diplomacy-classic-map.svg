@@ -107,6 +107,14 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
     .italy      {fill:#00FF00; stroke:black}
     .russia     {fill:#008000; stroke:black}
     .turkey     {fill:#FFFF00; stroke:black}
+
+    .austria-attack {stroke:#FF0000}
+    .england-attack {stroke:#0000FF}
+    .france-attack  {stroke:#00FFFF}
+    .germany-attack {stroke:#808080}
+    .italy-attack   {stroke:#00FF00}
+    .russia-attack  {stroke:#008000}
+    .turkey-attack  {stroke:#FFFF00}
 ]]>
 </style>
 </defs>
