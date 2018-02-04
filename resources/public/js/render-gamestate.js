@@ -1,18 +1,7 @@
 "use strict";
 
-// Only supports adding single self-closing tags at the moment.
-function addSvgNode(parent, tagName, attributes) {
-    const newTag = "<" + tagName + " "
-          + Object.entries(attributes).map(
-              ([name, value]) => name + '="' + value + '"').join(" ") + " />";
-    // I would prefer to use the SVG DOM to do this, but when I tried that in
-    // Chrome the element was added to the document but didn't follow the <use>
-    // tag to render the desired shapes.
-    parent.innerHTML += newTag;
-}
-
 // Returns the child of `parent` that should be used for inserting content
-// rendered via javascript, creating it if it deosn't exist. `parent` must be an
+// rendered via javascript, creating it if it doesn't exist. `parent` must be an
 // element in an SVG DOM.
 function getChildElementForGeneratedContent(parent) {
     if (parent.getElementById("insertedByJS") === null) {
@@ -21,11 +10,30 @@ function getChildElementForGeneratedContent(parent) {
     return parent.getElementById("insertedByJS");
 }
 
-function renderGamestate(parent, {"unit-positions": unitPositions,
-                                  "supply-center-ownership": scOwnership,
-                                  "game-time": {year, season}}) {
+// Clear all gamestate that was rendered directly to `parent`.
+function clearRenderedGamestate(parent) {
+    // If it doesn't already exist, `getChildElementForGeneratedContent` will
+    // create the child element for generated content, which we will immediately
+    // remove. We could avoid the unnecessary insert and remove in that case,
+    // but it's not worth it.
     const renderTarget = getChildElementForGeneratedContent(parent);
+    parent.removeChild(renderTarget);
+}
 
+// Only supports adding single self-closing tags at the moment.
+function addSvgNode(renderTarget, tagName, attributes) {
+    const newTag = "<" + tagName + " "
+          + Object.entries(attributes).map(
+              ([name, value]) => name + '="' + value + '"').join(" ") + " />";
+    // I would prefer to use the SVG DOM to do this, but when I tried that in
+    // Chrome the element was added to the document but didn't follow the <use>
+    // tag to render the desired shapes.
+    renderTarget.innerHTML += newTag;
+}
+
+function renderGamestate(renderTarget, {"unit-positions": unitPositions,
+                                        "supply-center-ownership": scOwnership,
+                                        "game-time": {year, season}}) {
     const capitalizedSeason = season.charAt(0).toUpperCase() + season.slice(1);
     renderTarget.innerHTML +=
         '<text x="5" y="20" style="font-size: 20px">' + capitalizedSeason + " "
@@ -75,8 +83,7 @@ function renderAttack(renderTarget, country, location, destination) {
                });
 }
 
-function renderResolutionResults(parent, resolutionResults) {
-    const renderTarget = getChildElementForGeneratedContent(parent);
+function renderResolutionResults(renderTarget, resolutionResults) {
     for (const [order, conflictJudgments] of resolutionResults) {
         const {"country": country,
                "unit-type": unitType,
@@ -88,16 +95,6 @@ function renderResolutionResults(parent, resolutionResults) {
             renderAttack(renderTarget, country, location, destination);
         }
     }
-}
-
-// Clear all gamestate that was rendered directly to `parent`.
-function clearRenderedGamestate(parent) {
-    // If it doesn't already exist, `getChildElementForGeneratedContent` will
-    // create the child element for generated content, which we will immediately
-    // remove. We could avoid the unnecessary insert and remove in that case,
-    // but it's not worth it.
-    const renderTarget = getChildElementForGeneratedContent(parent);
-    parent.removeChild(renderTarget);
 }
 
 document.getElementById("mapObjectTag").addEventListener("load", function() {
@@ -113,6 +110,7 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
             // When the user presses a button they expect to see only the gamestate
             // for that button.
             clearRenderedGamestate(rootSvg);
+            const renderTarget = getChildElementForGeneratedContent(rootSvg);
 
             axios({url: event.target.dataset.ordersPhaseTestUrl, responseType: "json"})
                 .then(response => {
@@ -122,9 +120,9 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
                         "supply-center-ownership": d["supply-center-ownership-before"],
                         "game-time":               d["game-time-before"]
                     }
-                    renderGamestate(rootSvg, gamestateBefore);
+                    renderGamestate(renderTarget, gamestateBefore);
 
-                    renderResolutionResults(rootSvg, d["resolution-results"]);
+                    renderResolutionResults(renderTarget, d["resolution-results"]);
                 })
                 .catch(err => { console.log(err.message); });
         });
