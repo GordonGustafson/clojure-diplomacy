@@ -108,19 +108,24 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
     .russia     {fill:#008000; stroke:black}
     .turkey     {fill:#FFFF00; stroke:black}
 
-    .austria-attack {stroke:#FF0000}
-    .england-attack {stroke:#0000FF}
-    .france-attack  {stroke:#00FFFF}
-    .germany-attack {stroke:#808080}
-    .italy-attack   {stroke:#00FF00}
-    .russia-attack  {stroke:#008000}
-    .turkey-attack  {stroke:#FFFF00}
+    .austria-order {stroke:#FF0000}
+    .england-order {stroke:#0000FF}
+    .france-order  {stroke:#00FFFF}
+    .germany-order {stroke:#808080}
+    .italy-order   {stroke:#00FF00}
+    .russia-order  {stroke:#008000}
+    .turkey-order  {stroke:#FFFF00}
 
     .attack-border  {stroke:black; stroke-width:1.8}
+
+    .support  {stroke:#aaaaaa; fill:#aaaaaa}
 ]]>
 </style>
-<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-    <path d="M0,0 L0,6 L9,3 z" fill="context-stroke" stroke="context-stroke" />
+<marker id="attack-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" />
+</marker>
+<marker id="support-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" class="support" />
 </marker>
 </defs>
 

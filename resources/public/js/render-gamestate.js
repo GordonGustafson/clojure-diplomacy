@@ -77,10 +77,26 @@ function renderAttack(renderTarget, country, location, destination) {
                });
     // The attack line with an arrow.
     addSvgNode(renderTarget, "path",
-               {"class": country + "-attack",
+               {"class": country + "-order",
                 "d": pathString,
-                "marker-end": "url(#arrow)"
+                "marker-end": "url(#attack-arrow)"
                });
+}
+
+function renderSupport(renderTarget, country, location, assistedOrder) {
+    const {"location": supportedFrom,
+           "order-type": supportedOrderType,
+           "destination": supportedTo = null} = assistedOrder;
+    if (supportedOrderType === "hold") {
+        const pathString =
+            "M" + unitSVGPointString(location) +
+            "L" + unitSVGPointString(supportedFrom);
+        addSvgNode(renderTarget, "path",
+                   {"class": country + "-order, support",
+                    "d": pathString,
+                    "marker-end": "url(#support-arrow)"
+                   });
+    }
 }
 
 function renderResolutionResults(renderTarget, resolutionResults) {
@@ -89,10 +105,13 @@ function renderResolutionResults(renderTarget, resolutionResults) {
                "unit-type": unitType,
                "location": location,
                "order-type": orderType,
-               "destination": destination = null} = order;
+               "destination": destination = null,
+               "assisted-order": assistedOrder = null} = order;
 
         if (orderType === "attack") {
             renderAttack(renderTarget, country, location, destination);
+        } else if (orderType === "support") {
+            renderSupport(renderTarget, country, location, assistedOrder);
         }
     }
 }
