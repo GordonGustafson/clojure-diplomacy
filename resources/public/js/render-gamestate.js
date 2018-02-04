@@ -53,6 +53,28 @@ function renderGamestate(parent, {"unit-positions": unitPositions,
     }
 }
 
+function renderAttack(renderTarget, country, location, destination) {
+    const pathString =
+        "M" + unitSVGPointString(location) +
+        "L" + unitSVGPointString(destination);
+    // Add a border around the attack line to make it more distinguished from
+    // whatever's behind it. The 'border' is actually a thicker line placed
+    // under the attack line such that the 'border' shows around the edges of
+    // the attack line. The SVG 1.1 standard states "Subsequent elements are
+    // painted on top of previously painted elements", so the 'border' must be
+    // drawn before the attack line.
+    addSvgNode(renderTarget, "path",
+               {"class": "attack-border",
+                "d": pathString,
+               });
+    // The attack line with an arrow.
+    addSvgNode(renderTarget, "path",
+               {"class": country + "-attack",
+                "d": pathString,
+                "marker-end": "url(#arrow)"
+               });
+}
+
 function renderResolutionResults(parent, resolutionResults) {
     const renderTarget = getChildElementForGeneratedContent(parent);
     for (const [order, conflictJudgments] of resolutionResults) {
@@ -63,17 +85,10 @@ function renderResolutionResults(parent, resolutionResults) {
                "destination": destination = null} = order;
 
         if (orderType === "attack") {
-            let pathString =
-                "M" + unitSVGPointString(location) +
-                "L" + unitSVGPointString(destination);
-            addSvgNode(renderTarget, "path",
-                       {"class": country + "-attack",
-                        "d": pathString
-                       });
+            renderAttack(renderTarget, country, location, destination);
         }
     }
 }
-
 
 // Clear all gamestate that was rendered directly to `parent`.
 function clearRenderedGamestate(parent) {
