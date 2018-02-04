@@ -147,3 +147,7 @@ function unitSVGPointString(location) {
 function supplyCenterSVGPointString(location) {
     return pointToString(LOCATION_TO_SUPPLY_CENTER_RENDER_POSITION[location]);
 }
+
+function midpoint([a1, a2], [b1, b2]) {
+    return [(a1+b1)/2, (a2+b2)/2];
+}

@@ -72,7 +72,7 @@ function renderAttack(renderTarget, country, location, destination) {
     // painted on top of previously painted elements", so the 'border' must be
     // drawn before the attack line.
     addSvgNode(renderTarget, "path",
-               {"class": "attack-border",
+               {"class": "order-border",
                 "d": pathString,
                });
     // The attack line with an arrow.
@@ -87,16 +87,35 @@ function renderSupport(renderTarget, country, location, assistedOrder) {
     const {"location": supportedFrom,
            "order-type": supportedOrderType,
            "destination": supportedTo = null} = assistedOrder;
+    let pathString = "";
     if (supportedOrderType === "hold") {
-        const pathString =
+        pathString =
             "M" + unitSVGPointString(location) +
             "L" + unitSVGPointString(supportedFrom);
-        addSvgNode(renderTarget, "path",
-                   {"class": country + "-order, support",
-                    "d": pathString,
-                    "marker-end": "url(#support-arrow)"
-                   });
+    } else if (supportedOrderType === "attack") {
+        const startPoint = LOCATION_TO_UNIT_RENDER_POSITION[location];
+        const endPoint = midpoint(LOCATION_TO_UNIT_RENDER_POSITION[supportedFrom],
+                                  LOCATION_TO_UNIT_RENDER_POSITION[supportedTo]);
+        const controlPoint1 = midpoint(startPoint, endPoint);
+        const controlPoint2 = LOCATION_TO_UNIT_RENDER_POSITION[supportedFrom];
+        pathString =
+            "M" + pointToString(startPoint) +
+            "C" + pointToString(controlPoint1) +
+            "," + pointToString(controlPoint2) +
+            "," + pointToString(endPoint);
+    } else {
+        console.assert(false, "Invalid assisted order type: " + supportedOrderType)
     }
+
+    addSvgNode(renderTarget, "path",
+               {"class": "order-border",
+                "d": pathString,
+               });
+    addSvgNode(renderTarget, "path",
+               {"class": country + "-order, support",
+                "d": pathString,
+                "marker-end": "url(#support-arrow)"
+               });
 }
 
 function renderResolutionResults(renderTarget, resolutionResults) {

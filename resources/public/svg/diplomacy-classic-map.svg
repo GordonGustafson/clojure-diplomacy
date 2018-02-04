@@ -116,16 +116,17 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
     .russia-order  {stroke:#008000}
     .turkey-order  {stroke:#FFFF00}
 
-    .attack-border  {stroke:black; stroke-width:1.8}
+    .order-border  {stroke:black; stroke-width:1.8; fill:none}
 
-    .support  {stroke:#aaaaaa; fill:#aaaaaa}
+    .support           {stroke:#bbbbbb; fill:none}
+    .support-arrowhead {stroke:#bbbbbb; fill:#bbbbbb}
 ]]>
 </style>
 <marker id="attack-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
     <path d="M0,0 L0,6 L9,3 z" />
 </marker>
 <marker id="support-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-    <path d="M0,0 L0,6 L9,3 z" class="support" />
+    <path d="M0,0 L0,6 L9,3 z" class="support-arrowhead" />
 </marker>
 </defs>
 
