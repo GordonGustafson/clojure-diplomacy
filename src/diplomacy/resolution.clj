@@ -13,13 +13,6 @@
 ;; TODO: can't cut own support
 ;; TODO: integrate coasts (colocated locations) into resolution??
 
-(defn judgmento
-  [judgment interferer rule interfered?]
-  "Relation that destructures `judgment`"
-  (== judgment {:interferer interferer
-                :conflict-rule rule
-                :interfered? interfered?}))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                       core.logic Utilities ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -147,7 +140,7 @@
 ;; TODO: pg 16: An attack by a country on one of its own units doesn't cut
 ;; support.
 (defn support-judgmento
-  "Relation where `judgment` is the judgment for `support'"
+  "Relation where `judgment` is the judgment for `support`"
   [support judgment]
   (fresh [supporter-location supported-location
           cutter rule support-cut?
@@ -156,7 +149,9 @@
               supporter-location
               (lvar 'supported-order)
               supported-location)
-    (judgmento judgment cutter rule support-cut?)
+    (== judgment {:interferer cutter
+                  :conflict-rule rule
+                  :interfered? support-cut?})
     (attacko cutter cutter-from supporter-location)
 
     (conde
@@ -348,7 +343,9 @@
   conflicts."
   [attack judgment attacks-assumed-successful]
   (fresh [bouncer rule bounced-by-bouncer?]
-    (judgmento judgment bouncer rule bounced-by-bouncer?)
+    (== judgment {:interferer bouncer
+                  :conflict-rule rule
+                  :interfered? bounced-by-bouncer?})
     (determining-rule-for-conflicto attack bouncer rule
                                     attacks-assumed-successful)
     (conda
