@@ -11,7 +11,7 @@ function getChildElementForGeneratedContent(parent) {
 }
 
 // Clear all gamestate that was rendered directly to `parent`.
-function clearRenderedGamestate(parent) {
+function clearGeneratedContent(parent) {
     // If it doesn't already exist, `getChildElementForGeneratedContent` will
     // create the child element for generated content, which we will immediately
     // remove. We could avoid the unnecessary insert and remove in that case,
@@ -109,7 +109,7 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
         renderButtons[i].addEventListener("click", function(event) {
             // When the user presses a button they expect to see only the gamestate
             // for that button.
-            clearRenderedGamestate(rootSvg);
+            clearGeneratedContent(rootSvg);
             const renderTarget = getChildElementForGeneratedContent(rootSvg);
 
             axios({url: event.target.dataset.ordersPhaseTestUrl, responseType: "json"})
