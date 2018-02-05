@@ -110,20 +110,17 @@
 
 ;; A rule describing how a conflict between an attack and another order was
 ;; resolved.
-(s/def ::attack-rule
-  #{:destination-occupied
+(s/def ::conflict-rule
+  #{;; Rules that determine the outcome of attacks
+    :destination-occupied
     :attacked-same-destination
     :swapped-places-without-convoy
     :failed-to-leave-destination
-    :no-effect-on-dislodgers-province})
-
-(s/def ::support-rule
-  #{:attacked
+    :no-effect-on-dislodgers-province
+    ;; Rules that determine the outcome of supports
+    :attacked
     :attacked-from-supported-location-but-not-dislodged
     :dislodged})
-
-(s/def ::conflict-rule (s/or :attack-rule ::attack-rule
-                             :support-rule ::support-rule))
 
 ;; Whether the bouncer bounces the attack.
 (s/def ::interfered? boolean?)
