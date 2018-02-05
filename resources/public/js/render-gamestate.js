@@ -161,8 +161,7 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
                     renderGamestate(renderTarget, gamestateBefore);
 
                     renderResolutionResults(renderTarget, d["resolution-results"]);
-                })
-                .catch(err => { console.log(err.message); });
+                });
         });
     }
 });
