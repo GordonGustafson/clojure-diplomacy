@@ -218,6 +218,8 @@
                               [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
                               [:turkey :army :smy :attack :ank] #{[true [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:turkey :army :bul :attack :con] #{[true [:turkey :fleet :ank :attack :con] :attacked-same-destination]
+                                                                  ;; TODO: :bul -> :con was what caused :con to fail to leave.
+                                                                  ;; We should remove this result if possible (but it's not critical).
                                                                   [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}}
     :explanation "Every unit will keep its place."}
    ;; commented out because it uses a convoy
@@ -319,74 +321,79 @@
    "D7"
    {:long-name "6.D.7. SUPPORT TO HOLD ON MOVING UNIT NOT ALLOWED"
     :summary "A unit that is moving, can not receive a hold support for the situation that the move fails."
-    :resolution-results-abbr {[:germany :fleet :bal :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :pru :support :germany :fleet :bal :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :lvn :attack :bal] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bot :support :russia :fleet :lvn :attack :bal] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :fin :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:germany :fleet :bal :attack :swe] #{[true [:russia :army :fin :attack :swe] :attacked-same-destination]}
+                              ;; If the supported order doesn't happen, we don't report the support as failed.
+                              [:germany :fleet :pru :support :germany :fleet :bal :hold] #{}
+                              [:russia :fleet :lvn :attack :bal] #{[false [:germany :fleet :bal :attack :swe] :failed-to-leave-destination]}
+                              [:russia :fleet :bot :support :russia :fleet :lvn :attack :bal] #{}
+                              [:russia :army :fin :attack :swe] #{[true [:germany :fleet :bal :attack :swe] :attacked-same-destination]}}
     :explanation "The support of the fleet in Prussia fails. The fleet in Baltic Sea will bounce on the Russian army in Finland and will be dislodged by the Russian fleet from Livonia when it returns to the Baltic Sea."}
-   "D8"
-   {:long-name "6.D.8. FAILED CONVOY CAN NOT RECEIVE HOLD SUPPORT"
-    :summary "If a convoy fails because of disruption of the convoy or when the right convoy orders are not given, then the army to be convoyed can not receive support in  hold, since it still tried to move."
-    :resolution-results-abbr {[:austria :fleet :ion :hold] #{}
-                              [:austria :army :ser :support :austria :army :alb :attack :gre] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :alb :attack :gre] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :gre :attack :nap] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :bul :support :turkey :army :gre :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-    :explanation "There was a possible convoy from Greece to Naples, before the orders were made public (via the Ionian Sea). This means that the order of Greece to Naples should never be treated as illegal order and be changed in a hold order able to receive hold support (see also issue VI.A). Therefore, the support in Bulgaria fails and the army in Greece is dislodged by the army in Albania."}
+   ;; commented out because it uses a convoy (relies on armies moving to non-adjacent locations
+   ;; "D8"
+   ;; {:long-name "6.D.8. FAILED CONVOY CAN NOT RECEIVE HOLD SUPPORT"
+   ;;  :summary "If a convoy fails because of disruption of the convoy or when the right convoy orders are not given, then the army to be convoyed can not receive support in  hold, since it still tried to move."
+   ;;  :resolution-results-abbr {[:austria :fleet :ion :hold] #{}
+   ;;                            [:austria :army :ser :support :austria :army :alb :attack :gre] #{}
+   ;;                            ;; TODO: do we want to try to do better report for failed convoys?
+   ;;                            [:austria :army :alb :attack :gre] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:turkey :army :gre :attack :nap] #{[false [:turkey :army :gre :attack :nap] :failed-to-leave-destination]}
+   ;;                            [:turkey :army :bul :support :turkey :army :gre :hold] #{}}
+   ;;  :explanation "There was a possible convoy from Greece to Naples, before the orders were made public (via the Ionian Sea). This means that the order of Greece to Naples should never be treated as illegal order and be changed in a hold order able to receive hold support (see also issue VI.A). Therefore, the support in Bulgaria fails and the army in Greece is dislodged by the army in Albania."}
    "D9"
    {:long-name "6.D.9. SUPPORT TO MOVE ON HOLDING UNIT NOT ALLOWED"
     :summary "A unit that is holding can not receive a support in moving."
-    :resolution-results-abbr {[:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :alb :support :austria :army :tri :attack :ser] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:italy :army :ven :attack :tri] #{[false [:austria :army :tri :hold] :destination-occupied]}
+                              [:italy :army :tyr :support :italy :army :ven :attack :tri] #{}
+                              ;; If the supported order doesn't happen, we don't report the support as failed.
+                              [:austria :army :alb :support :austria :army :tri :attack :ser] #{}
                               [:austria :army :tri :hold] #{}}
     :explanation "The support of the army in Albania fails and the army in Trieste is dislodged by the army from Venice."}
-   "D10"
-   {:long-name "6.D.10. SELF DISLODGMENT PROHIBITED"
-    :summary "A unit may not dislodge a unit of the same great power."
-    :resolution-results-abbr {[:germany :army :ber :hold] #{}
-                              [:germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-    :explanation "Move to Berlin fails."}
-   "D11"
-   {:long-name "6.D.11. NO SELF DISLODGMENT OF RETURNING UNIT"
-    :summary "Idem."
-    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :war :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-    :explanation "Army in Berlin bounces, but is not dislodged by own unit."}
-   "D12"
-   {:long-name "6.D.12. SUPPORTING A FOREIGN UNIT TO DISLODGE OWN UNIT PROHIBITED"
-    :summary "You may not help another power in dislodging your own unit."
-    :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
-                              [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-    :explanation "No dislodgment of fleet in Trieste."}
-   "D13"
-   {:long-name "6.D.13. SUPPORTING A FOREIGN UNIT TO DISLODGE A RETURNING OWN UNIT PROHIBITED"
-    :summary "Idem."
-    :resolution-results-abbr {[:austria :fleet :tri :attack :adr] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :apu :attack :adr] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-    :explanation "No dislodgment of fleet in Trieste."}
-   "D14"
-   {:long-name "6.D.14. SUPPORTING A FOREIGN UNIT IS NOT ENOUGH TO PREVENT DISLODGEMENT"
-    :summary "If a foreign unit has enough support to dislodge your unit, you may not prevent that dislodgement by supporting the attack."
-    :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
-                              [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :adr :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-    :explanation "The fleet in Trieste is dislodged."}
+   ;; TODO: take unit countries into account in resolution
+   ;; "D10"
+   ;; {:long-name "6.D.10. SELF DISLODGMENT PROHIBITED"
+   ;;  :summary "A unit may not dislodge a unit of the same great power."
+   ;;  :resolution-results-abbr {[:germany :army :ber :hold] #{}
+   ;;                            [:germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+   ;;  :explanation "Move to Berlin fails."}
+   ;; "D11"
+   ;; {:long-name "6.D.11. NO SELF DISLODGMENT OF RETURNING UNIT"
+   ;;  :summary "Idem."
+   ;;  :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:russia :army :war :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+   ;;  :explanation "Army in Berlin bounces, but is not dislodged by own unit."}
+   ;; "D12"
+   ;; {:long-name "6.D.12. SUPPORTING A FOREIGN UNIT TO DISLODGE OWN UNIT PROHIBITED"
+   ;;  :summary "You may not help another power in dislodging your own unit."
+   ;;  :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
+   ;;                            [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+   ;;  :explanation "No dislodgment of fleet in Trieste."}
+   ;; "D13"
+   ;; {:long-name "6.D.13. SUPPORTING A FOREIGN UNIT TO DISLODGE A RETURNING OWN UNIT PROHIBITED"
+   ;;  :summary "Idem."
+   ;;  :resolution-results-abbr {[:austria :fleet :tri :attack :adr] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:italy :fleet :apu :attack :adr] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+   ;;  :explanation "No dislodgment of fleet in Trieste."}
+   ;; "D14"
+   ;; {:long-name "6.D.14. SUPPORTING A FOREIGN UNIT IS NOT ENOUGH TO PREVENT DISLODGEMENT"
+   ;;  :summary "If a foreign unit has enough support to dislodge your unit, you may not prevent that dislodgement by supporting the attack."
+   ;;  :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
+   ;;                            [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:italy :fleet :adr :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+   ;;  :explanation "The fleet in Trieste is dislodged."}
    "D15"
    {:long-name "6.D.15. DEFENDER CAN NOT CUT SUPPORT FOR ATTACK ON ITSELF"
     :summary "A unit that is attacked by a supported unit can not prevent dislodgement by guessing which of the units will do the support."
-    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bla :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :ank :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location-but-not-dislodged]}
+                              [:russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]}
+                              [:turkey :fleet :ank :attack :con] #{[true [:russia :fleet :con :support :russia :fleet :bla :attack :ank] :destination-occupied]}}
     :explanation "The support of Constantinople is not cut and the fleet in Ankara is dislodged by the fleet in the Black Sea."}
    ;; commented out because it uses a convoy
    #_"D16"
@@ -400,21 +407,23 @@
    "D17"
    {:long-name "6.D.17. DISLODGEMENT CUTS SUPPORTS"
     :summary "The famous dislodge rule."
-    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bla :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :ank :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :smy :support :turkey :fleet :ank :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :arm :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[true [:turkey :fleet :ank :attack :con] :dislodged]}
+                              [:russia :fleet :bla :attack :ank] #{[true [:turkey :army :arm :attack :ank] :attacked-same-destination]}
+                              [:turkey :fleet :ank :attack :con] #{[false [:russia :fleet :con :support :russia :fleet :bla :attack :ank] :destination-occupied]}
+                              [:turkey :army :smy :support :turkey :fleet :ank :attack :con] #{}
+                              [:turkey :army :arm :attack :ank] #{[true [:russia :fleet :bla :attack :ank] :attacked-same-destination]}}
     :explanation "The Russian fleet in Constantinople is dislodged. This cuts the support to from Black Sea to Ankara. Black Sea will bounce with the army from Armenia."}
    "D18"
    {:long-name "6.D.18. A SURVIVING UNIT WILL SUSTAIN SUPPORT"
     :summary "Idem. But now with an additional hold that prevents dislodgement."
-    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bla :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :bul :support :russia :fleet :con :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :ank :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :smy :support :turkey :fleet :ank :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :arm :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location-but-not-dislodged]}
+                              [:russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]
+                                                                   [false [:turkey :army :arm :attack :ank] :attacked-same-destination]}
+                              [:russia :army :bul :support :russia :fleet :con :hold] #{}
+                              [:turkey :fleet :ank :attack :con] #{[true [:russia :fleet :con :support :russia :fleet :bla :attack :ank] :destination-occupied]}
+                              [:turkey :army :smy :support :turkey :fleet :ank :attack :con] #{}
+                              [:turkey :army :arm :attack :ank] #{[true [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]
+                                                                  [true [:russia :fleet :bla :attack :ank] :attacked-same-destination]}}
     :explanation "The Russian fleet in the Black Sea will dislodge the Turkish fleet in Ankara."}
    "D19"
    {:long-name "6.D.19. EVEN WHEN SURVIVING IS IN ALTERNATIVE WAY"
@@ -436,11 +445,11 @@
    {:long-name "6.D.21. DISLODGING DOES NOT CANCEL A SUPPORT CUT"
     :summary "Sometimes there is the question whether a dislodged moving unit does not cut support (similar to the dislodge rule). This is not the case."
     :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
-                              [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :mun :attack :tyr] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :sil :attack :mun] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :ber :support :russia :army :sil :attack :mun] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:italy :army :ven :attack :tri] #{[true [:austria :fleet :tri :hold] :destination-occupied]}
+                              [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[true [:germany :army :mun :attack :tyr] :attacked]}
+                              [:germany :army :mun :attack :tyr] #{[true [:italy :army :tyr :support :italy :army :ven :attack :tri] :destination-occupied]}
+                              [:russia :army :sil :attack :mun] #{[false [:germany :army :mun :attack :tyr] :failed-to-leave-destination]}
+                              [:russia :army :ber :support :russia :army :sil :attack :mun] #{}}
     :explanation "Although the German army is dislodged, it still cuts the Italian support. That means that the Austrian Fleet is not dislodged."}
    "D22"
    {:long-name "6.D.22. IMPOSSIBLE FLEET MOVE CAN NOT BE SUPPORTED"
@@ -472,10 +481,11 @@
    "D25"
    {:long-name "6.D.25. FAILING HOLD SUPPORT CAN BE SUPPORTED"
     :summary "If an adjudicator fails on one of the previous three test cases, then the bug should be removed with care. A failing move can not be supported, but a failing hold support, because of some preconditions (unmatching order) can still be supported."
+    ;; TODO: what happens when supported order isn't given?
     :resolution-results-abbr {[:germany :army :ber :support :russia :army :pru :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :kie :support :germany :army :ber :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :pru :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:germany :fleet :kie :support :germany :army :ber :hold] #{}
+                              [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{}
+                              [:russia :army :pru :attack :ber] #{[true [:germany :fleet :kie :support :germany :army :ber :hold] :destination-occupied]}}
     :explanation "Although the support of Berlin on Prussia fails (because of unmatching orders), the support of Kiel on Berlin is still valid. So, Berlin will not be dislodged."}
    "D26"
    {:long-name "6.D.26. FAILING MOVE SUPPORT CAN BE SUPPORTED"
@@ -555,10 +565,11 @@
    "E1"
    {:long-name "6.E.1. DISLODGED UNIT HAS NO EFFECT ON ATTACKERS AREA"
     :summary "An army can follow."
-    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :sil :support :germany :army :ber :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :pru :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[false [:russia :army :pru :attack :ber] :swapped-places-without-convoy]}
+                              [:germany :fleet :kie :attack :ber] #{[false [:russia :army :pru :attack :ber] :no-effect-on-dislodgers-province]}
+                              [:germany :army :sil :support :germany :army :ber :attack :pru] #{}
+                              [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :attack :pru] :swapped-places-without-convoy]
+                                                                  [true [:germany :fleet :kie :attack :ber] :attacked-same-destination]}}
     :explanation "The army in Kiel will move to Berlin."}
    "E2"
    {:long-name "6.E.2. NO SELF DISLODGEMENT IN HEAD TO HEAD BATTLE"
