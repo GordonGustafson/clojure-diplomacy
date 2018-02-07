@@ -68,13 +68,15 @@
 ;; Puts an order dictionary directly into the fact database.
 (pldb/db-rel raw-order order-map)
 
-(defn holdo
-  "Relation where `order` attempts to hold at `location`"
+(defn remainso
+  "Relation where `order` attempts to hold, support, or convoy at `location`,"
   [order location]
-  (all
-   (raw-order order)
-   (featurec order {:order-type :hold
-                    :location location})))
+  (fresh [order-type]
+    (raw-order order)
+    (featurec order {:order-type order-type
+                    :location location})
+    ;; `membero` doesn't seem to work with sets!
+    (membero order-type [:hold :support :convoy])))
 
 (defn attacko
   "Relation where `order` attempts to attack from `from` to `to`"
@@ -248,9 +250,7 @@
   (fresh [from to]
     (attacko attack from to)
     (conde
-     [(holdo    bouncer to)
-      (== rule :destination-occupied)]
-     [(supporto bouncer to (lvar 'supported-order) (lvar 'supported-location))
+     [(remainso bouncer to)
       (== rule :destination-occupied)]
 
      [(fresh [other-from]
