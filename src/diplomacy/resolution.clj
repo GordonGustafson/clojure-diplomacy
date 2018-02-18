@@ -11,7 +11,6 @@
 ;; TODO: convoys
 ;; TODO: dislodging convoys
 ;; TODO: can't dislodge own units
-;; TODO: can't cut own support
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                       core.logic Utilities ;;
@@ -81,6 +80,13 @@
       (colocation-vec common-colocation-vec)
       (membero location-a common-colocation-vec)
       (membero location-b common-colocation-vec))]))
+
+(defn same-country
+  "Relation where `order-a` and `order-b` are given by the same country."
+  [order-a order-b]
+  (fresh [country]
+    (featurec order-a {:country country})
+    (featurec order-b {:country country})))
 
 (defn remainso
   "Relation where `order` attempts to hold, support, or convoy at `location`,"
@@ -170,7 +176,11 @@
                   :interfered? support-cut?})
     (attacko cutter cutter-from supporter-location)
 
-    (conde
+    (conda
+     ;; pg 16: "An attack by a country one of its own units doesn't cut support."
+     [(same-country support cutter)
+      (== rule :attacked-by-same-country)
+      (== support-cut? false)]
      ;; pg 12: "Support is cut if the unit giving support is attacked from any
      ;; province except the one where support is being given."
      [(!= cutter-from supported-location)

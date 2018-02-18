@@ -120,7 +120,8 @@
     ;; Rules that determine the outcome of supports
     :attacked
     :attacked-from-supported-location-but-not-dislodged
-    :dislodged})
+    :dislodged
+    :attacked-by-same-country})
 
 ;; Whether the bouncer bounces the attack.
 (s/def ::interfered? boolean?)
