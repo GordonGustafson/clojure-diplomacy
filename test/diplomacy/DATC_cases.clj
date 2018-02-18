@@ -114,15 +114,13 @@
     :validation-results-abbr {[:france :fleet :gas :attack :spa-sc] [#{:attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
     :resolution-results-abbr {[:france :fleet :gas :hold] #{}}
     :explanation "If the rules are played very clemently, a move will be attempted to the north coast of Spain. However, since this order is very clear and precise, it is more common that the move fails (see issue 4.B.3). <i>I prefer that the move fails.</i>"}
-   ;; comment out because it uses a coast
-   #_"B4"
-   #_{:long-name "6.B.4. SUPPORT TO UNREACHABLE COAST ALLOWED"
-      :summary "A fleet can give support to a coast where it can not go."
-      :resolution-results-abbr {[:france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :mar :support :france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "Although the fleet in Marseilles can not go to the north coast it can still support targeting the north coast. So, the support is successful, the move of the fleet in Gasgony succeeds and the move of the Italian fleet fails."}
-   ;; comment out because it uses a coast
+   "B4"
+   {:long-name "6.B.4. SUPPORT TO UNREACHABLE COAST ALLOWED"
+    :summary "A fleet can give support to a coast where it can not go."
+    :resolution-results-abbr {[:france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :mar :support :france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "Although the fleet in Marseilles can not go to the north coast it can still support targeting the north coast. So, the support is successful, the move of the fleet in Gasgony succeeds and the move of the Italian fleet fails."}
    "B5"
    {:long-name "6.B.5. SUPPORT FROM UNREACHABLE COAST NOT ALLOWED"
     :summary "A fleet can not give support to an area that can not be reached from the current coast of the fleet."
@@ -131,68 +129,60 @@
                               [:france :fleet :spa-nc :hold] #{}
                               [:italy :fleet :gol :hold] #{}}
     :explanation "The Gulf of Lyon can not be reached from the North Coast of Spain. Therefore, the support of Spain is invalid and the fleet in the Gulf of Lyon is not dislodged."}
-   ;; comment out because it uses a coast
-   #_"B6"
-   #_{:long-name "6.B.6. SUPPORT CAN BE CUT WITH OTHER COAST"
-      :summary "Support can be cut from the other coast."
-      :resolution-results-abbr {[:england :fleet :iri :support :england :fleet :nat :attack :mid] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:england :fleet :nat :attack :mid] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :spa-nc :support :france :fleet :mid :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :mid :hold] #{}
-                                [:italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "The Italian fleet in the Gulf of Lyon will cut the support in Spain. That means that the French fleet in the Mid Atlantic Ocean will be dislodged by the English fleet in the North Atlantic Ocean."}
-   ;; comment out because it uses a coast
-   #_"B7"
-   #_{:long-name "6.B.7. SUPPORTING WITH UNSPECIFIED COAST"
-      :summary "Most house rules accept support orders without coast specification."
-      :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :mid :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "See issue 4.B.4. If coasts are not required in support orders, then the support of Portugal is successful. This means that the Italian fleet in the Western Mediterranean bounces. Some adjudicators may not accept a support order without coast (the support will fail or a default coast is taken). In that case the support order of Portugal fails (in case of a default coast the coast will probably the south coast) and the Italian fleet in the Western Mediterranean will successfully move. <i>I prefer that the support succeeds and the Italian fleet in the Western Mediterranean bounces.</i>"}
-   ;; comment out because it uses a coast
-   #_"B8"
-   #_{:long-name "6.B.8. SUPPORTING WITH UNSPECIFIED COAST WHEN ONLY ONE COAST IS POSSIBLE"
-      :summary "Some hardliners require a coast in a support order even when only  one coast is possible."
-      :resolution-results-abbr {[:france :fleet :por :support :france :fleet :gas :attack :spa] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "See issue 4.B.4. If coasts are not required in support orders, then the support of Portugal is successful. This means that the Italian fleet in the Western Mediterranean bounces. Some adjudicators may not accept a support order without coast (the support will fail or a default coast is taken). In that case the support order of Portugal fails (in case of a default coast the coast will probably the south coast) and the Italian fleet in the Western Mediterranean will successfully move. <i>I prefer that supporting without coasts should be allowed. So I prefer that the support of Portugal is successful and that the Italian fleet in the Western Mediterranean bounces.</i>"}
-   ;; comment out because it uses a coast
-   #_"B9"
-   #_{:long-name "6.B.9. SUPPORTING WITH WRONG COAST"
-      :summary "Coasts can be specified in a support, but the result depends on the house rules."
-      :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :mid :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "See issue 4.B.4. If it is required that the coast matches, then the support of the French fleet in the Mid-Atlantic Ocean fails and that the Italian fleet in the Western Mediterranean moves successfully. Some adjudicators ignores the coasts in support orders. In that case, the move of the Italian fleet bounces. <i>I prefer that the support fails and that the Italian fleet in the  Western Mediterranean moves successfully.</i>"}
-   ;; comment out because it uses a coast
-   #_"B10"
-   #_{:long-name "6.B.10. UNIT ORDERED WITH WRONG COAST"
-      :summary "A player might specify the wrong coast for the ordered unit. France has a fleet on the south coast of Spain and orders:"
-      :resolution-results-abbr {[:france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "If only perfect orders are accepted, then the move will fail, but since the coast for the ordered unit has no purpose, it might also be ignored (see issue 4.B.5). <i>I prefer that a move will be attempted.</i>"}
-   ;; comment out because it uses a coast
-   #_"B11"
-   #_{:long-name "6.B.11. COAST CAN NOT BE ORDERED TO CHANGE"
-      :summary "The coast can not change by just ordering the other coast. France has a fleet on the north coast of Spain and orders:"
-      :resolution-results-abbr {[:france :fleet :spa-sc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "The move fails."}
-   ;; comment out because it uses a coast
-   #_"B12"
-   #_{:long-name "6.B.12. ARMY MOVEMENT WITH COASTAL SPECIFICATION"
-      :summary "For armies the coasts are irrelevant:"
-      :resolution-results-abbr {[:france :army :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "If only perfect orders are accepted, then the move will fail. But it is also possible that coasts are ignored in this case and a move will be attempted (see issue 4.B.6). <i>I prefer that a move will be attempted.</i>"}
-   ;; comment out because it uses a coast
-   #_"B13"
-   #_{:long-name "6.B.13. COASTAL CRAWL NOT ALLOWED"
-      :summary "If a fleet is leaving a sector from a certain coast while in the opposite direction another fleet is moving to another coast of the sector, it is still a head to head battle. This has been decided in the great revision of the 1961 rules that resulted in the 1971 rules."
-      :resolution-results-abbr {[:turkey :fleet :bul-sc :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:turkey :fleet :con :attack :bul-ec] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "Both moves fail."}
+   "B6"
+   {:long-name "6.B.6. SUPPORT CAN BE CUT WITH OTHER COAST"
+    :summary "Support can be cut from the other coast."
+    :resolution-results-abbr {[:england :fleet :iri :support :england :fleet :nat :attack :mid] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:england :fleet :nat :attack :mid] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :spa-nc :support :france :fleet :mid :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :mid :hold] #{}
+                              [:italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "The Italian fleet in the Gulf of Lyon will cut the support in Spain. That means that the French fleet in the Mid Atlantic Ocean will be dislodged by the English fleet in the North Atlantic Ocean."}
+   "B7"
+   {:long-name "6.B.7. SUPPORTING WITH UNSPECIFIED COAST"
+    :summary "Most house rules accept support orders without coast specification."
+    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :mid :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "See issue 4.B.4. If coasts are not required in support orders, then the support of Portugal is successful. This means that the Italian fleet in the Western Mediterranean bounces. Some adjudicators may not accept a support order without coast (the support will fail or a default coast is taken). In that case the support order of Portugal fails (in case of a default coast the coast will probably the south coast) and the Italian fleet in the Western Mediterranean will successfully move. <i>I prefer that the support succeeds and the Italian fleet in the Western Mediterranean bounces.</i>"}
+   "B8"
+   {:long-name "6.B.8. SUPPORTING WITH UNSPECIFIED COAST WHEN ONLY ONE COAST IS POSSIBLE"
+    :summary "Some hardliners require a coast in a support order even when only  one coast is possible."
+    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :gas :attack :spa] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "See issue 4.B.4. If coasts are not required in support orders, then the support of Portugal is successful. This means that the Italian fleet in the Western Mediterranean bounces. Some adjudicators may not accept a support order without coast (the support will fail or a default coast is taken). In that case the support order of Portugal fails (in case of a default coast the coast will probably the south coast) and the Italian fleet in the Western Mediterranean will successfully move. <i>I prefer that supporting without coasts should be allowed. So I prefer that the support of Portugal is successful and that the Italian fleet in the Western Mediterranean bounces.</i>"}
+   "B9"
+   {:long-name "6.B.9. SUPPORTING WITH WRONG COAST"
+    :summary "Coasts can be specified in a support, but the result depends on the house rules."
+    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :mid :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "See issue 4.B.4. If it is required that the coast matches, then the support of the French fleet in the Mid-Atlantic Ocean fails and that the Italian fleet in the Western Mediterranean moves successfully. Some adjudicators ignores the coasts in support orders. In that case, the move of the Italian fleet bounces. <i>I prefer that the support fails and that the Italian fleet in the  Western Mediterranean moves successfully.</i>"}
+   "B10"
+   {:long-name "6.B.10. UNIT ORDERED WITH WRONG COAST"
+    :summary "A player might specify the wrong coast for the ordered unit. France has a fleet on the south coast of Spain and orders:"
+    :resolution-results-abbr {[:france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "If only perfect orders are accepted, then the move will fail, but since the coast for the ordered unit has no purpose, it might also be ignored (see issue 4.B.5). <i>I prefer that a move will be attempted.</i>"}
+   "B11"
+   {:long-name "6.B.11. COAST CAN NOT BE ORDERED TO CHANGE"
+    :summary "The coast can not change by just ordering the other coast. France has a fleet on the north coast of Spain and orders:"
+    :resolution-results-abbr {[:france :fleet :spa-sc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "The move fails."}
+   "B12"
+   {:long-name "6.B.12. ARMY MOVEMENT WITH COASTAL SPECIFICATION"
+    :summary "For armies the coasts are irrelevant:"
+    :resolution-results-abbr {[:france :army :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "If only perfect orders are accepted, then the move will fail. But it is also possible that coasts are ignored in this case and a move will be attempted (see issue 4.B.6). <i>I prefer that a move will be attempted.</i>"}
+   "B13"
+   {:long-name "6.B.13. COASTAL CRAWL NOT ALLOWED"
+    :summary "If a fleet is leaving a sector from a certain coast while in the opposite direction another fleet is moving to another coast of the sector, it is still a head to head battle. This has been decided in the great revision of the 1961 rules that resulted in the 1971 rules."
+    :resolution-results-abbr {[:turkey :fleet :bul-sc :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:turkey :fleet :con :attack :bul-ec] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "Both moves fail."}
    "C1"
    {:long-name "6.C.1. THREE ARMY CIRCULAR MOVEMENT"
     :summary "Three units can change place, even in spring 1901."
@@ -459,25 +449,23 @@
                               [:russia :army :mun :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
                               [:russia :army :ber :support :russia :army :mun :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}}
     :explanation "The German move from Kiel to Munich is illegal (fleets can not go to Munich). Therefore, the support from Burgundy fails and the Russian army in Munich will dislodge the fleet in Kiel. Note that the failing of the support is not explicitly mentioned in the rulebooks (the DPTG is more clear about this point). If you take the rulebooks very literally, you might conclude that the fleet in Munich is not dislodged, but this is an incorrect interpretation."}
-   ;; comment out because it uses a coast
-   #_"D23"
-   #_{:long-name "6.D.23. IMPOSSIBLE COAST MOVE CAN NOT BE SUPPORTED"
-      :summary "Comparable with the previous test case, but now the fleet move is impossible for coastal reasons."
-      :resolution-results-abbr {[:italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :wes :support :italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :mar :support :france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "The French move from Spain North Coast to Gulf of Lyon is illegal (wrong coast). Therefore, the support from Marseilles fails and the fleet in Spain is dislodged."}
-   ;; comment out because it uses a coast
-   #_"D24"
-   #_{:long-name "6.D.24. IMPOSSIBLE ARMY MOVE CAN NOT BE SUPPORTED"
-      :summary "Comparable with the previous test case, but now an army tries to move into sea and the support is used in a beleaguered garrison."
-      :resolution-results-abbr {[:france :army :mar :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:france :fleet :spa-sc :support :france :army :mar :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :gol :hold] #{}
-                                [:turkey :fleet :tyn :support :turkey :fleet :wes :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:turkey :fleet :wes :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "The French move from Marseilles to Gulf of Lyon is illegal (an army can not go to sea). Therefore, the support from Spain fails and there is no beleaguered garrison. The fleet in the Gulf of Lyon is dislodged by the Turkish fleet in the Western Mediterranean."}
+   "D23"
+   {:long-name "6.D.23. IMPOSSIBLE COAST MOVE CAN NOT BE SUPPORTED"
+    :summary "Comparable with the previous test case, but now the fleet move is impossible for coastal reasons."
+    :resolution-results-abbr {[:italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :wes :support :italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :mar :support :france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "The French move from Spain North Coast to Gulf of Lyon is illegal (wrong coast). Therefore, the support from Marseilles fails and the fleet in Spain is dislodged."}
+   "D24"
+   {:long-name "6.D.24. IMPOSSIBLE ARMY MOVE CAN NOT BE SUPPORTED"
+    :summary "Comparable with the previous test case, but now an army tries to move into sea and the support is used in a beleaguered garrison."
+    :resolution-results-abbr {[:france :army :mar :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :spa-sc :support :france :army :mar :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :gol :hold] #{}
+                              [:turkey :fleet :tyn :support :turkey :fleet :wes :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:turkey :fleet :wes :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "The French move from Marseilles to Gulf of Lyon is illegal (an army can not go to sea). Therefore, the support from Spain fails and there is no beleaguered garrison. The fleet in the Gulf of Lyon is dislodged by the Turkish fleet in the Western Mediterranean."}
    "D25"
    {:long-name "6.D.25. FAILING HOLD SUPPORT CAN BE SUPPORTED"
     :summary "If an adjudicator fails on one of the previous three test cases, then the bug should be removed with care. A failing move can not be supported, but a failing hold support, because of some preconditions (unmatching order) can still be supported."
@@ -513,15 +501,14 @@
                               [:turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}
                               [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}}
     :explanation "The move of the Russian fleet is impossible. But the question is,  whether it is \"illegal\" (see issue 4.E.1). If the move is \"illegal\" it must be ignored and that makes the hold support of the army in Budapest valid and the fleet in Rumania will not be dislodged. <i>I prefer that the move is \"illegal\", which means that the fleet in the Black Sea does not dislodge the supported Russian fleet.</i>"}
-   ;; comment out because it uses a coast
-   #_"D29"
-   #_{:long-name "6.D.29. MOVE TO IMPOSSIBLE COAST AND SUPPORT"
-      :summary "Similar to the previous test case, but now the move can be \"illegal\" because of the wrong coast."
-      :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:russia :fleet :rum :attack :bul-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "Again the move of the Russian fleet is impossible. However, some people might correct the coast (see issue 4.B.3).  If the coast is not corrected, again the question is  whether it is \"illegal\" (see issue 4.E.1). If the move is \"illegal\" it must be ignored and that makes the hold support of the army in Budapest valid and the fleet in Rumania will not be dislodged. <i>I prefer that unambiguous orders are not changed and that the move is \"illegal\". That means that the fleet in the Black Sea does not dislodge the supported Russian fleet.</i>"}
+   "D29"
+   {:long-name "6.D.29. MOVE TO IMPOSSIBLE COAST AND SUPPORT"
+    :summary "Similar to the previous test case, but now the move can be \"illegal\" because of the wrong coast."
+    :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:russia :fleet :rum :attack :bul-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :explanation "Again the move of the Russian fleet is impossible. However, some people might correct the coast (see issue 4.B.3).  If the coast is not corrected, again the question is  whether it is \"illegal\" (see issue 4.E.1). If the move is \"illegal\" it must be ignored and that makes the hold support of the army in Budapest valid and the fleet in Rumania will not be dislodged. <i>I prefer that unambiguous orders are not changed and that the move is \"illegal\". That means that the fleet in the Black Sea does not dislodge the supported Russian fleet.</i>"}
    "D30"
    {:long-name "6.D.30. MOVE WITHOUT COAST AND SUPPORT"
     :summary "Similar to the previous test case, but now the move can be \"illegal\" because of missing coast."
