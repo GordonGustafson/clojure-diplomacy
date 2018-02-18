@@ -26,7 +26,7 @@
   (let [val-results (order-validation/validation-results dmap orders)
         orders-to-resolve (validation-results-to-orders-to-resolve val-results)
         resolution-results (resolution/compute-resolution-results
-                            orders-to-resolve)
+                            orders-to-resolve dmap)
         unit-positions-after (post-resolution/unit-positions-after-orders
                               resolution-results unit-positions-before)
         pending-retreats (post-resolution/get-pending-retreats

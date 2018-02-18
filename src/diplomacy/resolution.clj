@@ -1,4 +1,5 @@
 (ns diplomacy.resolution
+  ;; Don't get zooped by this!
   (:refer-clojure :exclude [==])
   (:use [clojure.core.logic])
   (:require [clojure.core.logic.pldb :as pldb]
@@ -11,7 +12,6 @@
 ;; TODO: dislodging convoys
 ;; TODO: can't dislodge own units
 ;; TODO: can't cut own support
-;; TODO: integrate coasts (colocated locations) into resolution??
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                       core.logic Utilities ;;
@@ -67,6 +67,20 @@
 
 ;; Puts an order dictionary directly into the fact database.
 (pldb/db-rel raw-order order-map)
+(pldb/db-rel colocation-vec colocation-vector)
+
+;; For performance reasons it may be better to pre-compute the colocation-set of
+;; every location used in every order, and then simply compare colocation-sets
+;; instead of locations when a coast-insensitive comparison is desired.
+(defn colocated
+  "Relation where `location-a` and `location-b` are colocated."
+  [location-a location-b]
+  (conda
+   [(== location-a location-b)]
+   [(fresh [common-colocation-vec]
+      (colocation-vec common-colocation-vec)
+      (membero location-a common-colocation-vec)
+      (membero location-b common-colocation-vec))]))
 
 (defn remainso
   "Relation where `order` attempts to hold, support, or convoy at `location`,"
@@ -250,45 +264,59 @@
   (fresh [from to]
     (attacko attack from to)
     (conde
-     [(remainso bouncer to)
-      (== rule :destination-occupied)]
+     [(fresh [bouncer-remain-loc]
+        (remainso bouncer bouncer-remain-loc)
+        (colocated to bouncer-remain-loc)
+        (== rule :destination-occupied))]
 
-     [(fresh [other-from]
+     [(fresh [bouncer-from bouncer-to]
         ;; make sure we don't bounce ourselves because we're attacking the
         ;; same place as ourselves.
-        (!= other-from from)
-        (attacko bouncer other-from to)
+        (!= bouncer-from from)
+        (attacko bouncer bouncer-from bouncer-to)
+        (colocated to bouncer-to)
         ;; pg 9: "A dislodged unit, even with support, has no effect on the
         ;; province that dislodged it" (see Diagram 13).
         ;;
-        ;; from                    to                             other-from
+        ;; from                    to                           bouncer-from
         ;; ------------------------------------------------------------------
-        ;; A_rus --attack--> B_rus ---vacating-to---1sup--> C_tur
-        ;;                         <--bouncer-------0sup--
+        ;; A_rus --attack--> B_rus ---dislodger---1sup--> C_tur
+        ;;                         <--bouncer-----0sup--
         ;;
         ;; B_rus (has 1 support) dislodges C_tur (has 0 support). The fact
         ;; that C_tur attacked where B_rus came from does not prevent A_rus
         ;; from moving into where B_rus came from, because a dislodged unit
         ;; has no effect on the province that dislodged it.
         (conda
-         [(fresh [vacating-to]
-            (attacko vacating-to to other-from)
+         [(fresh [dislodger dislodger-from dislodger-to]
+            (attacko dislodger dislodger-from dislodger-to)
+            (colocated dislodger-from bouncer-to)
+            (colocated dislodger-to bouncer-from)
+
+            #_(determining-rule-for-conflicto bouncer dislodger
+                                            :swapped-places-without-convoy
+                                            ; Don't need to pass anything here?
+                                            [])
             ;; I don't think we should pass `attacks-assumed-successful` here
             ;; because this `attack-advanced` can do its job without our help.
-            (attack-advancedo vacating-to []))
+            (attack-advancedo dislodger []))
           (== rule :no-effect-on-dislodgers-province)]
          ;; Otherwise, this is a normal conflict.
          [(== rule :attacked-same-destination)]))]
 
-     [(attacko bouncer to from)
-      ;; TODO: use :swapped-places-with-convoy when appropriate.
-      (== rule :swapped-places-without-convoy)]
+     [(fresh [bouncer-from bouncer-to]
+        (attacko bouncer bouncer-from bouncer-to)
+        (colocated bouncer-from to)
+        (colocated bouncer-to from)
+        ;; TODO: use :swapped-places-with-convoy when appropriate.
+        (== rule :swapped-places-without-convoy))]
 
-     [(fresh [other-to new-attacks-assumed-successful]
+     [(fresh [bouncer-from bouncer-to new-attacks-assumed-successful]
         ;; Orders that swap places with `attack` are handled in a different
         ;; case.
-        (!= other-to from)
-        (attacko bouncer to other-to)
+        (!= bouncer-to from)
+        (attacko bouncer bouncer-from bouncer-to)
+        (colocated bouncer-from to)
         ;; Assume this attack advanced
         (conso attack attacks-assumed-successful
                new-attacks-assumed-successful)
@@ -387,13 +415,19 @@
   "A map from each element of `orders` to the set of judgments that apply to it
   (the orders that may interfere with it, whether they successfully interfered,
   and the rule that determined that result)."
-  [orders]
-  (let [orders-db (->> orders
-                       (map (fn [order] [raw-order order]))
-                       (apply pldb/db))]
+  [orders diplomacy-map]
+  (let [raw-order-vectors (map (fn [order] [raw-order order]) orders)
+        colocation-vecs (->> diplomacy-map
+                             :colocation-sets
+                             (map (fn [co-set]
+                                    ; convert to vector because `membero`
+                                    ; doesn't work on sets!
+                                    [colocation-vec (vec co-set)])))
+        database (apply pldb/db (concat raw-order-vectors
+                                        colocation-vecs))]
     (->>
      (run-db*-with-nested-runs
-      orders-db
+      database
       [order judgment]
       (conde
        [(attack-judgmento order judgment [])]
