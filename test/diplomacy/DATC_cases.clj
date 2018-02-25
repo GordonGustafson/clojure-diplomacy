@@ -1150,7 +1150,15 @@
                                 [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
                                 [:france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
                                 [:france :army :wal :support :france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}})
+      :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}
+   #_"GORDON-1"
+   #_{:long-name "GORDON-1. CAN'T DISLODGE OWN UNIT THAT FAILED TO LEAVE DESTINATION, EVEN WITH SUPPORT"
+    :summary "An attack can't dislodge a friendly unit that failedto leave its destination, even if the attack had support"
+    :resolution-results-abbr {[:france :army :gas :attack :mar] #{[true [:france :fleet :mar :attack :pie] :failed-to-leave-destination true]}
+                              [:france :army :bur :support :france :army :gas :attack :mar] #{}
+                              [:france :fleet :mar :attack :pie] #{[true [:italy :fleet :pie :hold] :destination-occupied]}
+                              [:italy :fleet :pie :hold] #{}}
+    :explanation "Both French moves fail."}})
 
 (defn ^:private test-complete?
   "Returns whether the argument has any placeholder conflict judgments."

@@ -32,9 +32,12 @@
                         :order-used ::dt/order)))
 (s/def ::validation-results-abbr (s/map-of ::dt/order ::validation-result-abbr))
 
-(s/def ::conflict-judgment-abbr (s/tuple ::dt/interfered?
-                                         ::dt/interferer
-                                         ::dt/conflict-rule))
+(s/def ::conflict-judgment-abbr
+  (s/cat :interfered?   ::dt/interfered?
+         :interferer    ::dt/interferer
+         :conflict-rule ::dt/conflict-rule
+         :failed-only-because-bouncer-friendly?
+         (s/? ::dt/failed-only-because-bouncer-friendly?)))
 (s/def ::resolution-results-abbr (s/map-of
                                   ::dt/order
                                   (s/coll-of ::conflict-judgment-abbr)))
@@ -160,10 +163,15 @@
   [orders]
   (into {} (for [[k v] orders]
              [(apply expand-order k)
-              (set (map (fn [[interfered? interferer rule]]
-                          {:interferer (apply expand-order interferer)
-                           :conflict-rule rule
-                           :interfered? interfered?})
+              (set (map (fn [[interfered? interferer rule
+                              & [failed-because-bouncer-friendly?]]]
+                          (let [res {:interferer (apply expand-order interferer)
+                                     :conflict-rule rule
+                                     :interfered? interfered?}]
+                             (if failed-because-bouncer-friendly?
+                               (assoc res :failed-because-bouncer-friendly?
+                                      failed-because-bouncer-friendly?)
+                               res)))
                         v))])))
 
 (defn-spec expand-orders-phase-test-options

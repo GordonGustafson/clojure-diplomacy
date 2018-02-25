@@ -108,31 +108,39 @@
 
 (s/def ::interferer ::order)
 
-;; A rule describing how a conflict between an attack and another order was
-;; resolved.
+;; A keyword describing the conflict situation between two units. Does not
+;; consider whether the conflict is between units of the same country (see
+;; `::failed-because-bouncer-friendly?`).
 (s/def ::conflict-rule
-  #{;; Rules that determine the outcome of attacks
+  #{;; Situations for attacks
     :destination-occupied
     :attacked-same-destination
     :swapped-places-without-convoy
     :failed-to-leave-destination
     :no-effect-on-dislodgers-province
-    ;; Rules that determine the outcome of supports
+    ;; Situations for supports
     :attacked
     :attacked-from-supported-location-but-not-dislodged
     :dislodged
     :attacked-by-same-country})
+
+;; Whether the fact that the bouncer was friendly caused the attack to fail when
+;; it would have otherwise succeeded.
+(s/def ::failed-because-bouncer-friendly? boolean?)
 
 ;; Whether the bouncer bounces the attack.
 (s/def ::interfered? boolean?)
 
 ;; Map describing the conflict that some order had with `:interferer`.
 ;; `:interfered?` is the outcome of that conflict (whether `:interfered?`
-;; counteracted the order), and `:conflict-rule` is the rule by which the
-;; outcome was determined.
-(s/def ::conflict-judgment (s/keys :req-un [::interferer
-                                            ::conflict-rule
-                                            ::interfered?]))
+;; counteracted the order), and `:conflict-rule` is the rule describing the
+;; conflict situation.
+(s/def ::conflict-judgment
+  (s/keys :req-un [::interferer
+                   ::conflict-rule
+                   ::interfered?]
+          :opt-un [::failed-because-bouncer-friendly?]))
+
 (s/def ::conflict-judgments (s/coll-of ::conflict-judgment))
 ;; Map from *every* order that went into the resolution engine to the rules
 ;; governing how it was resolved.

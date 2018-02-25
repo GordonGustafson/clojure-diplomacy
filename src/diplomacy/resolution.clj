@@ -251,7 +251,7 @@
   [order]
   (zero? (supporter-count order)))
 
-(defn ^:private determining-rule-for-conflicto
+(defn ^:private conflict-situationo
   "Relation where:
   - `attack` is an attack whose outcome we would like to evaluate.
   - `bouncer` is an order that satisfies one of these conditions:
@@ -303,7 +303,7 @@
             (colocated dislodger-from bouncer-to)
             (colocated dislodger-to bouncer-from)
 
-            #_(determining-rule-for-conflicto bouncer dislodger
+            #_(conflict-situationo bouncer dislodger
                                             :swapped-places-without-convoy
                                             ; Don't need to pass anything here?
                                             [])
@@ -347,9 +347,16 @@
         ;; leave our destination.
         (== rule :failed-to-leave-destination))])))
 
-(defn attack-bounced-based-on-determining-rule?
-  "Function that returns whether `bouncer` bounced `attack` due to `rule`.
-  Proving the wrong `rule` will give bogus results."
+(defn bouncer-too-strong-to-advance-based-on-rule
+  "Function that returns whether `bouncer` would have enough suport to bounce
+  `attack` *if `bouncer` and `attack` were orders by different countries*, where
+  the conflict between them was due to `rule`.
+
+  This function will return false if `attack` is a well-supported attack and
+  `bouncer` is a supportless hold, even if `attack` *will* be bounced by
+  `bouncer` because the units are from the same country.
+
+  Providing the wrong `rule` will give bogus results."
   [attack bouncer rule]
   (condp contains? rule
     #{:destination-occupied
@@ -372,8 +379,9 @@
 
     (assert false (str "Unknown rule: " rule))))
 
-;; This relation links the relational code in `determining-rule-for-conflicto`
-;; with the functional code in `attack-bounced-based-on-determining-rule?`.
+;; This relation links the relational code in `conflict-situationo` with the
+;; functional code in `bouncer-too-strong-to-advance-based-on-rule`, and
+;; contains the logic that disallows countries from dislodging their own units.
 (defn attack-judgmento
   "Relation where `judgment` is the judgment for `attack`, and
   `attacks-assumed-successful` is a vector of attacks that will be assumed to
@@ -381,18 +389,37 @@
   conflicts."
   [attack judgment attacks-assumed-successful]
   (fresh [bouncer rule bounced-by-bouncer?]
-    (== judgment {:interferer bouncer
-                  :conflict-rule rule
-                  :interfered? bounced-by-bouncer?})
-    (determining-rule-for-conflicto attack bouncer rule
-                                    attacks-assumed-successful)
+    (featurec judgment {:interferer bouncer
+                        :conflict-rule rule
+                        :interfered? bounced-by-bouncer?})
+    (conflict-situationo attack bouncer rule
+                         attacks-assumed-successful)
     (conda
-     [(multi-pred attack-bounced-based-on-determining-rule?
+     [(multi-pred bouncer-too-strong-to-advance-based-on-rule
                   attack
                   bouncer
                   rule)
       (== bounced-by-bouncer? true)]
-     [(== bounced-by-bouncer? false)])))
+     [(conda
+       [(fresh [attack-to bouncer-location]
+          (same-country attack bouncer)
+          (featurec attack {:destination attack-to})
+          (featurec bouncer {:location bouncer-location})
+          (colocated attack-to bouncer-location)
+          ;; If there's a conflict between `attack` and `bouncer`, `attack` is
+          ;; strong enough to dislodge `bouncer`, `bouncer` is friendly, and
+          ;; `attack` is attacking `bouncer`'s location, then `attack` cannot
+          ;; succeed because it would dislodge a unit of its own country.
+          ;; `bouncer` could be an attack, but in that case it must be either
+          ;; trying to switch places with `attack` or have failed to leave
+          ;; `attack`'s destination in order for there to be a conflict with
+          ;; `attack`.
+          ;;
+          ;; If `order` and `bouncer` are attacking the same destination, the
+          ;; unit with more support with move successfully, as usual.
+          (== bounced-by-bouncer? true)
+          (featurec judgment {:failed-because-bouncer-friendly? true}))]
+       [(== bounced-by-bouncer? false)])])))
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
 ;;
@@ -418,7 +445,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec compute-resolution-results
-  [::dt/orders]
+  [::dt/orders ::dt/dmap]
   ::dt/resolution-results
   #(= (set (-> % :args :arg-1)) (set (-> % :ret (keys)))))
 (defn compute-resolution-results
