@@ -94,7 +94,7 @@
   (fresh [order-type]
     (raw-order order)
     (featurec order {:order-type order-type
-                    :location location})
+                     :location location})
     ;; `membero` doesn't seem to work with sets!
     (membero order-type [:hold :support :convoy])))
 
@@ -304,9 +304,9 @@
             (colocated dislodger-to bouncer-from)
 
             #_(conflict-situationo bouncer dislodger
-                                            :swapped-places-without-convoy
-                                            ; Don't need to pass anything here?
-                                            [])
+                                   :swapped-places-without-convoy
+                                        ; Don't need to pass anything here?
+                                   [])
             ;; I don't think we should pass `attacks-assumed-successful` here
             ;; because this `attack-advanced` can do its job without our help.
             (attack-advancedo dislodger []))
@@ -388,10 +388,11 @@
   successfully vacate their destinations for the purposes of identifying
   conflicts."
   [attack judgment attacks-assumed-successful]
-  (fresh [bouncer rule bounced-by-bouncer?]
-    (featurec judgment {:interferer bouncer
-                        :conflict-rule rule
-                        :interfered? bounced-by-bouncer?})
+  (fresh [bouncer rule bounced-by-bouncer? would-dislodge-own-unit?]
+    (== judgment {:interferer bouncer
+                  :conflict-rule rule
+                  :interfered? bounced-by-bouncer?
+                  :would-dislodge-own-unit? would-dislodge-own-unit?})
     (conflict-situationo attack bouncer rule
                          attacks-assumed-successful)
     (conda
@@ -399,7 +400,8 @@
                   attack
                   bouncer
                   rule)
-      (== bounced-by-bouncer? true)]
+      (== bounced-by-bouncer? true)
+      (== would-dislodge-own-unit? false)]
      [(conda
        [(fresh [attack-to bouncer-location]
           (same-country attack bouncer)
@@ -407,19 +409,21 @@
           (featurec bouncer {:location bouncer-location})
           (colocated attack-to bouncer-location)
           ;; If there's a conflict between `attack` and `bouncer`, `attack` is
-          ;; strong enough to dislodge `bouncer`, `bouncer` is friendly, and
-          ;; `attack` is attacking `bouncer`'s location, then `attack` cannot
-          ;; succeed because it would dislodge a unit of its own country.
-          ;; `bouncer` could be an attack, but in that case it must be either
-          ;; trying to switch places with `attack` or have failed to leave
-          ;; `attack`'s destination in order for there to be a conflict with
-          ;; `attack`.
+          ;; strong enough to dislodge `bouncer`, `bouncer` is from the same
+          ;; country, and `attack` is attacking `bouncer`'s location, then
+          ;; `attack` cannot succeed because it would dislodge a unit of its own
+          ;; country. `bouncer` could be an attack, but in that case it must be
+          ;; either trying to switch places with `attack` or have failed to
+          ;; leave `attack`'s destination in order for there to be a conflict
+          ;; with `attack`.
           ;;
           ;; If `order` and `bouncer` are attacking the same destination, the
           ;; unit with more support with move successfully, as usual.
           (== bounced-by-bouncer? true)
-          (featurec judgment {:failed-because-bouncer-friendly? true}))]
-       [(== bounced-by-bouncer? false)])])))
+          (== would-dislodge-own-unit? true))]
+       [(all
+         (== bounced-by-bouncer? false)
+         (== would-dislodge-own-unit? false))])])))
 
 ;; TODO: think about `attacks-assumed-successful` parameter.
 ;;
@@ -457,8 +461,8 @@
         colocation-vecs (->> diplomacy-map
                              :colocation-sets
                              (map (fn [co-set]
-                                    ; convert to vector because `membero`
-                                    ; doesn't work on sets!
+                                        ; convert to vector because `membero`
+                                        ; doesn't work on sets!
                                     [colocation-vec (vec co-set)])))
         database (apply pldb/db (concat raw-order-vectors
                                         colocation-vecs))]

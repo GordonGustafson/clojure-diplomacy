@@ -1,5 +1,5 @@
 (ns diplomacy.test-expansion
-  (:require [diplomacy.orders :refer [get-unit]]
+  (:require [diplomacy.orders :refer [get-unit attack?]]
             [clojure.set :as set]
             [clojure.core.match :refer [match]]
             [diplomacy.datatypes :as dt]
@@ -29,17 +29,17 @@
 (s/def ::validation-result-abbr
   (s/or :valid (partial = :valid)
         :invalid (s/cat :failure-reasons ::dt/validation-failure-reasons
-                        :order-used ::dt/order)))
-(s/def ::validation-results-abbr (s/map-of ::dt/order ::validation-result-abbr))
+                        :order-used ::order-abbr)))
+(s/def ::validation-results-abbr (s/map-of ::order-abbr ::validation-result-abbr))
 
 (s/def ::conflict-judgment-abbr
   (s/cat :interfered?   ::dt/interfered?
-         :interferer    ::dt/interferer
+         :interferer    ::order-abbr
          :conflict-rule ::dt/conflict-rule
-         :failed-only-because-bouncer-friendly?
-         (s/? ::dt/failed-only-because-bouncer-friendly?)))
+         :would-dislodge-own-unit?
+         (s/? ::dt/would-dislodge-own-unit?)))
 (s/def ::resolution-results-abbr (s/map-of
-                                  ::dt/order
+                                  ::order-abbr
                                   (s/coll-of ::conflict-judgment-abbr)))
 
 (s/def ::unit-positions-before ::dt/unit-positions)
@@ -161,18 +161,25 @@
   many times). This function converts a form using more concise order
   abbreviations and judgment abbreviations into a judgments map."
   [orders]
-  (into {} (for [[k v] orders]
-             [(apply expand-order k)
-              (set (map (fn [[interfered? interferer rule
-                              & [failed-because-bouncer-friendly?]]]
-                          (let [res {:interferer (apply expand-order interferer)
-                                     :conflict-rule rule
-                                     :interfered? interfered?}]
-                             (if failed-because-bouncer-friendly?
-                               (assoc res :failed-because-bouncer-friendly?
-                                      failed-because-bouncer-friendly?)
-                               res)))
-                        v))])))
+  (into {}
+        (for [[k v] orders]
+          (let [expanded-order (apply expand-order k)]
+            [expanded-order
+             (set (map (fn [{interfered? 0
+                             interferer 1
+                             rule 2
+                             would-dislodge-own-unit? 3
+                             ;; would-dislodge-own-unit? is optional in
+                             ;; ::resolution-results-abbr.
+                             :or {would-dislodge-own-unit? false}}]
+                         (let [res {:interferer (apply expand-order interferer)
+                                    :conflict-rule rule
+                                    :interfered? interfered?}]
+                           (if (attack? expanded-order)
+                             (assoc res :would-dislodge-own-unit?
+                                    would-dislodge-own-unit?)
+                             res)))
+                       v))]))))
 
 (defn-spec expand-orders-phase-test-options
   [::orders-phase-test-options-abbr] ::orders-phase-test-options)

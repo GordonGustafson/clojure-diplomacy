@@ -110,7 +110,7 @@
 
 ;; A keyword describing the conflict situation between two units. Does not
 ;; consider whether the conflict is between units of the same country (see
-;; `::failed-because-bouncer-friendly?`).
+;; `::would-dislodge-own-unit?`).
 (s/def ::conflict-rule
   #{;; Situations for attacks
     :destination-occupied
@@ -124,9 +124,9 @@
     :dislodged
     :attacked-by-same-country})
 
-;; Whether the fact that the bouncer was friendly caused the attack to fail when
-;; it would have otherwise succeeded.
-(s/def ::failed-because-bouncer-friendly? boolean?)
+;; Whether the fact that the attack would have dislodge a unit of its own
+;; country caused the it to fail when it would have otherwise succeeded.
+(s/def ::would-dislodge-own-unit? boolean?)
 
 ;; Whether the bouncer bounces the attack.
 (s/def ::interfered? boolean?)
@@ -139,7 +139,10 @@
   (s/keys :req-un [::interferer
                    ::conflict-rule
                    ::interfered?]
-          :opt-un [::failed-because-bouncer-friendly?]))
+                   ;; TODO: separate attack and support judgments so this
+                   ;; attack-specific field doesn't have to appear on all
+                   ;; supports? They should be more decoupled?
+          :opt-un [::would-dislodge-own-unit?]))
 
 (s/def ::conflict-judgments (s/coll-of ::conflict-judgment))
 ;; Map from *every* order that went into the resolution engine to the rules
