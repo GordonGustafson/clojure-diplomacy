@@ -9,6 +9,7 @@
 (def index-page (ring.util.response/file-response "resources/public/demo.html"))
 (defroutes app
   (GET "/" [] (response/redirect "/index.html"))
+  (GET "/index.html" [] (views/index))
   ;; Serve static assets from "resources/public" directory in this project.
   (route/resources "/")
   ;; Serve DATC game states

@@ -12,26 +12,11 @@
     <script src="/js/map-svg-positioning.js"></script>
     <script src="/js/render-gamestate.js"></script>
 
-    <button class="render-button" data-orders-phase-test-url="/DATC/A1/orders-phase-test">A1</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/A2/orders-phase-test">A2</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/A3/orders-phase-test">A3</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/A4/orders-phase-test">A4</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/A8/orders-phase-test">A8</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/A9/orders-phase-test">A9</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/A10/orders-phase-test">A10</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/A11/orders-phase-test">A11</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/A12/orders-phase-test">A12</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/B1/orders-phase-test">B1</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/B2/orders-phase-test">B2</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/B3/orders-phase-test">B3</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/B5/orders-phase-test">B5</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/C1/orders-phase-test">C1</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/C2/orders-phase-test">C2</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/C3/orders-phase-test">C3</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/D1/orders-phase-test">D1</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/D2/orders-phase-test">D2</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/D3/orders-phase-test">D3</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/D4/orders-phase-test">D4</button>
-    <button class="render-button" data-orders-phase-test-url="/DATC/D5/orders-phase-test">D5</button>
+    {% for test-key in finished-DATC-keys %}
+      <button class="render-button"
+              data-orders-phase-test-url="/DATC/{{test-key}}/orders-phase-test">
+        {{test-key}}
+      </button>
+    {% endfor %}
   </body>
 </html>
