@@ -435,7 +435,9 @@
         (attack-judgmento attack
                           {:interferer (lvar 'bouncer)
                            :conflict-rule (lvar 'rule)
-                           :interfered? true}
+                           :interfered? true
+                           :would-dislodge-own-unit?
+                           (lvar 'would-dislodge-own-unit?)}
                           attacks-assumed-successful)]
     ;; `attack` advances if *there does not exist an order that bounces it*.
     ;; Changing `true` to `false` in the call to `attack-judgmento` gives a goal

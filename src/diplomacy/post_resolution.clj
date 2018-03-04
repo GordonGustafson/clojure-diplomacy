@@ -34,8 +34,8 @@
                                     (set/difference all-orders
                                                     successful-attacks)))
         occupied-locations
-        (set/union (map :location
-                        (set/difference all-orders successful-attacks))
+        (set/union (set (map :location
+                             (set/difference all-orders successful-attacks)))
                    (map :destination successful-attacks))
         standoff-locations
         (->> all-orders
@@ -51,7 +51,7 @@
                    diplomacy-map location unit-type))
              attacked-from
              (->> successful-attacks
-                  (filter #(== (:destination %) location))
+                  (filter #(= (:destination %) location))
                   first
                   :location)]
          {:location (:location evicted-order)

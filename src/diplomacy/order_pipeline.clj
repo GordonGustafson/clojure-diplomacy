@@ -19,7 +19,7 @@
 (defn-spec orders-phase [::dt/dmap ::dt/game-state ::dt/orders]
   ::dt/completed-orders-phase)
 (defn orders-phase [dmap
-                    {:keys [unit-positions-before
+                    {:keys [unit-positions
                             supply-center-ownership
                             game-time] :as game-state-before}
                     orders]
@@ -28,7 +28,7 @@
         resolution-results (resolution/compute-resolution-results
                             orders-to-resolve dmap)
         unit-positions-after (post-resolution/unit-positions-after-orders
-                              resolution-results unit-positions-before)
+                              resolution-results unit-positions)
         pending-retreats (post-resolution/get-pending-retreats
                           dmap resolution-results)]
     {:game-state-before-orders game-state-before
