@@ -166,7 +166,7 @@
   [support judgment]
   (fresh [supporter-location supported-location
           cutter rule support-cut?
-          cutter-from]
+          cutter-from cutter-to]
     (supporto support
               supporter-location
               (lvar 'supported-order)
@@ -174,7 +174,8 @@
     (== judgment {:interferer cutter
                   :conflict-rule rule
                   :interfered? support-cut?})
-    (attacko cutter cutter-from supporter-location)
+    (attacko cutter cutter-from cutter-to)
+    (colocated supporter-location cutter-to)
 
     (conda
      ;; pg 16: "An attack by a country one of its own units doesn't cut support."

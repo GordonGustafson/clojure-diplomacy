@@ -117,9 +117,9 @@
    "B4"
    {:long-name "6.B.4. SUPPORT TO UNREACHABLE COAST ALLOWED"
     :summary "A fleet can give support to a coast where it can not go."
-    :resolution-results-abbr {[:france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mar :support :france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:france :fleet :gas :attack :spa-nc] #{[false [:italy :fleet :wes :attack :spa-sc] :attacked-same-destination]}
+                              [:france :fleet :mar :support :france :fleet :gas :attack :spa-nc] #{}
+                              [:italy :fleet :wes :attack :spa-sc] #{[true [:france :fleet :gas :attack :spa-nc] :attacked-same-destination]}}
     :explanation "Although the fleet in Marseilles can not go to the north coast it can still support targeting the north coast. So, the support is successful, the move of the fleet in Gasgony succeeds and the move of the Italian fleet fails."}
    "B5"
    {:long-name "6.B.5. SUPPORT FROM UNREACHABLE COAST NOT ALLOWED"
@@ -132,11 +132,11 @@
    "B6"
    {:long-name "6.B.6. SUPPORT CAN BE CUT WITH OTHER COAST"
     :summary "Support can be cut from the other coast."
-    :resolution-results-abbr {[:england :fleet :iri :support :england :fleet :nat :attack :mid] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :nat :attack :mid] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :spa-nc :support :france :fleet :mid :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :iri :support :england :fleet :nat :attack :mid] #{}
+                              [:england :fleet :nat :attack :mid] #{[false [:france :fleet :mid :hold] :destination-occupied]}
+                              [:france :fleet :spa-nc :support :france :fleet :mid :hold] #{[true [:italy :fleet :gol :attack :spa-sc] :attacked]}
                               [:france :fleet :mid :hold] #{}
-                              [:italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:italy :fleet :gol :attack :spa-sc] #{[true [:france :fleet :spa-nc :support :france :fleet :mid :hold] :destination-occupied]}}
     :explanation "The Italian fleet in the Gulf of Lyon will cut the support in Spain. That means that the French fleet in the Mid Atlantic Ocean will be dislodged by the English fleet in the North Atlantic Ocean."}
    "B7"
    {:long-name "6.B.7. SUPPORTING WITH UNSPECIFIED COAST"
@@ -147,20 +147,22 @@
                               [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
     :explanation "See issue 4.B.4. If coasts are not required in support orders, then the support of Portugal is successful. This means that the Italian fleet in the Western Mediterranean bounces. Some adjudicators may not accept a support order without coast (the support will fail or a default coast is taken). In that case the support order of Portugal fails (in case of a default coast the coast will probably the south coast) and the Italian fleet in the Western Mediterranean will successfully move. <i>I prefer that the support succeeds and the Italian fleet in the Western Mediterranean bounces.</i>"}
    "B8"
+   ;; DECISION: Currently we require supported location to exactly match the
+   ;; attack's destination in order for support to be given.
    {:long-name "6.B.8. SUPPORTING WITH UNSPECIFIED COAST WHEN ONLY ONE COAST IS POSSIBLE"
     :summary "Some hardliners require a coast in a support order even when only  one coast is possible."
-    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :gas :attack :spa] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :gas :attack :spa] #{}
+                              [:france :fleet :gas :attack :spa-nc] #{[true [:italy :fleet :wes :attack :spa-sc] :attacked-same-destination]}
+                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{}
+                              [:italy :fleet :wes :attack :spa-sc] #{[false [:france :fleet :gas :attack :spa-nc] :attacked-same-destination]}}
     :explanation "See issue 4.B.4. If coasts are not required in support orders, then the support of Portugal is successful. This means that the Italian fleet in the Western Mediterranean bounces. Some adjudicators may not accept a support order without coast (the support will fail or a default coast is taken). In that case the support order of Portugal fails (in case of a default coast the coast will probably the south coast) and the Italian fleet in the Western Mediterranean will successfully move. <i>I prefer that supporting without coasts should be allowed. So I prefer that the support of Portugal is successful and that the Italian fleet in the Western Mediterranean bounces.</i>"}
    "B9"
    {:long-name "6.B.9. SUPPORTING WITH WRONG COAST"
     :summary "Coasts can be specified in a support, but the result depends on the house rules."
-    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mid :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa-nc] #{}
+                              [:france :fleet :mid :attack :spa-sc] #{[true [:italy :fleet :wes :attack :spa-sc] :attacked-same-destination]}
+                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{}
+                              [:italy :fleet :wes :attack :spa-sc] #{[false [:france :fleet :mid :attack :spa-sc] :attacked-same-destination]}}
     :explanation "See issue 4.B.4. If it is required that the coast matches, then the support of the French fleet in the Mid-Atlantic Ocean fails and that the Italian fleet in the Western Mediterranean moves successfully. Some adjudicators ignores the coasts in support orders. In that case, the move of the Italian fleet bounces. <i>I prefer that the support fails and that the Italian fleet in the  Western Mediterranean moves successfully.</i>"}
    "B10"
    {:long-name "6.B.10. UNIT ORDERED WITH WRONG COAST"
@@ -1151,9 +1153,9 @@
                                 [:france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
                                 [:france :army :wal :support :france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}}
       :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}
-   #_"GORDON-1"
-   #_{:long-name "GORDON-1. CAN'T DISLODGE OWN UNIT THAT FAILED TO LEAVE DESTINATION, EVEN WITH SUPPORT"
-    :summary "An attack can't dislodge a friendly unit that failedto leave its destination, even if the attack had support"
+   "Z1"
+   {:long-name "Z1. CAN'T DISLODGE OWN UNIT THAT FAILED TO LEAVE DESTINATION, EVEN WITH SUPPORT"
+    :summary "An attack can't dislodge a friendly unit that failed to leave its destination, even if the attack had support"
     :resolution-results-abbr {[:france :army :gas :attack :mar] #{[true [:france :fleet :mar :attack :pie] :failed-to-leave-destination true]}
                               [:france :army :bur :support :france :army :gas :attack :mar] #{}
                               [:france :fleet :mar :attack :pie] #{[true [:italy :fleet :pie :hold] :destination-occupied]}
