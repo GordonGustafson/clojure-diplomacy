@@ -199,6 +199,16 @@
       true (set/rename-keys {:resolution-results-abbr :resolution-results,
                              :validation-results-abbr :validation-results}))))
 
+(defn-spec orders-to-unit-positions
+  [::dt/orders] ::dt/unit-positions)
+(defn orders-to-unit-positions
+  "The `::dt/unit-positions` that `::dt/orders` occurs in, assuming
+  `::dt/orders` contains an order for every unit that exists on the map, and no
+  orders for units that don't exist."
+  [orders]
+  (into {} (map (juxt :location get-unit)
+                orders)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      filling in optional parts of the test ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -281,8 +291,7 @@
   (if (contains? test-case :unit-positions-before)
     test-case
     (assoc test-case :unit-positions-before
-           (into {} (map (juxt :location get-unit)
-                         (keys resolution-results))))))
+           (orders-to-unit-positions (keys resolution-results)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                     fully expanding a test ;;
