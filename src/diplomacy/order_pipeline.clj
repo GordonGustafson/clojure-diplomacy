@@ -23,7 +23,9 @@
                             supply-center-ownership
                             game-time] :as game-state-before}
                     orders]
-  (let [val-results (order-validation/validation-results dmap orders)
+  (let [val-results (order-validation/validation-results dmap
+                                                         unit-positions
+                                                         orders)
         orders-to-resolve (validation-results-to-orders-to-resolve val-results)
         resolution-results (resolution/compute-resolution-results
                             orders-to-resolve dmap)

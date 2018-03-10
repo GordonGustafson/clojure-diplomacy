@@ -5,26 +5,33 @@
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
 
-(defn-spec attacks-current-location?  [::dt/dmap ::dt/order] boolean?)
-(defn-spec supports-wrong-order-type? [::dt/dmap ::dt/order] boolean?)
+(defn-spec attacks-current-location?
+  [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
+(defn-spec supports-wrong-order-type?
+  [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
 
-(defn-spec uses-nonexistent-location?       [::dt/dmap ::dt/order] boolean?)
-(defn-spec attacks-inaccessible-location?   [::dt/dmap ::dt/order] boolean?)
-(defn-spec attacks-via-inaccessible-edge?   [::dt/dmap ::dt/order] boolean?)
-(defn-spec supports-unsupportable-location? [::dt/dmap ::dt/order] boolean?)
+(defn-spec uses-nonexistent-location?
+  [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
+(defn-spec attacks-inaccessible-location?
+  [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
+(defn-spec attacks-via-inaccessible-edge?
+  [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
+(defn-spec supports-unsupportable-location?
+  [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                 orders invalid in ALL maps ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; These take an unused `diplomacy-map` argument for uniformity's sake.
+;; These take unused `diplomacy-map` and `unit-positions` arguments for
+;; uniformity's sake.
 
 (defn attacks-current-location?
-  [diplomacy-map {:keys [location destination] :as order}]
+  [diplomacy-map unit-positions {:keys [location destination] :as order}]
   (and (ord/attack? order)
        (= location destination)))
 
 (defn supports-wrong-order-type?
-  [diplomacy-map {:keys [assisted-order] :as order}]
+  [diplomacy-map unit-positions {:keys [assisted-order] :as order}]
   (and (ord/support? order)
        (not (or (ord/attack? assisted-order) (ord/hold? assisted-order)))))
 
@@ -39,22 +46,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                orders invalid in SOME maps ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; These take an unused `unit-positions` argument for uniformity's sake.
 
 (defn uses-nonexistent-location?
-  [diplomacy-map order]
+  [diplomacy-map unit-positions order]
   (let [locations-in-map (:location-accessibility diplomacy-map)]
     (not (every? (partial contains? locations-in-map)
                  (ord/locations-used-by-order order)))))
 
 (defn attacks-inaccessible-location?
-  [diplomacy-map {:keys [unit-type destination] :as order}]
+  [diplomacy-map unit-positions {:keys [unit-type destination] :as order}]
   (and (ord/attack? order)
        (not (map/location-accessible-to? diplomacy-map destination unit-type))))
 
 ;; TODO(convoy): rethink this, since army attacks can use complete convoys
 (defn attacks-via-inaccessible-edge?
-  [diplomacy-map {:keys [unit-type location destination]
-                  :as order}]
+  [diplomacy-map unit-positions {:keys [unit-type location destination]
+                                 :as order}]
   (and (ord/attack? order)
        (not (map/edge-accessible-to? diplomacy-map
                                      location
@@ -62,8 +70,8 @@
                                      unit-type))))
 
 (defn supports-unsupportable-location?
-  [diplomacy-map {:keys [location assisted-order unit-type]
-                  :as supporting-order}]
+  [diplomacy-map unit-positions {:keys [location assisted-order unit-type]
+                                 :as supporting-order}]
   (and (ord/support? supporting-order)
        (let [supported-location (ord/next-intended-location assisted-order)
              coloc-set (map/colocation-set-for-location diplomacy-map
@@ -83,11 +91,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec validation-failure-reasons
-  [::dt/dmap ::dt/order] ::dt/validation-failure-reasons)
+  [::dt/dmap ::dt/unit-positions ::dt/order] ::dt/validation-failure-reasons)
 (defn validation-failure-reasons
   "The names (as a set of keywords) of the invalidation functions that declared
   `order` invalid in `diplomacy-map`."
-  [diplomacy-map order]
+  [diplomacy-map unit-positions order]
   (let [invalidator-vars [(var attacks-current-location?)
                           (var supports-wrong-order-type?)
                           (var uses-nonexistent-location?)
@@ -101,18 +109,20 @@
     ;;                                      invalidator-keywords)]
 
     (set (mapcat (fn [invalidator failure-keyword]
-                   (if (invalidator diplomacy-map order)
+                   (if (invalidator diplomacy-map unit-positions order)
                      [failure-keyword]
                      []))
                  invalidators
                  failure-keywords))))
 
 (defn-spec validation-result
-  [::dt/dmap ::dt/order] ::dt/validation-result)
+  [::dt/dmap ::dt/unit-positions ::dt/order] ::dt/validation-result)
 (defn validation-result
   "The ::dt/validation-result for `order` in `diplomacy-map`"
-  [diplomacy-map {:keys [country unit-type location] :as order}]
-  (let [failure-reasons (validation-failure-reasons diplomacy-map order)]
+  [diplomacy-map unit-positions {:keys [country unit-type location] :as order}]
+  (let [failure-reasons (validation-failure-reasons diplomacy-map
+                                                    unit-positions
+                                                    order)]
     (if (empty? failure-reasons)
       :valid
       ;; TODO: For now any validation failure causes the unit to hold. Consider
@@ -123,11 +133,14 @@
                     :location location
                     :order-type :hold}})))
 
-(defn-spec validation-results [::dt/dmap ::dt/orders] ::dt/validation-results)
+(defn-spec validation-results [::dt/dmap ::dt/unit-positions ::dt/orders]
+  ::dt/validation-results)
 (defn validation-results
-  "The ::dt/validation-results for `orders` in `diplomacy-map`"
-  [diplomacy-map orders]
+  "The ::dt/validation-results for `orders` in `diplomacy-map` with units
+  located at `unit-positions`."
+  [diplomacy-map unit-positions orders]
   (->>
    orders
-   (map (fn [order] [order (validation-result diplomacy-map order)]))
+   (map (fn [order]
+          [order (validation-result diplomacy-map unit-positions order)]))
    (into {})))

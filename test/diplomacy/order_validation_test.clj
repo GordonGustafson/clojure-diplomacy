@@ -1,7 +1,8 @@
 (ns diplomacy.order-validation-test
   (:require [clojure.test :refer [deftest is]]
             [diplomacy.datatypes :as dt]
-            [diplomacy.test-expansion :refer [expand-order]]
+            [diplomacy.test-expansion :refer [expand-order
+                                              orders-to-unit-positions]]
             [diplomacy.order-validation :refer [validation-failure-reasons]]
             [diplomacy.rulebook-diagrams]
             [diplomacy.rulebook-sample-game]
@@ -26,8 +27,16 @@
     (doseq [order orders]
       (is (= expected-failure-reasons (func order))))))
 
-(def validation-failure-reasons-in-classic-map
-  (partial validation-failure-reasons diplomacy.map-data/classic-map))
+(defn-spec validation-failure-reasons-in-classic-map
+  [::dt/order] ::dt/validation-failure-reasons)
+(defn validation-failure-reasons-in-classic-map
+  "The validation failure reasons for `order` in the classic diplomacy map,
+  assuming the unit ordered by order exists."
+  [order]
+  (let [unit-positions (orders-to-unit-positions [order])]
+    (validation-failure-reasons diplomacy.map-data/classic-map
+                                unit-positions
+                                order)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          Custom Test Cases ;;
