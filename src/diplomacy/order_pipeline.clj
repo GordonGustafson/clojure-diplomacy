@@ -10,11 +10,14 @@
   [::dt/validation-results] ::dt/orders)
 (defn validation-results-to-orders-to-resolve
   [validation-results]
-  (map (fn [[order validation-result]]
-         (if (= validation-result :valid)
-           order
-           (:order-used validation-result)))
-       validation-results))
+  (->> validation-results
+       (map (fn [[order validation-result]]
+              (if (= validation-result :valid)
+                order
+                (:order-used validation-result))))
+       ;; `:order-used` is `nil` if the order should be completely ignored
+       ;; instead of replaced.
+       (filter (complement nil?))))
 
 (defn-spec orders-phase [::dt/dmap ::dt/game-state ::dt/orders]
   ::dt/completed-orders-phase)

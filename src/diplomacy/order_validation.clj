@@ -19,6 +19,9 @@
 (defn-spec supports-unsupportable-location?
   [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
 
+(defn-spec ordered-unit-does-not-exist?
+  [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                 orders invalid in ALL maps ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -87,6 +90,17 @@
 ;;        (map/location-accessible-to? diplomacy-map location :army)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                      orders invalid in SOME game states (units on the map) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn ordered-unit-does-not-exist?
+  [diplomacy-map unit-positions {:keys [location] :as order}]
+  (or (not (contains? unit-positions location))
+      ;; Invalid unless country and unit type also match
+      (not= (unit-positions location)
+            (ord/get-unit order))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                            aggregating validity predicates ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -101,7 +115,8 @@
                           (var uses-nonexistent-location?)
                           (var attacks-inaccessible-location?)
                           (var attacks-via-inaccessible-edge?)
-                          (var supports-unsupportable-location?)]
+                          (var supports-unsupportable-location?)
+                          (var ordered-unit-does-not-exist?)]
         invalidators     (map var-get invalidator-vars)
         failure-keywords (map #(-> % meta :name keyword) invalidator-vars)]
     ;; curried-invalidators (map raw-invalidators #(partial % diplomacy-map))
@@ -115,6 +130,20 @@
                  invalidators
                  failure-keywords))))
 
+(defn-spec get-order-used [::dt/order ::dt/validation-failure-reasons]
+  (s/nilable ::dt/order))
+(defn get-order-used
+  "The order `invalid-order` should be replaced with, where `invalid-order` is
+  invalid due to `failure-reasons`, or `nil` If `invalid-order` should be
+  removed (instead of replaced)."
+  [{:keys [country unit-type location] :as invalid-order} failure-reasons]
+  (if (contains? failure-reasons :ordered-unit-does-not-exist?)
+    nil
+    {:country country
+     :unit-type unit-type
+     :location location
+     :order-type :hold}))
+
 (defn-spec validation-result
   [::dt/dmap ::dt/unit-positions ::dt/order] ::dt/validation-result)
 (defn validation-result
@@ -125,13 +154,8 @@
                                                     order)]
     (if (empty? failure-reasons)
       :valid
-      ;; TODO: For now any validation failure causes the unit to hold. Consider
-      ;; whether we want to change this (low priority).
       {:validation-failure-reasons failure-reasons
-       :order-used {:country country
-                    :unit-type unit-type
-                    :location location
-                    :order-type :hold}})))
+       :order-used (get-order-used order failure-reasons)})))
 
 (defn-spec validation-results [::dt/dmap ::dt/unit-positions ::dt/orders]
   ::dt/validation-results)
