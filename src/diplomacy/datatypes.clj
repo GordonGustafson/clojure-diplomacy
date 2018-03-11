@@ -94,7 +94,8 @@
     :supports-unsupportable-location?})
 (s/def ::validation-failure-reasons (s/coll-of ::validation-failure-reason))
 (s/def ::order-given ::order)
-(s/def ::order-used ::order)
+;; `nil` if no order should be used to in place of the invalid order.
+(s/def ::order-used (s/nilable ::order))
 ;; `:valid` if the order was valid, otherwise a list of reasons it was invalid,
 ;; and the order that should actually be fed to the resolution engine (what the
 ;; order was interpreted as).

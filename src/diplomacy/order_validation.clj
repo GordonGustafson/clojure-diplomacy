@@ -131,7 +131,7 @@
                  failure-keywords))))
 
 (defn-spec get-order-used [::dt/order ::dt/validation-failure-reasons]
-  (s/nilable ::dt/order))
+  ::dt/order-used)
 (defn get-order-used
   "The order `invalid-order` should be replaced with, where `invalid-order` is
   invalid due to `failure-reasons`, or `nil` If `invalid-order` should be
