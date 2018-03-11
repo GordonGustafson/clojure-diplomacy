@@ -10,13 +10,11 @@
 
 ;; TODO: convoys
 ;; TODO: dislodging convoys
-;; TODO: can't dislodge own units
+;; TODO: can't support dislodge of own units
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                       core.logic Utilities ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; TODO: can these be functions instead of macros?
 
 (defmacro multi-pred
   "A version of `clojure.core.logic/pred` for predicates that take multiple
@@ -158,9 +156,6 @@
 
 ;; TODO: pg 15: A country can't support the dislodgement of one of its own
 ;; units.
-;;
-;; TODO: pg 16: An attack by a country on one of its own units doesn't cut
-;; support.
 (defn support-judgmento
   "Relation where `judgment` is the judgment for `support`"
   [support judgment]
@@ -426,8 +421,6 @@
          (== bounced-by-bouncer? false)
          (== would-dislodge-own-unit? false))])])))
 
-;; TODO: think about `attacks-assumed-successful` parameter.
-;;
 ;; Convenience wrapper around `attack-judgmento`.
 (defn ^:private attack-advancedo
   "Relation where `attack` succeeds"
