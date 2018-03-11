@@ -2,6 +2,7 @@
   (:require [diplomacy.datatypes :as dt]
             [diplomacy.map-functions :as map]
             [diplomacy.orders :as ord]
+            [clojure.set :as set]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
 
@@ -157,14 +158,70 @@
       {:validation-failure-reasons failure-reasons
        :order-used (get-order-used order failure-reasons)})))
 
+(defn-spec validation-results-to-executed-orders
+  [::dt/validation-results] ::dt/orders)
+(defn validation-results-to-executed-orders
+  "Takes the output of the validation step and returns the orders that should
+  actually be executed."
+  [validation-results]
+  (->> validation-results
+       (map (fn [[order validation-result]]
+              (if (= validation-result :valid)
+                order
+                (:order-used validation-result))))
+       ;; `:order-used` is `nil` if the order should be completely ignored
+       ;; instead of replaced.
+       (filter (complement nil?))))
+
+(defn-spec unit-positions-to-hold-orders [::dt/unit-positions] ::dt/orders)
+(defn unit-positions-to-hold-orders
+  "Orders where every unit in `unit-positions` is ordered to hold."
+  [unit-positions]
+  (map (fn [[location {:keys [unit-type country]}]]
+         {:country country
+          :unit-type unit-type
+          :location location
+          :order-type :hold})
+       unit-positions))
+
 (defn-spec validation-results [::dt/dmap ::dt/unit-positions ::dt/orders]
   ::dt/validation-results)
 (defn validation-results
   "The ::dt/validation-results for `orders` in `diplomacy-map` with units
-  located at `unit-positions`."
+  located at `unit-positions`. Any unit in `unit-positions` that is not given an
+  explicit order is interpreted as receiving a `:valid` hold order."
   [diplomacy-map unit-positions orders]
-  (->>
-   orders
-   (map (fn [order]
-          [order (validation-result diplomacy-map unit-positions order)]))
-   (into {})))
+  (let [val-results-from-explicit-orders
+        (->>
+         orders
+         (map (fn [order]
+                [order (validation-result diplomacy-map unit-positions order)]))
+         (into {}))
+        ;; `validation-result` could produce an `:order-used` with a different
+        ;; location, so we use its output to find the set of 'locations given an
+        ;; order'. For example, if france has a fleet in `:spa-nc` and gives and
+        ;; order to a fleet in `:spa`, `validation-result` could output an
+        ;; `order-used` with the correct location, and we need the set of
+        ;; `ordered-locations` to reflect this.
+        ordered-locations (->> val-results-from-explicit-orders
+                               (validation-results-to-executed-orders)
+                               (map :location)
+                               (set))
+        implicit-hold-orders (->> unit-positions
+                                  (filter (fn [[location _]]
+                                            (not (contains? ordered-locations
+                                                            location))))
+                                  (into {})
+                                  unit-positions-to-hold-orders)
+        val-results-for-implicit-holds (->> implicit-hold-orders
+                                            (map #(-> [% :valid]))
+                                            (into {}))]
+    ;; Make sure adding the implicit holds doesn't violate the invariant that
+    ;; there's only one order per location.
+    (assert (empty? (set/intersection ordered-locations
+                                      (->> val-results-for-implicit-holds
+                                           (validation-results-to-executed-orders)
+                                           (map :location)
+                                           (set)))))
+    (merge val-results-from-explicit-orders
+           val-results-for-implicit-holds)))

@@ -141,9 +141,11 @@
   [raw-validation-result]
   (if (= raw-validation-result :valid)
     :valid
-    {:validation-failure-reasons (first raw-validation-result)
-     :order-used (apply expand-order
-                        (second raw-validation-result))}))
+    (let [[failure-reasons order-used] raw-validation-result]
+      {:validation-failure-reasons failure-reasons
+       :order-used (if (nil? order-used)
+                     nil
+                     (apply expand-order order-used))})))
 
 (defn-spec expand-validation-results
   [::validation-results-abbr] ::dt/validation-results)

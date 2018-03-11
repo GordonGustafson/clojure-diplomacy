@@ -164,15 +164,21 @@
                               [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{}
                               [:italy :fleet :wes :attack :spa-sc] #{[false [:france :fleet :mid :attack :spa-sc] :attacked-same-destination]}}
     :explanation "See issue 4.B.4. If it is required that the coast matches, then the support of the French fleet in the Mid-Atlantic Ocean fails and that the Italian fleet in the Western Mediterranean moves successfully. Some adjudicators ignores the coasts in support orders. In that case, the move of the Italian fleet bounces. <i>I prefer that the support fails and that the Italian fleet in the  Western Mediterranean moves successfully.</i>"}
+   ;; DECISION: Currently we require orders to use the exact location of the
+   ;; ordered units (include the correct coast).
    "B10"
    {:long-name "6.B.10. UNIT ORDERED WITH WRONG COAST"
     :summary "A player might specify the wrong coast for the ordered unit. France has a fleet on the south coast of Spain and orders:"
-    :resolution-results-abbr {[:france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :unit-positions-before {:spa-sc {:unit-type :fleet :country :france}}
+    :validation-results-abbr {[:france :fleet :spa-nc :attack :gol] [#{:ordered-unit-does-not-exist? :attacks-via-inaccessible-edge?} nil]}
+    :resolution-results-abbr {[:france :fleet :spa-sc :hold] #{}}
     :explanation "If only perfect orders are accepted, then the move will fail, but since the coast for the ordered unit has no purpose, it might also be ignored (see issue 4.B.5). <i>I prefer that a move will be attempted.</i>"}
    "B11"
    {:long-name "6.B.11. COAST CAN NOT BE ORDERED TO CHANGE"
     :summary "The coast can not change by just ordering the other coast. France has a fleet on the north coast of Spain and orders:"
-    :resolution-results-abbr {[:france :fleet :spa-sc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :unit-positions-before {:spa-nc {:unit-type :fleet :country :france}}
+    :validation-results-abbr {[:france :fleet :spa-sc :attack :gol] [#{:ordered-unit-does-not-exist?} nil]}
+    :resolution-results-abbr {[:france :fleet :spa-nc :hold] #{}}
     :explanation "The move fails."}
    "B12"
    {:long-name "6.B.12. ARMY MOVEMENT WITH COASTAL SPECIFICATION"

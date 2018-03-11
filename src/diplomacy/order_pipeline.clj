@@ -6,19 +6,6 @@
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
 
-(defn-spec validation-results-to-orders-to-resolve
-  [::dt/validation-results] ::dt/orders)
-(defn validation-results-to-orders-to-resolve
-  [validation-results]
-  (->> validation-results
-       (map (fn [[order validation-result]]
-              (if (= validation-result :valid)
-                order
-                (:order-used validation-result))))
-       ;; `:order-used` is `nil` if the order should be completely ignored
-       ;; instead of replaced.
-       (filter (complement nil?))))
-
 (defn-spec orders-phase [::dt/dmap ::dt/game-state ::dt/orders]
   ::dt/completed-orders-phase)
 (defn orders-phase [dmap
@@ -29,7 +16,8 @@
   (let [val-results (order-validation/validation-results dmap
                                                          unit-positions
                                                          orders)
-        orders-to-resolve (validation-results-to-orders-to-resolve val-results)
+        orders-to-resolve
+        (order-validation/validation-results-to-executed-orders val-results)
         resolution-results (resolution/compute-resolution-results
                             orders-to-resolve dmap)
         unit-positions-after (post-resolution/unit-positions-after-orders
