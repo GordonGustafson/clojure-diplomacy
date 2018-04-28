@@ -1,0 +1,24 @@
+body {
+    margin: 0;
+    padding: 0;
+    /* Not sure if flex is necessary since I only have two elements in it at the
+     * moment, but at least things seem to be displaying nicely now. */
+    display: flex;
+    /* TODO: get wrapping working */
+    /* flex-wrap: wrap; */
+    flex-direction: row;
+}
+
+#mapObjectTag {
+    min-height: 100vmin;
+    min-width: 100vmin;
+    max-height: 100vh;
+    /* This comes from the diplomacy map's aspect ratio. */
+    max-width: 109vh;
+
+    /* Let the size of this item be determined by the height and width
+     * directives above. If the flexbox container needs to use more or less
+     * space, tweak the dimensions of the other items instead. */
+    flex-grow: 0;
+    flex-shrink: 0;
+}

@@ -3,25 +3,32 @@
   <head>
     <meta charset="UTF-8">
     <title>Clojure Diplomacy</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
   </head>
   <body>
     <object data="/svg/diplomacy-classic-map.svg" type="image/svg+xml"
             id="mapObjectTag" width="100%" height="100%"></object>
+
+    <div id="non-map">
+      <div id="test-buttons">
+        {% for test-key in finished-DATC-keys %}
+        <button class="render-button"
+                data-orders-phase-test-url="/DATC/{{test-key}}/orders-phase-test">
+          {{test-key}}
+        </button>
+        {% endfor %}
+      </div>
+
+      <div id="testMetadata">
+        <h1 id="test-long-name"></h1>
+        <p id="test-summary"></p>
+        <p id="test-explanation"></p>
+      </div>
+    </div>
+
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <!-- render-gamestate.js depends on map-svg-positioning.js -->
     <script src="/js/map-svg-positioning.js"></script>
     <script src="/js/render-gamestate.js"></script>
-
-    {% for test-key in finished-DATC-keys %}
-      <button class="render-button"
-              data-orders-phase-test-url="/DATC/{{test-key}}/orders-phase-test">
-        {{test-key}}
-      </button>
-    {% endfor %}
-    <div id="test-metadata">
-      <h1 id="test-long-name"></h1>
-      <p id="test-summary"></p>
-      <p id="test-explanation"></p>
-    </div>
   </body>
 </html>

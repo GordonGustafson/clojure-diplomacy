@@ -175,4 +175,9 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
                 });
         });
     }
+    // This is a quick hack that makes the page flicker horribly when it's
+    // loaded, but it works for now.
+    if (renderButtons.length > 0) {
+        renderButtons[0].click();
+    }
 });
