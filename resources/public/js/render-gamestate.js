@@ -31,6 +31,13 @@ function addSvgNode(renderTarget, tagName, attributes) {
     renderTarget.innerHTML += newTag;
 }
 
+// TODO: break this into a separate Javascript file?
+function displayTestMetadata(longName, summary, explanation) {
+    document.getElementById("test-long-name").textContent = longName;
+    document.getElementById("test-summary").textContent = summary;
+    document.getElementById("test-explanation").innerHTML = explanation;
+}
+
 function renderGamestate(renderTarget, {"unit-positions": unitPositions,
                                         "supply-center-ownership": scOwnership,
                                         "game-time": {year, season}}) {
@@ -153,6 +160,10 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
             axios({url: event.target.dataset.ordersPhaseTestUrl, responseType: "json"})
                 .then(response => {
                     const d = response.data;
+                    displayTestMetadata(d["long-name"],
+                                        d["summary"],
+                                        d["explanation"]);
+
                     const gamestateBefore = {
                         "unit-positions":          d["unit-positions-before"],
                         "supply-center-ownership": d["supply-center-ownership-before"],
