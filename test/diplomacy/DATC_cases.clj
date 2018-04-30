@@ -139,12 +139,14 @@
                               [:italy :fleet :gol :attack :spa-sc] #{[true [:france :fleet :spa-nc :support :france :fleet :mid :hold] :destination-occupied]}}
     :explanation "The Italian fleet in the Gulf of Lyon will cut the support in Spain. That means that the French fleet in the Mid Atlantic Ocean will be dislodged by the English fleet in the North Atlantic Ocean."}
    "B7"
+   ;; DECISION: Currently we require supported location to exactly match the
+   ;; attack's destination in order for support to be given.
    {:long-name "6.B.7. SUPPORTING WITH UNSPECIFIED COAST"
     :summary "Most house rules accept support orders without coast specification."
-    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mid :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :wes :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:france :fleet :por :support :france :fleet :mid :attack :spa] #{}
+                              [:france :fleet :mid :attack :spa-nc] #{[true [:italy :fleet :wes :attack :spa-sc] :attacked-same-destination]}
+                              [:italy :fleet :gol :support :italy :fleet :wes :attack :spa-sc] #{}
+                              [:italy :fleet :wes :attack :spa-sc] #{[false [:france :fleet :mid :attack :spa-nc] :attacked-same-destination]}}
     :explanation "See issue 4.B.4. If coasts are not required in support orders, then the support of Portugal is successful. This means that the Italian fleet in the Western Mediterranean bounces. Some adjudicators may not accept a support order without coast (the support will fail or a default coast is taken). In that case the support order of Portugal fails (in case of a default coast the coast will probably the south coast) and the Italian fleet in the Western Mediterranean will successfully move. <i>I prefer that the support succeeds and the Italian fleet in the Western Mediterranean bounces.</i>"}
    "B8"
    ;; DECISION: Currently we require supported location to exactly match the
@@ -180,10 +182,12 @@
     :validation-results-abbr {[:france :fleet :spa-sc :attack :gol] [#{:ordered-unit-does-not-exist?} nil]}
     :resolution-results-abbr {[:france :fleet :spa-nc :hold] #{}}
     :explanation "The move fails."}
+   ;; DECISION: Currently we only accept 'perfect' orders.
    "B12"
    {:long-name "6.B.12. ARMY MOVEMENT WITH COASTAL SPECIFICATION"
     :summary "For armies the coasts are irrelevant:"
-    :resolution-results-abbr {[:france :army :gas :attack :spa-nc] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:france :army :gas :attack :spa-nc] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?} [:france :army :gas :hold]]}
+    :resolution-results-abbr {[:france :army :gas :hold] #{}}
     :explanation "If only perfect orders are accepted, then the move will fail. But it is also possible that coasts are ignored in this case and a move will be attempted (see issue 4.B.6). <i>I prefer that a move will be attempted.</i>"}
    "B13"
    {:long-name "6.B.13. COASTAL CRAWL NOT ALLOWED"
