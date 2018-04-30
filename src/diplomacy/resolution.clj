@@ -318,11 +318,11 @@
         (== rule :swapped-places-without-convoy))]
 
      [(fresh [bouncer-from bouncer-to new-attacks-assumed-successful]
-        ;; Orders that swap places with `attack` are handled in a different
-        ;; case.
-        (!= bouncer-to from)
         (attacko bouncer bouncer-from bouncer-to)
         (colocated bouncer-from to)
+        ;; Orders that swap places with `attack` are handled in a different
+        ;; case.
+        (fail-if (colocated bouncer-to from))
         ;; Assume this attack advanced
         (conso attack attacks-assumed-successful
                new-attacks-assumed-successful)

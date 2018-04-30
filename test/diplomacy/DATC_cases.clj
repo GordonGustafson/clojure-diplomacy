@@ -192,8 +192,8 @@
    "B13"
    {:long-name "6.B.13. COASTAL CRAWL NOT ALLOWED"
     :summary "If a fleet is leaving a sector from a certain coast while in the opposite direction another fleet is moving to another coast of the sector, it is still a head to head battle. This has been decided in the great revision of the 1961 rules that resulted in the 1971 rules."
-    :resolution-results-abbr {[:turkey :fleet :bul-sc :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :con :attack :bul-ec] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:turkey :fleet :bul-sc :attack :con] #{[true [:turkey :fleet :con :attack :bul-ec] :swapped-places-without-convoy]}
+                              [:turkey :fleet :con :attack :bul-ec] #{[true [:turkey :fleet :bul-sc :attack :con] :swapped-places-without-convoy]}}
     :explanation "Both moves fail."}
    "C1"
    {:long-name "6.C.1. THREE ARMY CIRCULAR MOVEMENT"
