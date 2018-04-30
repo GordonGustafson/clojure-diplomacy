@@ -70,7 +70,7 @@
                       " - post-resolution step SHOULD NOT produce these INCORRECT retreats"))))))
 
 (test/deftest test-DATC
-  (doseq [[short-name test] diplomacy.DATC-cases/DATC-cases]
+  (doseq [[short-name test] diplomacy.DATC-cases/finished-DATC-cases]
     (run-test-case diplomacy.map-data/classic-map test (:long-name test))))
 
 (test/deftest test-rulebook-sample-game

@@ -11,15 +11,16 @@
   [(first DATC-key) (Integer. (subs DATC-key 1))])
 
 (defn index []
-  (let [template-args {:finished-DATC-keys (->> DATC-cases/DATC-cases
-                                               (keys)
-                                               (sort-by DATC-key-to-sort-key))}]
+  (let [template-args {:DATC-keys (->> DATC-cases/all-DATC-cases
+                                       (keys)
+                                       (sort-by DATC-key-to-sort-key))}]
     (-> (selmer.parser/render-file "public/index.html" template-args)
         (response/response))))
 
 (defn DATC-orders-phase-test [test-letter-number]
-  (if (contains? DATC-cases/DATC-cases test-letter-number)
-    (response/response (update (get DATC-cases/DATC-cases test-letter-number)
+  (if (contains? DATC-cases/all-DATC-cases test-letter-number)
+    (response/response (update (get DATC-cases/all-DATC-cases
+                                    test-letter-number)
                                :resolution-results
                                dip-json/jsonify-resolution-results))
     (response/not-found (str "Could not find completed DATC test for '"

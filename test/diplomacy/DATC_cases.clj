@@ -1174,15 +1174,25 @@
 
 (defn ^:private test-complete?
   "Returns whether the argument has any placeholder conflict judgments."
-  [{:keys [resolution-results-abbr]}]
-  (not-any? (partial = #{[:interfered? [:russia :army :naf :hold] :rule]})
-            (vals resolution-results-abbr)))
+  [{:keys [resolution-results]}]
+  (not-any? (partial = #{{:interferer {:country :russia,
+                                       :unit-type :army,
+                                       :location :naf,
+                                       :order-type :hold},
+                          :conflict-rule :rule,
+                          :interfered? :interfered?,
+                          :would-dislodge-own-unit? false}})
+            (vals resolution-results)))
 
-(def DATC-cases
+;; This includes cases that don't have resolution results assigned yet, but
+;; doesn't include commented out cases.
+(def all-DATC-cases
   (->> DATC-cases-abbr
-       ;; Don't export test cases that don't have conflict judgments assigned.
-       ;; Make sure that DATC-cases actually contains the tests you want to run!
-       (filter (comp test-complete? second))
        (map (fn [[name abbreviated-test]]
               [name (expand-and-fill-in-orders-phase-test abbreviated-test)]))
        (into {})))
+
+;; Exclude test cases that haven't have resolution results assigned yet.
+;; Make sure this actually contains the tests you want to run!
+(def finished-DATC-cases
+  (filter (comp test-complete? second) all-DATC-cases))
