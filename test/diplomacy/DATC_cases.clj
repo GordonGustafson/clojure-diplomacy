@@ -1175,13 +1175,11 @@
 (defn ^:private test-complete?
   "Returns whether the argument has any placeholder conflict judgments."
   [{:keys [resolution-results]}]
-  (not-any? (partial = #{{:interferer {:country :russia,
-                                       :unit-type :army,
-                                       :location :naf,
-                                       :order-type :hold},
-                          :conflict-rule :rule,
-                          :interfered? :interfered?,
-                          :would-dislodge-own-unit? false}})
+  ;; Pick an arbitrary part of the placeholder to identify it. We can't naively
+  ;; use `=` to compare the whole thing since attack place holders expand to a
+  ;; map with a `:would-dislodge-own-unit` key but support placeholders do not.
+  (not-any? (fn [resolution-result]
+              (some #(= (:conflict-rule %) :rule) resolution-result))
             (vals resolution-results)))
 
 ;; This includes cases that don't have resolution results assigned yet, but
