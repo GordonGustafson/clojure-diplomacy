@@ -1172,7 +1172,7 @@
                               [:italy :fleet :pie :hold] #{}}
     :explanation "Both French moves fail."}})
 
-(defn ^:private test-complete?
+(defn test-complete?
   "Returns whether the argument has any placeholder conflict judgments."
   [{:keys [resolution-results]}]
   ;; Pick an arbitrary part of the placeholder to identify it. We can't naively

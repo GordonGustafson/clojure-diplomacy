@@ -11,9 +11,13 @@
   [(first DATC-key) (Integer. (subs DATC-key 1))])
 
 (defn index []
-  (let [template-args {:DATC-keys (->> DATC-cases/all-DATC-cases
-                                       (keys)
-                                       (sort-by DATC-key-to-sort-key))}]
+  (let [template-args {:DATC-button-data
+                       (->> DATC-cases/all-DATC-cases
+                            (map (fn [[key test]]
+                                   {:DATC-key key
+                                    :test-complete? (DATC-cases/test-complete?
+                                                     test)}))
+                            (sort-by (comp DATC-key-to-sort-key :DATC-key)))}]
     (-> (selmer.parser/render-file "public/index.html" template-args)
         (response/response))))
 

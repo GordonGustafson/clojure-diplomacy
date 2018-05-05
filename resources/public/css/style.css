@@ -32,3 +32,11 @@ body {
     flex-wrap: wrap;
     flex-direction: row;
 }
+
+.test-complete {
+    color: black;
+}
+
+.test-incomplete {
+    color: red;
+}

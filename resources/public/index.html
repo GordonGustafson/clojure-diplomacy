@@ -11,10 +11,10 @@
 
     <div id="non-map">
       <div id="test-buttons">
-        {% for test-key in DATC-keys %}
-        <button class="render-button"
-                data-orders-phase-test-url="/DATC/{{test-key}}/orders-phase-test">
-          {{test-key}}
+        {% for button-datum in DATC-button-data %}
+        <button class="render-button {% if button-datum.test-complete? %}test-complete{% else %}test-incomplete{% endif %}"
+                data-orders-phase-test-url="/DATC/{{button-datum.DATC-key}}/orders-phase-test">
+          {{button-datum.DATC-key}}
         </button>
         {% endfor %}
       </div>
