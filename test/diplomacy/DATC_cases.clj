@@ -430,10 +430,10 @@
    "D19"
    {:long-name "6.D.19. EVEN WHEN SURVIVING IS IN ALTERNATIVE WAY"
     :summary "Now, the dislodgement is prevented because the supports comes from a Russian army:"
-    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bla :attack :ank] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :smy :support :turkey :fleet :ank :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :ank :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location-but-not-dislodged]}
+                              [:russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]}
+                              [:russia :army :smy :support :turkey :fleet :ank :attack :con] #{}
+                              [:turkey :fleet :ank :attack :con] #{[true [:russia :fleet :con :support :russia :fleet :bla :attack :ank] :destination-occupied]}}
     :explanation "The Russian fleet in Constantinople is not dislodged, because one of the support is of Russian origin. The support from Black Sea to Ankara will sustain and the fleet in Ankara will be dislodged."}
    "D20"
    {:long-name "6.D.20. UNIT CAN NOT CUT SUPPORT OF ITS OWN COUNTRY"
@@ -1164,10 +1164,26 @@
                                 [:france :army :wal :support :france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}}
       :explanation "Belgium and London are swapped, while the army in Yorkshire fails to move to London."}
    "Z1"
-   {:long-name "Z1. CAN'T DISLODGE OWN UNIT THAT FAILED TO LEAVE DESTINATION, EVEN WITH SUPPORT"
-    :summary "An attack can't dislodge a friendly unit that failed to leave its destination, even if the attack had support"
-    :resolution-results-abbr {[:france :army :gas :attack :mar] #{[true [:france :fleet :mar :attack :pie] :failed-to-leave-destination true]}
+   {:long-name "Z1. CAN'T DISLODGE OWN UNIT THAT FAILED TO LEAVE DESTINATION, EVEN WITH FRIENDLY SUPPORT"
+    :summary "An attack can't dislodge a friendly unit that failed to leave its destination, even if the attack had friendly support"
+    ;; This attack does not have `:would-dislodge-own-unit` set to `true`
+    ;; because the french supporter is unwilling to dislodge the french unit, so
+    ;; the nationality of the attacker doesn't matter
+    ;; (`:would-dislodge-own-unit` is only set to true when the nationality of
+    ;; the attacker is *the* determining factor in the outcome).
+    :resolution-results-abbr {[:france :army :gas :attack :mar] #{[true [:france :fleet :mar :attack :pie] :failed-to-leave-destination]}
                               [:france :army :bur :support :france :army :gas :attack :mar] #{}
+                              [:france :fleet :mar :attack :pie] #{[true [:italy :fleet :pie :hold] :destination-occupied]}
+                              [:italy :fleet :pie :hold] #{}}
+    :explanation "Both French moves fail."}
+   "Z2"
+   {:long-name "Z2. CAN'T DISLODGE OWN UNIT THAT FAILED TO LEAVE DESTINATION, EVEN WITH ENEMY SUPPORT"
+    :summary "An attack can't dislodge a friendly unit that failed to leave its destination, even if the attack had enemy support"
+    ;; `:would-dislodge-own-unit` is set to `true` here (the final `true` after
+    ;; `:failed-to-leave-destination`) because if they attacker had been of a
+    ;; different nationality, it would have succeeded.
+    :resolution-results-abbr {[:france :army :gas :attack :mar] #{[true [:france :fleet :mar :attack :pie] :failed-to-leave-destination true]}
+                              [:italy :army :bur :support :france :army :gas :attack :mar] #{}
                               [:france :fleet :mar :attack :pie] #{[true [:italy :fleet :pie :hold] :destination-occupied]}
                               [:italy :fleet :pie :hold] #{}}
     :explanation "Both French moves fail."}})

@@ -154,10 +154,13 @@
 
 (declare attack-advancedo)
 
-;; TODO: pg 15: A country can't support the dislodgement of one of its own
-;; units.
 (defn support-judgmento
-  "Relation where `judgment` is the judgment for `support`"
+  "Relation where `judgment` is the judgment for `support`. This only takes into
+  account whether the supporting unit was interfered with or not. Whether the
+  support order supports the dislodgement of a unit from the same country must
+  be handled elsewhere, since a support order would still take effect against
+  other orders even if it was ignored for the purpose of dislodging a fellow
+  unit."
   [support judgment]
   (fresh [supporter-location supported-location
           cutter rule support-cut?
@@ -218,8 +221,8 @@
     ;; if some *other* order successfully cut `support`).
     (fail-if some-order-cut-us-goal)))
 
-(defn supporter-count
-  "Number of units that successfully support `supported`. Non-relational."
+(defn successful-supporters
+  "Set of units that successfully support `supported`. Non-relational."
   [supported]
   (when (empty? clojure.core.logic/*logic-dbs*)
     ;; This helps more than it hurts at the moment; it's hard to notice that
@@ -228,24 +231,12 @@
             "nested run running with empty fact database!")))
   ;; TODO: can this `run*` return the same order multiple times? Shouldn't
   ;;       matter because of the call to `set` afterwards, but I'm curious.
-  (count (set (run* [support]
-                (supporto support
-                          (lvar 'location)
-                          supported
-                          (lvar 'supported-location))
-                (support-succeedso support)))))
-
-(defn has-fewer-or-equal-supporters
-  "Whether `order-a` has fewer or equally many successful supporters as
-  `order-b`. Non-relational."
-  [order-a order-b]
-  (<= (supporter-count order-a)
-      (supporter-count order-b)))
-
-(defn has-no-supporters?
-  "Whether `order` has no successful supporters. Non-relational."
-  [order]
-  (zero? (supporter-count order)))
+  (set (run* [support]
+         (supporto support
+                   (lvar 'location)
+                   supported
+                   (lvar 'supported-location))
+         (support-succeedso support))))
 
 (defn ^:private conflict-situationo
   "Relation where:
@@ -344,7 +335,7 @@
         (== rule :failed-to-leave-destination))])))
 
 (defn bouncer-too-strong-to-advance-based-on-rule
-  "Function that returns whether `bouncer` would have enough suport to bounce
+  "Function that returns whether `bouncer` would have enough support to bounce
   `attack` *if `bouncer` and `attack` were orders by different countries*, where
   the conflict between them was due to `rule`.
 
@@ -354,26 +345,39 @@
 
   Providing the wrong `rule` will give bogus results."
   [attack bouncer rule]
-  (condp contains? rule
-    #{:destination-occupied
-      :attacked-same-destination
-      :swapped-places-without-convoy}
-    ;; In a direct conflict, `attack` is bounced if it has equal or fewer
-    ;; supporters.
-    (has-fewer-or-equal-supporters attack bouncer)
+  (let [attack-supporters (successful-supporters attack)
+        bouncer-supporters (successful-supporters bouncer)
+        attack-supporters-willing-to-dislodge
+        (filter (fn [attack-supporter] (not= (:country attack-supporter)
+                                             (:country bouncer)))
+                attack-supporters)]
+    (condp contains? rule
+      #{:attacked-same-destination}
+      ;; In a direct conflict where `attack` *would not* dislodge `bouncer`,
+      ;; `attack` draws support from any country.
+      (<= (count attack-supporters)
+          (count bouncer-supporters))
 
-    #{:failed-to-leave-destination}
-    ;; Since the attack out of our destination failed to leave, it's support
-    ;; doesn't help it maintain its original position. It will only bounce us if
-    ;; we have no support (1v1).
-    (has-no-supporters? attack)
+      #{:swapped-places-without-convoy
+        :destination-occupied}
+      ;; In a direct conflict where `attack` *would* dislodge bouncer, `attack`
+      ;; does not draw support from the country of `bouncer`.
+      (<= (count attack-supporters-willing-to-dislodge)
+          (count bouncer-supporters))
 
-    #{:no-effect-on-dislodgers-province}
-    ;; If `bouncer` was dislodged and `attack` moves to the dislodger's
-    ;; province, `bouncer` can't bounce `attack`.
-    false
+      #{:failed-to-leave-destination}
+      ;; Since `bouncer` failed to leave `attack`s destination, `bouncer`'s
+      ;; support doesn't help it maintain its original position. `bouncer` will
+      ;; only bounce `attack` if `attack` draws no support willing to dislodge
+      ;; `bouncer`.
+      (empty? attack-supporters-willing-to-dislodge)
 
-    (assert false (str "Unknown rule: " rule))))
+      #{:no-effect-on-dislodgers-province}
+      ;; If `bouncer` was dislodged and `attack` moves to the dislodger's
+      ;; province, `bouncer` can't bounce `attack`.
+      false
+
+      (assert false (str "Unknown rule: " rule)))))
 
 ;; This relation links the relational code in `conflict-situationo` with the
 ;; functional code in `bouncer-too-strong-to-advance-based-on-rule`, and
