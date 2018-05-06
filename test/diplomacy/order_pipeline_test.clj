@@ -34,23 +34,24 @@
                 (get-in completed-orders-phase
                         [:game-state-after-orders :game-time])))
 
-    ;; Don't use `clojure.data/diff` here because "Maps are subdiffed where keys
-    ;; match and values differ". We want to output exactly what orders failed,
-    ;; and not do any sort of analysis on how the failing orders differed (the
-    ;; user can do that much better themselves).
-    (test/is (empty? (map-difference expected-val actual-val))
-             (str test-identifier
-                  " - validation step SHOULD produce these CORRECT validation results"))
-    (test/is (empty? (map-difference actual-val expected-val))
-             (str test-identifier
-                  " - validation step SHOULD NOT produce these INCORRECT validation results"))
+    ;; Check that the correct orders are being tested. If this fails it's most
+    ;; likely a severe problem with the testing setup, so we use `assert`
+    ;; instead of `test/is`.
+    (assert (= (set (keys expected-res))
+               (set (keys actual-res))))
 
-    (test/is (empty? (map-difference expected-res actual-res))
-             (str test-identifier
-                  " - resolution step SHOULD produce these CORRECT conflict judgments"))
-    (test/is (empty? (map-difference actual-res expected-res))
-             (str test-identifier
-                  " - resolution step SHOULD NOT produce these INCORRECT conflict judgments"))
+    (let [orders (keys expected-res)]
+      (doall (map (fn [order]
+                    (let [failure-message (str test-identifier
+                                               " - "
+                                               (te/order-to-abbr order))]
+                      (test/is (= (get expected-val order)
+                                  (get actual-val order))
+                               (str failure-message " - validation"))
+                      (test/is (= (get expected-res order)
+                                  (get actual-res order))
+                               (str failure-message " - resolution"))))
+                  orders)))
 
     (when (contains? orders-phase-test :unit-positions-after)
       (test/is (= (:unit-positions-after orders-phase-test)

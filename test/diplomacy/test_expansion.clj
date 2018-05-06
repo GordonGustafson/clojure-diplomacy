@@ -135,6 +135,18 @@
       [_      :support ([_ _     _ :attack _] :seq)] (make-assisting-order)
       [:fleet :convoy  ([_ :army _ :attack _] :seq)] (make-assisting-order))))
 
+(defn-spec order-to-abbr [::dt/order] ::order-abbr)
+(defn order-to-abbr
+  "Inverse of `expand-order`. Intended for generating concise error messages"
+  [order]
+  (let [base (map order [:country :unit-type :location :order-type])
+        extra (case (:order-type order)
+                :hold []
+                :attack [(:destination order)]
+                :support (order-to-abbr (:assisted-order order))
+                :convoy (order-to-abbr (:assisted-order order)))]
+    (vec (concat base extra))))
+
 (defn-spec expand-validation-result
   [::validation-result-abbr] ::dt/validation-result)
 (defn expand-validation-result
