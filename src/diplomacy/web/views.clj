@@ -2,7 +2,7 @@
   (:require [ring.util.response :as response]
             [selmer.parser]
             [diplomacy.DATC-cases :as DATC-cases]
-            [diplomacy.web.json-serialization :as dip-json]
+            [diplomacy.web.json-serialization :as djson]
             [diplomacy.test-expansion :as test-expansion]))
 
 (defn DATC-key-to-sort-key [DATC-key]
@@ -23,9 +23,9 @@
 
 (defn DATC-orders-phase-test [test-letter-number]
   (if (contains? DATC-cases/all-DATC-cases test-letter-number)
-    (response/response (update (get DATC-cases/all-DATC-cases
-                                    test-letter-number)
-                               :resolution-results
-                               dip-json/jsonify-resolution-results))
+    (response/response
+     (-> (get DATC-cases/all-DATC-cases test-letter-number)
+         (update :validation-results djson/jsonify-map-with-non-string-keys)
+         (update :resolution-results djson/jsonify-map-with-non-string-keys)))
     (response/not-found (str "Could not find completed DATC test for '"
                              test-letter-number "'"))))

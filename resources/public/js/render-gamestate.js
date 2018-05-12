@@ -125,8 +125,8 @@ function renderSupport(renderTarget, country, location, assistedOrder) {
                });
 }
 
-function renderResolutionResults(renderTarget, resolutionResults) {
-    for (const [order, conflictJudgments] of resolutionResults) {
+function renderOrders(renderTarget, orders) {
+    for (const order of orders) {
         const {"country": country,
                "unit-type": unitType,
                "location": location,
@@ -171,7 +171,11 @@ document.getElementById("mapObjectTag").addEventListener("load", function() {
                     }
                     renderGamestate(renderTarget, gamestateBefore);
 
-                    renderResolutionResults(renderTarget, d["resolution-results"]);
+                    // Use the keys of "validation-results" to get the orders
+                    // actually given, regardless of whether they were valid or
+                    // not.
+                    const orders = d["validation-results"].map(([order, res]) => order);
+                    renderOrders(renderTarget, orders);
                 });
         });
     }

@@ -10,22 +10,25 @@
 ;;                                                specs for json data formats ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::resolution-results-for-json
-  (s/coll-of (s/tuple ::dt/order
-                      ::dt/conflict-judgments)))
+;; This spec permits string keys, but is named to imply why we might need to do
+;; any JSON-friendly conversion in the first place.
+(s/def ::map-with-non-string-keys
+  (s/map-of any? any?))
+(s/def ::map-with-non-string-keys-for-json
+  (s/coll-of (s/tuple any? any?)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                converting to and from json representations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec jsonify-resolution-results [::dt/resolution-results]
-  ::resolution-results-for-json)
-(defn jsonify-resolution-results
-  [resolution-results]
-  (into #{} resolution-results))
+(defn-spec jsonify-map-with-non-string-keys [::map-with-non-string-keys]
+  ::map-with-non-string-keys-for-json)
+(defn jsonify-map-with-non-string-keys
+  [map]
+  (into #{} map))
 
-(defn-spec unjsonify-resolution-results [::resolution-results-for-json]
-  ::dt/resolution-results)
-(defn unjsonify-resolution-results
-  [resolution-results-for-json]
-  (into {} resolution-results-for-json))
+(defn-spec unjsonify-map-with-non-string-keys [::map-with-non-string-keys-for-json]
+  ::map-with-non-string-keys)
+(defn unjsonify-map-with-non-string-keys
+  [collection-of-pairs]
+  (into {} collection-of-pairs))
