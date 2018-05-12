@@ -438,9 +438,9 @@
    "D20"
    {:long-name "6.D.20. UNIT CAN NOT CUT SUPPORT OF ITS OWN COUNTRY"
     :summary "Although this is not mentioned in all rulebooks, it is generally accepted that when a unit attacks another unit of the same Great Power, it will not cut support."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :nth :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :nth :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :army :yor :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :nth :attack :eng] #{[false [:england :army :yor :attack :lon] :attacked-by-same-country]}
+                              [:england :fleet :nth :attack :eng] #{[false [:france :fleet :eng :hold] :destination-occupied]}
+                              [:england :army :yor :attack :lon] #{[true [:england :fleet :lon :support :england :fleet :nth :attack :eng] :destination-occupied]}
                               [:france :fleet :eng :hold] #{}}
     :explanation "The army in York does not cut support. This means that the fleet in the English Channel is dislodged by the fleet in the North Sea."}
    "D21"
@@ -456,27 +456,33 @@
    "D22"
    {:long-name "6.D.22. IMPOSSIBLE FLEET MOVE CAN NOT BE SUPPORTED"
     :summary "If a fleet tries moves to a land area it seems pointless to support the fleet, since the move will fail anyway. However, in such case, the support is also invalid for defense purposes."
-    :resolution-results-abbr {[:germany :fleet :kie :attack :mun] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :bur :support :germany :fleet :kie :attack :mun] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :mun :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :ber :support :russia :army :mun :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:germany :fleet :kie :attack :mun] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+                                                                   [:germany :fleet :kie :hold]]}
+    :resolution-results-abbr {[:germany :fleet :kie :hold] #{}
+                              [:germany :army :bur :support :germany :fleet :kie :attack :mun] #{}
+                              [:russia :army :mun :attack :kie] #{[false [:germany :fleet :kie :hold] :destination-occupied]}
+                              [:russia :army :ber :support :russia :army :mun :attack :kie] #{}}
     :explanation "The German move from Kiel to Munich is illegal (fleets can not go to Munich). Therefore, the support from Burgundy fails and the Russian army in Munich will dislodge the fleet in Kiel. Note that the failing of the support is not explicitly mentioned in the rulebooks (the DPTG is more clear about this point). If you take the rulebooks very literally, you might conclude that the fleet in Munich is not dislodged, but this is an incorrect interpretation."}
    "D23"
    {:long-name "6.D.23. IMPOSSIBLE COAST MOVE CAN NOT BE SUPPORTED"
     :summary "Comparable with the previous test case, but now the fleet move is impossible for coastal reasons."
-    :resolution-results-abbr {[:italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :wes :support :italy :fleet :gol :attack :spa-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mar :support :france :fleet :spa-nc :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:france :fleet :spa-nc :attack :gol] [#{:attacks-via-inaccessible-edge?}
+                                                                     [:france :fleet :spa-nc :hold]]}
+    :resolution-results-abbr {[:italy :fleet :gol :attack :spa-sc] #{[false [:france :fleet :spa-nc :hold] :destination-occupied]}
+                              [:italy :fleet :wes :support :italy :fleet :gol :attack :spa-sc] #{}
+                              [:france :fleet :spa-nc :hold] #{}
+                              [:france :fleet :mar :support :france :fleet :spa-nc :attack :gol] #{}}
     :explanation "The French move from Spain North Coast to Gulf of Lyon is illegal (wrong coast). Therefore, the support from Marseilles fails and the fleet in Spain is dislodged."}
    "D24"
    {:long-name "6.D.24. IMPOSSIBLE ARMY MOVE CAN NOT BE SUPPORTED"
     :summary "Comparable with the previous test case, but now an army tries to move into sea and the support is used in a beleaguered garrison."
-    :resolution-results-abbr {[:france :army :mar :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :spa-sc :support :france :army :mar :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :validation-results-abbr {[:france :army :mar :attack :gol] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+                                                                 [:france :army :mar :hold]]}
+    :resolution-results-abbr {[:france :army :mar :hold] #{}
+                              [:france :fleet :spa-sc :support :france :army :mar :attack :gol] #{}
                               [:italy :fleet :gol :hold] #{}
-                              [:turkey :fleet :tyn :support :turkey :fleet :wes :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :wes :attack :gol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:turkey :fleet :tyn :support :turkey :fleet :wes :attack :gol] #{}
+                              [:turkey :fleet :wes :attack :gol] #{[false [:italy :fleet :gol :hold] :destination-occupied]}}
     :explanation "The French move from Marseilles to Gulf of Lyon is illegal (an army can not go to sea). Therefore, the support from Spain fails and there is no beleaguered garrison. The fleet in the Gulf of Lyon is dislodged by the Turkish fleet in the Western Mediterranean."}
    "D25"
    {:long-name "6.D.25. FAILING HOLD SUPPORT CAN BE SUPPORTED"
