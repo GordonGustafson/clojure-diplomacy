@@ -495,10 +495,10 @@
    "D26"
    {:long-name "6.D.26. FAILING MOVE SUPPORT CAN BE SUPPORTED"
     :summary "Similar as the previous test case, but now with an unmatched support to move."
-    :resolution-results-abbr {[:germany :army :ber :support :russia :army :pru :attack :sil] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :kie :support :germany :army :ber :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :pru :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:germany :army :ber :support :russia :army :pru :attack :sil] #{[true [:russia :army :pru :attack :ber] :attacked]}
+                              [:germany :fleet :kie :support :germany :army :ber :hold] #{}
+                              [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{}
+                              [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :support :russia :army :pru :attack :sil] :destination-occupied]}}
     :explanation "Again, Berlin will not be dislodged."}
    ;; commented out because it uses a convoy
    #_"D27"
@@ -510,29 +510,38 @@
                                 [:russia :fleet :bal :convoy :germany :army :ber :attack :lvn] #{[:interfered? [:russia :army :naf :hold] :rule]}
                                 [:russia :fleet :pru :support :russia :fleet :bal :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}}
       :explanation "The convoy order in the Baltic Sea is unmatched and fails. However, the support of Prussia on the Baltic Sea is still valid and the fleet in the Baltic Sea is not dislodged."}
+   ;; DECISION: Invalid orders are treated as holds that can be supported.
    "D28"
    {:long-name "6.D.28. IMPOSSIBLE MOVE AND SUPPORT"
     :summary "If a move is impossible then it can be treated as \"illegal\", which makes a hold support possible."
-    :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :rum :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:russia :fleet :rum :attack :hol] [#{:attacks-via-inaccessible-edge?}
+                                                                 [:russia :fleet :rum :hold]]}
+    :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{}
+                              [:russia :fleet :rum :hold] #{}
+                              [:turkey :fleet :bla :attack :rum] #{[true [:russia :fleet :rum :hold] :destination-occupied]}
+                              [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{}}
     :explanation "The move of the Russian fleet is impossible. But the question is,  whether it is \"illegal\" (see issue 4.E.1). If the move is \"illegal\" it must be ignored and that makes the hold support of the army in Budapest valid and the fleet in Rumania will not be dislodged. <i>I prefer that the move is \"illegal\", which means that the fleet in the Black Sea does not dislodge the supported Russian fleet.</i>"}
+   ;; DECISION: Invalid orders are treated as holds that can be supported.
    "D29"
    {:long-name "6.D.29. MOVE TO IMPOSSIBLE COAST AND SUPPORT"
     :summary "Similar to the previous test case, but now the move can be \"illegal\" because of the wrong coast."
-    :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :rum :attack :bul-sc] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:russia :fleet :rum :attack :bul-sc] [#{:attacks-via-inaccessible-edge?}
+                                                                     [:russia :fleet :rum :hold]]}
+    :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{}
+                              [:russia :fleet :rum :hold] #{}
+                              [:turkey :fleet :bla :attack :rum] #{[true [:russia :fleet :rum :hold] :destination-occupied]}
+                              [:turkey :army :bul :support :turkey :fleet :bla :attack :rum] #{}}
     :explanation "Again the move of the Russian fleet is impossible. However, some people might correct the coast (see issue 4.B.3).  If the coast is not corrected, again the question is  whether it is \"illegal\" (see issue 4.E.1). If the move is \"illegal\" it must be ignored and that makes the hold support of the army in Budapest valid and the fleet in Rumania will not be dislodged. <i>I prefer that unambiguous orders are not changed and that the move is \"illegal\". That means that the fleet in the Black Sea does not dislodge the supported Russian fleet.</i>"}
+   ;; DECISION: Invalid orders are treated as holds that can be supported.
    "D30"
    {:long-name "6.D.30. MOVE WITHOUT COAST AND SUPPORT"
     :summary "Similar to the previous test case, but now the move can be \"illegal\" because of missing coast."
-    :resolution-results-abbr {[:italy :fleet :aeg :support :russia :fleet :con :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :con :attack :bul] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :bla :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :bul :support :turkey :fleet :bla :attack :con] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:russia :fleet :con :attack :bul] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+                                                                     [:russia :fleet :con :hold]]}
+    :resolution-results-abbr {[:italy :fleet :aeg :support :russia :fleet :con :hold] #{}
+                              [:russia :fleet :con :hold] #{}
+                              [:turkey :fleet :bla :attack :con] #{[true [:russia :fleet :con :hold] :destination-occupied]}
+                              [:turkey :army :bul :support :turkey :fleet :bla :attack :con] #{}}
     :explanation "Again the order to the Russian fleet is with problems, because it does not specify the coast, while both coasts of Bulgaria are possible. If no default coast is taken (see issue 4.B.1), then also here it must be decided whether the order is \"illegal\" (see issue 4.E.1). If the move is \"illegal\" it must be ignored and that makes the hold support of the fleet in the Aegean Sea valid and the Russian fleet will not be dislodged. <i>I don't like default coasts and I prefer that the move is \"illegal\". That means that the fleet in the Black Sea does not dislodge the supported Russian fleet.</i>"}
    "D31"
    {:long-name "6.D.31. A TRICKY IMPOSSIBLE SUPPORT"
