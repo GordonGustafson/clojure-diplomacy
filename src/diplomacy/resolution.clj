@@ -106,36 +106,37 @@
                     :destination to})))
 
 (defn supported-order-matcheso
-  "Relation where supporting `supported-order` would give support into
-  `supported-location` for `order` . This requires some logic because supporting
-  a hold can also indicate supporting a unit that's supporting or convoying."
-  [supported-order order supported-location]
+  "Relation where supporting `supported-order` would give support for `order` .
+  This requires some logic because supporting a hold can also indicate
+  supporting a unit that's supporting or convoying."
+  [supported-order order]
   (conde
    ;; pg 7: A unit ordered to move can only be supported by a support order that
    ;; matches the move the unit is trying to make.
-   [(fresh [attack-from]
+   [(fresh [attack-from attack-to]
       (featurec supported-order {:order-type :attack
                                  :location attack-from
-                                 :destination supported-location})
+                                 :destination attack-to})
       (featurec order {:order-type :attack
                        :location attack-from
-                       :destination supported-location}))]
+                       :destination attack-to}))]
    ;; pg 7: A unit not ordered to move can be supported by a support order that
    ;; only mentions its province.
-   [(featurec supported-order {:order-type :hold
-                               :location supported-location})
-    (conde
-     [(featurec order {:order-type :hold
-                       :location supported-location})]
-     [(featurec order {:order-type :support
-                       :location supported-location})]
-     [(featurec order {:order-type :convoy
-                       :location supported-location})])]))
+   [(fresh [supported-location]
+      (featurec supported-order {:order-type :hold
+                                 :location supported-location})
+      (conde
+       [(featurec order {:order-type :hold
+                         :location supported-location})]
+       [(featurec order {:order-type :support
+                         :location supported-location})]
+       [(featurec order {:order-type :convoy
+                         :location supported-location})]))]))
 
 (defn supporto
-  "Relation where `order` attempts to remain at `location` while supporting for
-  `supported-order` into `supported-location`."
-  [order location supported-order supported-location]
+  "Relation where `order` attempts to remain at `location` while supporting
+  `supported-order`."
+  [order location supported-order]
   (fresh [actual-order-supported]
     (raw-order order)
     (raw-order supported-order)
@@ -143,8 +144,7 @@
                      :location location
                      :assisted-order actual-order-supported})
     (supported-order-matcheso actual-order-supported
-                              supported-order
-                              supported-location)))
+                              supported-order)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                 Resolving Diplomacy Orders ;;
@@ -162,13 +162,17 @@
   other orders even if it was ignored for the purpose of dislodging a fellow
   unit."
   [support judgment]
-  (fresh [supporter-location supported-location
+  (fresh [supporter-location supported-order supported-attack-destination
           cutter rule support-cut?
           cutter-from cutter-to]
     (supporto support
               supporter-location
-              (lvar 'supported-order)
-              supported-location)
+              supported-order)
+    (conda
+     [(attacko supported-order
+               (lvar 'supported-attack-location)
+               supported-attack-destination)]
+     [(== supported-attack-destination :none)])
     (== judgment {:interferer cutter
                   :conflict-rule rule
                   :interfered? support-cut?})
@@ -182,11 +186,11 @@
       (== support-cut? false)]
      ;; pg 12: "Support is cut if the unit giving support is attacked from any
      ;; province except the one where support is being given."
-     [(!= cutter-from supported-location)
+     [(!= cutter-from supported-attack-destination)
       (== rule :attacked)
       (== support-cut? true)]
 
-     [(== cutter-from supported-location)
+     [(== cutter-from supported-attack-destination)
       (conda
        ;; pg 12: "Support is cut if the unit giving support is dislodged."
        ;;
@@ -234,8 +238,7 @@
   (set (run* [support]
          (supporto support
                    (lvar 'location)
-                   supported
-                   (lvar 'supported-location))
+                   supported)
          (support-succeedso support))))
 
 (defn ^:private conflict-situationo
