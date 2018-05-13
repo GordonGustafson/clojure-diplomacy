@@ -139,7 +139,9 @@
   [order location supported-order]
   (fresh [actual-order-supported]
     (raw-order order)
-    (raw-order supported-order)
+    ;; Don't require that `supported-order` was actually given. In our system
+    ;; the act and outcome of supporting has nothing to do with whether the
+    ;; supported order was given or not.
     (featurec order {:order-type :support
                      :location location
                      :assisted-order actual-order-supported})

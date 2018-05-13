@@ -487,11 +487,10 @@
    "D25"
    {:long-name "6.D.25. FAILING HOLD SUPPORT CAN BE SUPPORTED"
     :summary "If an adjudicator fails on one of the previous three test cases, then the bug should be removed with care. A failing move can not be supported, but a failing hold support, because of some preconditions (unmatching order) can still be supported."
-    ;; TODO: what happens when supported order isn't given?
-    :resolution-results-abbr {[:germany :army :ber :support :russia :army :pru :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:germany :army :ber :support :russia :army :pru :hold] #{[true [:russia :army :pru :attack :ber] :attacked]}
                               [:germany :fleet :kie :support :germany :army :ber :hold] #{}
                               [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{}
-                              [:russia :army :pru :attack :ber] #{[true [:germany :fleet :kie :support :germany :army :ber :hold] :destination-occupied]}}
+                              [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :support :russia :army :pru :hold] :destination-occupied]}}
     :explanation "Although the support of Berlin on Prussia fails (because of unmatching orders), the support of Kiel on Berlin is still valid. So, Berlin will not be dislodged."}
    "D26"
    {:long-name "6.D.26. FAILING MOVE SUPPORT CAN BE SUPPORTED"
