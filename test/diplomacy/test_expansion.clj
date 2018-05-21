@@ -35,7 +35,7 @@
 (s/def ::conflict-judgment-abbr
   (s/cat :interfered?   ::dt/interfered?
          :interferer    ::order-abbr
-         :conflict-rule ::dt/conflict-rule
+         :conflict-situation ::dt/conflict-situation
          :would-dislodge-own-unit?
          (s/? ::dt/would-dislodge-own-unit?)))
 (s/def ::resolution-results-abbr (s/map-of
@@ -181,13 +181,13 @@
             [expanded-order
              (set (map (fn [{interfered? 0
                              interferer 1
-                             rule 2
+                             situation 2
                              would-dislodge-own-unit? 3
                              ;; would-dislodge-own-unit? is optional in
                              ;; ::resolution-results-abbr.
                              :or {would-dislodge-own-unit? false}}]
                          (let [res {:interferer (apply expand-order interferer)
-                                    :conflict-rule rule
+                                    :conflict-situation situation
                                     :interfered? interfered?}]
                            (if (attack? expanded-order)
                              (assoc res :would-dislodge-own-unit?

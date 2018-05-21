@@ -113,7 +113,7 @@
 ;; A keyword describing the conflict situation between two units. Does not
 ;; consider whether the conflict is between units of the same country (see
 ;; `::would-dislodge-own-unit?`).
-(s/def ::conflict-rule
+(s/def ::conflict-situation
   #{;; Situations for attacks
     :destination-occupied
     :attacked-same-destination
@@ -135,11 +135,11 @@
 
 ;; Map describing the conflict that some order had with `:interferer`.
 ;; `:interfered?` is the outcome of that conflict (whether `:interfered?`
-;; counteracted the order), and `:conflict-rule` is the rule describing the
+;; counteracted the order), and `:conflict-situation` is the rule describing the
 ;; conflict situation.
 (s/def ::conflict-judgment
   (s/keys :req-un [::interferer
-                   ::conflict-rule
+                   ::conflict-situation
                    ::interfered?]
                    ;; TODO: separate attack and support judgments so this
                    ;; attack-specific field doesn't have to appear on all

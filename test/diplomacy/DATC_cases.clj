@@ -1229,7 +1229,7 @@
   ;; use `=` to compare the whole thing since attack place holders expand to a
   ;; map with a `:would-dislodge-own-unit` key but support placeholders do not.
   (not-any? (fn [resolution-result]
-              (some #(= (:conflict-rule %) :rule) resolution-result))
+              (some #(= (:conflict-situation %) :rule) resolution-result))
             (vals resolution-results)))
 
 ;; This includes cases that don't have resolution results assigned yet, but

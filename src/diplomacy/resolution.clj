@@ -165,7 +165,7 @@
   unit."
   [support judgment]
   (fresh [supporter-location supported-order supported-attack-destination
-          cutter rule support-cut?
+          cutter situation support-cut?
           cutter-from cutter-to]
     (supporto support
               supporter-location
@@ -176,7 +176,7 @@
                supported-attack-destination)]
      [(== supported-attack-destination :none)])
     (== judgment {:interferer cutter
-                  :conflict-rule rule
+                  :conflict-situation situation
                   :interfered? support-cut?})
     (attacko cutter cutter-from cutter-to)
     (colocated supporter-location cutter-to)
@@ -184,12 +184,12 @@
     (conda
      ;; pg 16: "An attack by a country one of its own units doesn't cut support."
      [(same-country support cutter)
-      (== rule :attacked-by-same-country)
+      (== situation :attacked-by-same-country)
       (== support-cut? false)]
      ;; pg 12: "Support is cut if the unit giving support is attacked from any
      ;; province except the one where support is being given."
      [(!= cutter-from supported-attack-destination)
-      (== rule :attacked)
+      (== situation :attacked)
       (== support-cut? true)]
 
      [(== cutter-from supported-attack-destination)
@@ -198,17 +198,17 @@
        ;;
        ;; Only evaluate this goal when it's outcome determines `support-cut?`.
        ;; We could evaluate it first in this relation to get different results
-       ;; for `rule`, but at the moment that causes a stackoverflow. If we want
-       ;; different `rule` to be reported, such as `:dislodged` when the
+       ;; for `situation`, but at the moment that causes a stackoverflow. If we want
+       ;; different `situation` to be reported, such as `:dislodged` when the
        ;; supporter is dislodged from *anywhere*, that can be computed after
        ;; we're done figuring out the actual results.
        ;;
        ;; TODO: make sure this doesn't cause termination issues.
        [(attack-advancedo cutter [])
-        (== rule :dislodged)
+        (== situation :dislodged)
         (== support-cut? true)]
 
-       [(== rule :attacked-from-supported-location-but-not-dislodged)
+       [(== situation :attacked-from-supported-location-but-not-dislodged)
         (== support-cut? false)])])))
 
 ;; Convenience wrapper around `support-judgmento`.
@@ -218,7 +218,7 @@
   (let [some-order-cut-us-goal
         (support-judgmento support
                            {:interferer (lvar 'cutter)
-                            :conflict-rule (lvar 'rule)
+                            :conflict-situation (lvar 'situation)
                             :interfered? true})]
     ;; `support` succeeds if *there does not exist an order that cuts it*.
     ;; Changing `true` to `false` in the call to `support-judgmento` gives a
@@ -251,9 +251,9 @@
     - attempts to move to the same destination as `attack`
     - attempts to switch places with `attack`
     - fails to leave `attack`'s destination
-  - `rule` is the most specific rule (represented as a keyword) that applies to
-    the conflict between `attack` and `bouncer`; it dictates how the conflict
-    will be resolved.
+  - `situation` is the most specific rule (represented as a keyword) that
+    applies to the conflict between `attack` and `bouncer`; it dictates how
+    the conflict will be resolved.
   - `attacks-assumed-successful` is a vector of attacks that will be assumed to
     successfully vacate their destinations for the purposes of identifying
     conflicts.
@@ -262,14 +262,14 @@
   ;; 'rotate' in a cycle (all move to the next unit's position). Without it,
   ;; each `conflict-situationo` goal in the cycle depends on whether the attack
   ;; leaving its destination succeeds, causing an infinite loop.
-  [attack bouncer rule attacks-assumed-successful]
+  [attack bouncer situation attacks-assumed-successful]
   (fresh [from to]
     (attacko attack from to)
     (conde
      [(fresh [bouncer-remain-loc]
         (remainso bouncer bouncer-remain-loc)
         (colocated to bouncer-remain-loc)
-        (== rule :destination-occupied))]
+        (== situation :destination-occupied))]
 
      [(fresh [bouncer-from bouncer-to]
         ;; make sure we don't bounce ourselves because we're attacking the
@@ -302,16 +302,16 @@
             ;; I don't think we should pass `attacks-assumed-successful` here
             ;; because this `attack-advanced` can do its job without our help.
             (attack-advancedo dislodger []))
-          (== rule :no-effect-on-dislodgers-province)]
+          (== situation :no-effect-on-dislodgers-province)]
          ;; Otherwise, this is a normal conflict.
-         [(== rule :attacked-same-destination)]))]
+         [(== situation :attacked-same-destination)]))]
 
      [(fresh [bouncer-from bouncer-to]
         (attacko bouncer bouncer-from bouncer-to)
         (colocated bouncer-from to)
         (colocated bouncer-to from)
         ;; TODO: use :swapped-places-with-convoy when appropriate.
-        (== rule :swapped-places-without-convoy))]
+        (== situation :swapped-places-without-convoy))]
 
      [(fresh [bouncer-from bouncer-to new-attacks-assumed-successful]
         (attacko bouncer bouncer-from bouncer-to)
@@ -325,10 +325,10 @@
         ;; Don't consider `bouncer` to be a potential bouncer if we were told
         ;; to assume it successfully vacated our destination, or if it did so
         ;; under the assumption that we successfully vacated our destination.
-        ;; We could unify `(== rule :successfully-left-destination)` instead
-        ;; of failing if we wanted to produce conflict-resolution rules for
+        ;; We could unify `(== situation :successfully-left-destination)` instead
+        ;; of failing if we wanted to produce conflict-resolution situations for
         ;; all orders that *attempted* to leave our destination, but only
-        ;; producing rules for those that *fail* to leave our destination
+        ;; producing situations for those that *fail* to leave our destination
         ;; reduces noise (it's a no-conflict situation that's easy to
         ;; identify and resolve, so it's not worth having the rules engine
         ;; explain what happened).
@@ -337,26 +337,26 @@
                                    new-attacks-assumed-successful))
         ;; If the `fail-if` goals didn't fail, `bouncer` must have failed to
         ;; leave our destination.
-        (== rule :failed-to-leave-destination))])))
+        (== situation :failed-to-leave-destination))])))
 
 (defn bounced-by-strength-in-situation
   "Function that returns whether `bouncer` has enough support to bounce `attack`
-  where the conflict between them was due to `rule`.
+  where the conflict between them was due to `situation`.
 
   Does *not* consider that `attack` will be unwilling to dislodge `bouncer` if
   the units are from the same country. This means that `bouncer` may still
   'bounce' `attack` (because `attack` is unwilling to dislodge) even if this
   function returns false.
 
-  Providing the wrong `rule` will give bogus results."
-  [attack bouncer rule]
+  Providing the wrong `situation` will give bogus results."
+  [attack bouncer situation]
   (let [attack-supporters (successful-supporters attack)
         bouncer-supporters (successful-supporters bouncer)
         attack-supporters-willing-to-dislodge
         (filter (fn [attack-supporter] (not= (:country attack-supporter)
                                              (:country bouncer)))
                 attack-supporters)]
-    (condp contains? rule
+    (condp contains? situation
       #{:attacked-same-destination}
       ;; In a direct conflict where `attack` *would not* dislodge `bouncer`,
       ;; `attack` draws support from any country.
@@ -382,7 +382,7 @@
       ;; province, `bouncer` can't bounce `attack`.
       false
 
-      (assert false (str "Unknown rule: " rule)))))
+      (assert false (str "Unknown situation: " situation)))))
 
 ;; This relation links the relational code in `conflict-situationo` with the
 ;; functional code in `bounced-by-strength-in-situation`, and contains the logic
@@ -393,18 +393,18 @@
   successfully vacate their destinations for the purposes of identifying
   conflicts."
   [attack judgment attacks-assumed-successful]
-  (fresh [bouncer rule bounced-by-bouncer? would-dislodge-own-unit?]
+  (fresh [bouncer situation bounced-by-bouncer? would-dislodge-own-unit?]
     (== judgment {:interferer bouncer
-                  :conflict-rule rule
+                  :conflict-situation situation
                   :interfered? bounced-by-bouncer?
                   :would-dislodge-own-unit? would-dislodge-own-unit?})
-    (conflict-situationo attack bouncer rule
+    (conflict-situationo attack bouncer situation
                          attacks-assumed-successful)
     (conda
      [(multi-pred bounced-by-strength-in-situation
                   attack
                   bouncer
-                  rule)
+                  situation)
       (== bounced-by-bouncer? true)
       (== would-dislodge-own-unit? false)]
      [(conda
@@ -437,7 +437,7 @@
   (let [some-order-bounced-us-goal
         (attack-judgmento attack
                           {:interferer (lvar 'bouncer)
-                           :conflict-rule (lvar 'rule)
+                           :conflict-situation (lvar 'situation)
                            :interfered? true
                            :would-dislodge-own-unit?
                            (lvar 'would-dislodge-own-unit?)}
@@ -460,7 +460,7 @@
 (defn compute-resolution-results
   "A map from each element of `orders` to the set of judgments that apply to it
   (the orders that may interfere with it, whether they successfully interfered,
-  and the rule that determined that result)."
+  and the situation that determined that result)."
   [orders diplomacy-map]
   (let [raw-order-vectors (map (fn [order] [raw-order order]) orders)
         colocation-vecs (->> diplomacy-map
