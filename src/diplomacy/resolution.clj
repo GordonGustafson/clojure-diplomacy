@@ -260,8 +260,8 @@
   "
   ;; `attacks-assumed-successful` is necessary to allow three or more units to
   ;; 'rotate' in a cycle (all move to the next unit's position). Without it,
-  ;; each `determining-rule-for-conflicto` goal in the cycle depends on whether
-  ;; the attack leaving its destination succeeds, causing an infinite loop.
+  ;; each `conflict-situationo` goal in the cycle depends on whether the attack
+  ;; leaving its destination succeeds, causing an infinite loop.
   [attack bouncer rule attacks-assumed-successful]
   (fresh [from to]
     (attacko attack from to)
