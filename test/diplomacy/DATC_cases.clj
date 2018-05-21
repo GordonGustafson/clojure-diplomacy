@@ -543,37 +543,43 @@
                               [:turkey :fleet :bla :attack :con] #{[true [:russia :fleet :con :hold] :destination-occupied]}
                               [:turkey :army :bul :support :turkey :fleet :bla :attack :con] #{}}
     :explanation "Again the order to the Russian fleet is with problems, because it does not specify the coast, while both coasts of Bulgaria are possible. If no default coast is taken (see issue 4.B.1), then also here it must be decided whether the order is \"illegal\" (see issue 4.E.1). If the move is \"illegal\" it must be ignored and that makes the hold support of the fleet in the Aegean Sea valid and the Russian fleet will not be dislodged. <i>I don't like default coasts and I prefer that the move is \"illegal\". That means that the fleet in the Black Sea does not dislodge the supported Russian fleet.</i>"}
-   "D31"
-   {:long-name "6.D.31. A TRICKY IMPOSSIBLE SUPPORT"
-    :summary "A support order can be impossible for complex reasons."
-    :resolution-results-abbr {[:austria :army :rum :attack :arm] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :bla :support :austria :army :rum :attack :arm] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-    :explanation "Although the army in Rumania can move to Armenia and the fleet in the Black Sea can also go to Armenia, the support is still not possible. The reason is that the only possible convoy is through the Black Sea and a fleet can not convoy and support at the same time. This is relevant for computer programs that show only the possible orders. In the list of possible orders, the support as given to the fleet in the Black Sea, should not be listed. Furthermore, if the fleet in the Black Sea gets a second order, then this may fail, because of double orders (although it can also be ruled differently, see issue 4.D.3). However, when the support order is considered \"illegal\" (see issue 4.E.1), then this impossible support must be ignored and the second order must be carried out. <i>I prefer that impossible orders are \"illegal\" and ignored. If there would be a second order for the fleet in the Black Sea, that order should be carried out.</i>"}
-   "D32"
-   {:long-name "6.D.32. A MISSING FLEET"
-    :summary "The previous test cases contained an order that was impossible even when some other pieces on the board where changed. In this  test case, the order is impossible, but only for that situation."
-    :resolution-results-abbr {[:england :fleet :edi :support :england :army :lvp :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :army :lvp :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :lon :support :germany :army :yor :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :yor :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-    :explanation "The German order to Yorkshire can not be executed, because there is no fleet in the North Sea. In other situations (where there is a fleet in the North Sea), the exact same order would be possible. It should be determined whether this is \"illegal\"  (see issue 4.E.1) or not. If it is illegal, then the order should be ignored and the support of the French fleet in London succeeds. This means that the army in Yorkshire is not dislodged. <i>I prefer that impossible orders, even if it is only impossible for the current situation, are \"illegal\" and ignored. The army in Yorkshire is not dislodged.</i>"}
+   ;; commented out because it depends on convoy semantics
+   ;; "D31"
+   ;; {:long-name "6.D.31. A TRICKY IMPOSSIBLE SUPPORT"
+   ;;  :summary "A support order can be impossible for complex reasons."
+   ;;  :resolution-results-abbr {[:austria :army :rum :attack :arm] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:turkey :fleet :bla :support :austria :army :rum :attack :arm] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+   ;;  :explanation "Although the army in Rumania can move to Armenia and the fleet in the Black Sea can also go to Armenia, the support is still not possible. The reason is that the only possible convoy is through the Black Sea and a fleet can not convoy and support at the same time. This is relevant for computer programs that show only the possible orders. In the list of possible orders, the support as given to the fleet in the Black Sea, should not be listed. Furthermore, if the fleet in the Black Sea gets a second order, then this may fail, because of double orders (although it can also be ruled differently, see issue 4.D.3). However, when the support order is considered \"illegal\" (see issue 4.E.1), then this impossible support must be ignored and the second order must be carried out. <i>I prefer that impossible orders are \"illegal\" and ignored. If there would be a second order for the fleet in the Black Sea, that order should be carried out.</i>"}
+   ;; commented out because it depends on convoy semantics
+   ;; "D32"
+   ;; {:long-name "6.D.32. A MISSING FLEET"
+   ;;  :summary "The previous test cases contained an order that was impossible even when some other pieces on the board where changed. In this  test case, the order is impossible, but only for that situation."
+   ;;  :resolution-results-abbr {[:england :fleet :edi :support :england :army :lvp :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:england :army :lvp :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:france :fleet :lon :support :germany :army :yor :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
+   ;;                            [:germany :army :yor :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+   ;;  :explanation "The German order to Yorkshire can not be executed, because there is no fleet in the North Sea. In other situations (where there is a fleet in the North Sea), the exact same order would be possible. It should be determined whether this is \"illegal\"  (see issue 4.E.1) or not. If it is illegal, then the order should be ignored and the support of the French fleet in London succeeds. This means that the army in Yorkshire is not dislodged. <i>I prefer that impossible orders, even if it is only impossible for the current situation, are \"illegal\" and ignored. The army in Yorkshire is not dislodged.</i>"}
    "D33"
    {:long-name "6.D.33. UNWANTED SUPPORT ALLOWED"
     :summary "A self stand-off can be broken by an unwanted support."
-    :resolution-results-abbr {[:austria :army :ser :attack :bud] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :vie :attack :bud] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :gal :support :austria :army :ser :attack :bud] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :bul :attack :ser] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:austria :army :ser :attack :bud] #{[false [:austria :army :vie :attack :bud] :attacked-same-destination]}
+                              [:austria :army :vie :attack :bud] #{[true [:austria :army :ser :attack :bud] :attacked-same-destination]}
+                              [:russia :army :gal :support :austria :army :ser :attack :bud] #{}
+                              [:turkey :army :bul :attack :ser] #{}}
     :explanation "Due to the Russian support, the army in Serbia advances to Budapest. This enables Turkey to capture Serbia with the army in Bulgaria."}
    "D34"
    {:long-name "6.D.34. SUPPORT TARGETING OWN AREA NOT ALLOWED"
     :summary "Support targeting the area where the supporting unit is standing, is illegal."
-    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :sil :support :germany :army :ber :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :bal :support :germany :army :ber :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :army :pru :support :russia :army :lvn :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :war :support :russia :army :lvn :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :lvn :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:italy :army :pru :support :russia :army :lvn :attack :pru] [#{:supports-unsupportable-location?}
+                                                                                            [:italy :army :pru :hold]]}
+    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[false [:russia :army :lvn :attack :pru] :attacked-same-destination]
+                                                                   [false [:italy :army :pru :hold] :destination-occupied]}
+                              [:germany :army :sil :support :germany :army :ber :attack :pru] #{}
+                              [:germany :fleet :bal :support :germany :army :ber :attack :pru] #{}
+                              [:italy :army :pru :hold] #{}
+                              [:russia :army :war :support :russia :army :lvn :attack :pru] #{}
+                              [:russia :army :lvn :attack :pru] #{[true [:germany :army :ber :attack :pru] :attacked-same-destination]
+                                                                  [false [:italy :army :pru :hold] :destination-occupied]}}
     :explanation "Russia and Italy wanted to get rid of the Italian army in Prussia (to build an Italian fleet somewhere else). However, they didn't want a possible German attack on Prussia to succeed. They invented this odd order of Italy. It was intended that the attack of the army in Livonia would have strength three, so it would be capable to prevent the possible German attack to succeed. However, the order of Italy is illegal, because a unit may only support to an area where the unit can go by itself. A unit can't go to the area it is already standing, so the Italian order is illegal and the German move from Berlin succeeds. Even if it would be legal, the German move from Berlin would still succeed, because the support of Prussia is cut by Livonia and Berlin."}
    "E1"
    {:long-name "6.E.1. DISLODGED UNIT HAS NO EFFECT ON ATTACKERS AREA"
@@ -587,56 +593,70 @@
    "E2"
    {:long-name "6.E.2. NO SELF DISLODGEMENT IN HEAD TO HEAD BATTLE"
     :summary "Self dislodgement is not allowed. This also counts for head to head battles."
-    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :mun :support :germany :army :ber :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    ;; `:would-dislodge-own-unit?` is false here because the supporting army is
+    ;; unwilling to have its support used for dislodging the friendly Fleet.
+    ;; TODO: Make this less confusing?
+    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[true [:germany :fleet :kie :attack :ber] :swapped-places-without-convoy]}
+                              [:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places-without-convoy]}
+                              [:germany :army :mun :support :germany :army :ber :attack :kie] #{}}
     :explanation "No unit will move."}
    "E3"
    {:long-name "6.E.3. NO HELP IN DISLODGING OWN UNIT"
     :summary "To help a foreign power to dislodge own unit in head to head battle is not possible."
-    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :mun :support :england :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[true [:england :fleet :kie :attack :ber] :swapped-places-without-convoy]}
+                              [:germany :army :mun :support :england :fleet :kie :attack :ber] #{}
+                              [:england :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places-without-convoy]}}
     :explanation "No unit will move."}
    "E4"
    {:long-name "6.E.4. NON-DISLODGED LOSER HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is not dislodged, it has still effect on the area of the attacker."
-    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :ska :support :germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :nth :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :edi :support :england :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :yor :support :england :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :kie :support :austria :army :ruh :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :ruh :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[true [:england :fleet :nrg :attack :nth] :attacked-same-destination]
+                                                                    [false [:france :fleet :nth :attack :hol] :swapped-places-without-convoy]}
+                              [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{}
+                              [:germany :fleet :ska :support :germany :fleet :hol :attack :nth] #{}
+                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places-without-convoy]
+                                                                   [true [:austria :army :ruh :attack :hol] :attacked-same-destination]}
+                              [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{}
+                              [:england :fleet :edi :support :england :fleet :nrg :attack :nth] #{}
+                              [:england :fleet :yor :support :england :fleet :nrg :attack :nth] #{}
+                              [:england :fleet :nrg :attack :nth] #{[true [:germany :fleet :hol :attack :nth] :attacked-same-destination]
+                                                                    [false [:france :fleet :nth :attack :hol] :failed-to-leave-destination]}
+                              [:austria :army :kie :support :austria :army :ruh :attack :hol] #{}
+                              [:austria :army :ruh :attack :hol] #{[true [:france :fleet :nth :attack :hol] :attacked-same-destination]
+                                                                   [false [:germany :fleet :hol :attack :nth] :failed-to-leave-destination]}}
     :explanation "The French fleet in the North Sea is not dislodged due to the beleaguered garrison. Therefore, the Austrian army in Ruhr will not move to Holland."}
    "E5"
    {:long-name "6.E.5. LOSER DISLODGED BY ANOTHER ARMY HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is dislodged by a unit not part of the head to head battle, the loser has still effect on the place of the winner of the head to head battle."
-    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :ska :support :germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :nth :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :edi :support :england :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :yor :support :england :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :lon :support :england :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :kie :support :austria :army :ruh :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :ruh :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[true [:england :fleet :nrg :attack :nth] :attacked-same-destination]
+                                                                    [false [:france :fleet :nth :attack :hol] :swapped-places-without-convoy]}
+                              [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{}
+                              [:germany :fleet :ska :support :germany :fleet :hol :attack :nth] #{}
+                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places-without-convoy]
+                                                                   [true [:austria :army :ruh :attack :hol] :attacked-same-destination]}
+                              [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{}
+                              [:england :fleet :edi :support :england :fleet :nrg :attack :nth] #{}
+                              [:england :fleet :yor :support :england :fleet :nrg :attack :nth] #{}
+                              [:england :fleet :nrg :attack :nth] #{[false [:germany :fleet :hol :attack :nth] :attacked-same-destination]
+                                                                    [false [:france :fleet :nth :attack :hol] :failed-to-leave-destination]}
+                              [:england :fleet :lon :support :england :fleet :nrg :attack :nth] #{}
+                              [:austria :army :kie :support :austria :army :ruh :attack :hol] #{}
+                              [:austria :army :ruh :attack :hol] #{[true [:france :fleet :nth :attack :hol] :attacked-same-destination]
+                                                                   [false [:germany :fleet :hol :attack :nth] :failed-to-leave-destination]}}
+
     :explanation "The French fleet in the North Sea is dislodged but not by the German fleet in Holland. Therefore, the French fleet can still prevent that the Austrian army in Ruhr will move to Holland. So, the Austrian move in Ruhr fails and the German fleet in Holland is not dislodged."}
    "E6"
    {:long-name "6.E.6. NOT DISLODGE BECAUSE OF OWN SUPPORT HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is not dislodged because the winner had help of a unit of the loser, the loser has still effect on the area of the winner."
-    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :nth :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :eng :support :germany :fleet :hol :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :kie :support :austria :army :ruh :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :ruh :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[true [:france :fleet :nth :attack :hol] :swapped-places-without-convoy]}
+                              [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{}
+                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places-without-convoy]
+                                                                   [true [:austria :army :ruh :attack :hol] :attacked-same-destination]}
+                              [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{}
+                              [:france :fleet :eng :support :germany :fleet :hol :attack :nth] #{}
+                              [:austria :army :kie :support :austria :army :ruh :attack :hol] #{}
+                              [:austria :army :ruh :attack :hol] #{[true [:france :fleet :nth :attack :hol] :attacked-same-destination]
+                                                                   [false [:germany :fleet :hol :attack :nth] :failed-to-leave-destination]}}
     :explanation "Although the German force from Holland to North Sea is one larger than the French force from North Sea to Holland, the French fleet in the North Sea is not dislodged, because one of the supports on the German movement is French. Therefore, the Austrian army in Ruhr will not move to Holland."}
    "E7"
    {:long-name "6.E.7. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
