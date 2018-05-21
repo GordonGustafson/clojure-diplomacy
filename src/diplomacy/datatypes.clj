@@ -91,7 +91,8 @@
     :uses-nonexistent-location?
     :attacks-inaccessible-location?
     :attacks-via-inaccessible-edge?
-    :supports-unsupportable-location?})
+    :supports-unsupportable-location?
+    :ordered-unit-does-not-exist?})
 (s/def ::validation-failure-reasons (s/coll-of ::validation-failure-reason))
 (s/def ::order-given ::order)
 ;; `nil` if no order should be used to in place of the invalid order.
