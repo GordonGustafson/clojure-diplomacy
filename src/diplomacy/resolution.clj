@@ -339,14 +339,14 @@
         ;; leave our destination.
         (== rule :failed-to-leave-destination))])))
 
-(defn bouncer-too-strong-to-advance-based-on-rule
-  "Function that returns whether `bouncer` would have enough support to bounce
-  `attack` *if `bouncer` and `attack` were orders by different countries*, where
-  the conflict between them was due to `rule`.
+(defn bounced-by-strength-in-situation
+  "Function that returns whether `bouncer` has enough support to bounce `attack`
+  where the conflict between them was due to `rule`.
 
-  This function will return false if `attack` is a well-supported attack and
-  `bouncer` is a supportless hold, even if `attack` *will* be bounced by
-  `bouncer` because the units are from the same country.
+  Does *not* consider that `attack` will be unwilling to dislodge `bouncer` if
+  the units are from the same country. This means that `bouncer` may still
+  'bounce' `attack` (because `attack` is unwilling to dislodge) even if this
+  function returns false.
 
   Providing the wrong `rule` will give bogus results."
   [attack bouncer rule]
@@ -385,8 +385,8 @@
       (assert false (str "Unknown rule: " rule)))))
 
 ;; This relation links the relational code in `conflict-situationo` with the
-;; functional code in `bouncer-too-strong-to-advance-based-on-rule`, and
-;; contains the logic that disallows countries from dislodging their own units.
+;; functional code in `bounced-by-strength-in-situation`, and contains the logic
+;; that disallows countries from dislodging their own units.
 (defn attack-judgmento
   "Relation where `judgment` is the judgment for `attack`, and
   `attacks-assumed-successful` is a vector of attacks that will be assumed to
@@ -401,7 +401,7 @@
     (conflict-situationo attack bouncer rule
                          attacks-assumed-successful)
     (conda
-     [(multi-pred bouncer-too-strong-to-advance-based-on-rule
+     [(multi-pred bounced-by-strength-in-situation
                   attack
                   bouncer
                   rule)
