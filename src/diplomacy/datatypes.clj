@@ -113,18 +113,34 @@
 ;; A keyword describing the conflict situation between two units. Does not
 ;; consider whether the conflict is between units of the same country (see
 ;; `::would-dislodge-own-unit?`).
-(s/def ::conflict-situation
-  #{;; Situations for attacks
-    :destination-occupied
+(s/def ::attack-conflict-rule
+  #{:destination-occupied
     :attacked-same-destination
     :swapped-places-without-convoy
     :failed-to-leave-destination
-    :no-effect-on-dislodgers-province
-    ;; Situations for supports
-    :attacked
+    :no-effect-on-dislodgers-province})
+(s/def ::beleaguered-garrison (s/nilable ::order))
+(s/def ::attack-conflict-situation
+  (s/and
+   (s/keys :req-un [::attack-conflict-rule
+                    ::beleaguered-garrison])
+   ;; `:attacked-same-destination` conflicts will have non-`nil`
+   ;; `:beleaguered-garrison` key if there is a unit occupying or failing to
+   ;; leave the location of conflict.
+   #(if (nil? (:beleaguered-garrison %))
+      true
+      (= (:attack-conflict-rule %) :attacked-same-destination))))
+
+(s/def ::support-conflict-rule
+  #{:attacked
     :attacked-from-supported-location-but-not-dislodged
     :dislodged
     :attacked-by-same-country})
+(s/def ::support-conflict-situation ::support-conflict-rule)
+
+(s/def ::conflict-situation
+  (s/or :attack-sit ::attack-conflict-situation
+        :support-sit ::support-conflict-situation))
 
 ;; Whether the fact that the attack would have dislodge a unit of its own
 ;; country caused the it to fail when it would have otherwise succeeded.

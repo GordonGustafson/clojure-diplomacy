@@ -32,6 +32,10 @@
                         :order-used ::order-abbr)))
 (s/def ::validation-results-abbr (s/map-of ::order-abbr ::validation-result-abbr))
 
+(s/def ::conflict-situation-abbr
+  (s/or :support-rule ::dt/support-conflict-rule
+        :attack-rule ::dt/attack-conflict-rule
+        :attack-abbr (s/tuple ::dt/attack-conflict-rule ::order-abbr)))
 (s/def ::conflict-judgment-abbr
   (s/cat :interfered?   ::dt/interfered?
          :interferer    ::order-abbr
@@ -168,6 +172,21 @@
                    (expand-validation-result raw-validation-result)])
                 order-abbr-to-raw-validation-result)))
 
+(defn-spec expand-conflict-situation
+  [::conflict-situation-abbr] ::dt/conflict-situation)
+(defn expand-conflict-situation
+  [raw-conflict-situation]
+  (cond
+    (s/valid? ::dt/support-conflict-rule raw-conflict-situation)
+    raw-conflict-situation
+    (s/valid? ::dt/attack-conflict-rule raw-conflict-situation)
+    {:attack-conflict-rule raw-conflict-situation
+     :beleaguered-garrison nil}
+    (vector? raw-conflict-situation)
+    (let [[rule beleaguered-garrison-abbr] raw-conflict-situation]
+      {:attack-conflict-rule rule
+       :beleaguered-garrison (apply expand-order beleaguered-garrison-abbr)})))
+
 (defn-spec expand-resolution-results
   [::resolution-results-abbr] ::dt/resolution-results)
 (defn expand-resolution-results
@@ -181,13 +200,14 @@
             [expanded-order
              (set (map (fn [{interfered? 0
                              interferer 1
-                             situation 2
+                             situation-abbr 2
                              would-dislodge-own-unit? 3
                              ;; would-dislodge-own-unit? is optional in
                              ;; ::resolution-results-abbr.
                              :or {would-dislodge-own-unit? false}}]
                          (let [res {:interferer (apply expand-order interferer)
-                                    :conflict-situation situation
+                                    :conflict-situation
+                                    (expand-conflict-situation situation-abbr)
                                     :interfered? interfered?}]
                            (if (attack? expanded-order)
                              (assoc res :would-dislodge-own-unit?

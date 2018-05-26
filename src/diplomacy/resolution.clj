@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [==])
   (:use [clojure.core.logic])
   (:require [clojure.core.logic.pldb :as pldb]
+            [diplomacy.orders :as orders]
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]
             [clojure.set]
@@ -79,7 +80,7 @@
       (membero location-a common-colocation-vec)
       (membero location-b common-colocation-vec))]))
 
-(defn same-country
+(defn same-countryo
   "Relation where `order-a` and `order-b` are given by the same country."
   [order-a order-b]
   (fresh [country]
@@ -183,7 +184,7 @@
 
     (conda
      ;; pg 16: "An attack by a country one of its own units doesn't cut support."
-     [(same-country support cutter)
+     [(same-countryo support cutter)
       (== situation :attacked-by-same-country)
       (== support-cut? false)]
      ;; pg 12: "Support is cut if the unit giving support is attacked from any
@@ -263,13 +264,16 @@
   ;; each `conflict-situationo` goal in the cycle depends on whether the attack
   ;; leaving its destination succeeds, causing an infinite loop.
   [attack bouncer situation attacks-assumed-successful]
-  (fresh [from to]
+  (fresh [from to rule beleaguered-garrison]
     (attacko attack from to)
+    (== situation {:attack-conflict-rule rule
+                   :beleaguered-garrison beleaguered-garrison})
     (conde
      [(fresh [bouncer-remain-loc]
         (remainso bouncer bouncer-remain-loc)
         (colocated to bouncer-remain-loc)
-        (== situation :destination-occupied))]
+        (== rule :destination-occupied)
+        (== beleaguered-garrison nil))]
 
      [(fresh [bouncer-from bouncer-to]
         ;; make sure we don't bounce ourselves because we're attacking the
@@ -294,24 +298,24 @@
             (attacko dislodger dislodger-from dislodger-to)
             (colocated dislodger-from bouncer-to)
             (colocated dislodger-to bouncer-from)
-
-            #_(conflict-situationo bouncer dislodger
-                                   :swapped-places-without-convoy
-                                        ; Don't need to pass anything here?
-                                   [])
             ;; I don't think we should pass `attacks-assumed-successful` here
             ;; because this `attack-advanced` can do its job without our help.
             (attack-advancedo dislodger []))
-          (== situation :no-effect-on-dislodgers-province)]
+          (== rule :no-effect-on-dislodgers-province)
+          (== beleaguered-garrison nil)]
          ;; Otherwise, this is a normal conflict.
-         [(== situation :attacked-same-destination)]))]
+         [(== rule :attacked-same-destination)
+          (conda
+           [(remainso beleaguered-garrison to)]
+           [(== beleaguered-garrison nil)])]))]
 
      [(fresh [bouncer-from bouncer-to]
         (attacko bouncer bouncer-from bouncer-to)
         (colocated bouncer-from to)
         (colocated bouncer-to from)
         ;; TODO: use :swapped-places-with-convoy when appropriate.
-        (== situation :swapped-places-without-convoy))]
+        (== rule :swapped-places-without-convoy)
+        (== beleaguered-garrison nil))]
 
      [(fresh [bouncer-from bouncer-to new-attacks-assumed-successful]
         (attacko bouncer bouncer-from bouncer-to)
@@ -337,37 +341,51 @@
                                    new-attacks-assumed-successful))
         ;; If the `fail-if` goals didn't fail, `bouncer` must have failed to
         ;; leave our destination.
-        (== situation :failed-to-leave-destination))])))
+        (== rule :failed-to-leave-destination)
+        (== beleaguered-garrison nil))])))
+
+(defn-spec num-willing-to-dislodge [::dt/orders ::dt/order] integer?
+  #(every? orders/support? (-> % :args :arg-1)))
+(defn num-willing-to-dislodge
+  "Function that returns the number of supporters in `supporters` willing to
+  dislodge `potentially-dislodged-order`.
+  PRECONDITION: every order in `supporters` is a support order."
+  [supporters potentially-dislodged-order]
+  (count (filter #(not= (:country %)
+                        (:country potentially-dislodged-order))
+                 supporters)))
 
 (defn bounced-by-strength-in-situation
   "Function that returns whether `bouncer` has enough support to bounce `attack`
   where the conflict between them was due to `situation`.
 
-  Does *not* consider that `attack` will be unwilling to dislodge `bouncer` if
+  *Does not* consider that `attack` will be unwilling to dislodge `bouncer` if
   the units are from the same country. This means that `bouncer` may still
   'bounce' `attack` (because `attack` is unwilling to dislodge) even if this
   function returns false.
+
+  *Does* consider that supports are unwilling to cause units from the same
+  country to be dislodged. In *each* conflict, a supporting unit will 'choose'
+  to not provide the support it was ordered to give if by doing so it will
+  prevent a unit from the same country from being dislodged. That decision is
+  made *per conflict*, so a supporting unit may have its support counted in some
+  conflicts but not in others.
 
   Providing the wrong `situation` will give bogus results."
   [attack bouncer situation]
   (let [attack-supporters (successful-supporters attack)
         bouncer-supporters (successful-supporters bouncer)
-        attack-supporters-willing-to-dislodge
-        (filter (fn [attack-supporter] (not= (:country attack-supporter)
-                                             (:country bouncer)))
-                attack-supporters)]
-    (condp contains? situation
+        {:keys [attack-conflict-rule beleaguered-garrison]} situation]
+    (condp contains? attack-conflict-rule
       #{:attacked-same-destination}
-      ;; In a direct conflict where `attack` *would not* dislodge `bouncer`,
-      ;; `attack` draws support from any country.
-      (<= (count attack-supporters)
+      (<= (if (nil? beleaguered-garrison)
+            (count attack-supporters)
+            (num-willing-to-dislodge attack-supporters beleaguered-garrison))
           (count bouncer-supporters))
 
       #{:swapped-places-without-convoy
         :destination-occupied}
-      ;; In a direct conflict where `attack` *would* dislodge bouncer, `attack`
-      ;; does not draw support from the country of `bouncer`.
-      (<= (count attack-supporters-willing-to-dislodge)
+      (<= (num-willing-to-dislodge attack-supporters bouncer)
           (count bouncer-supporters))
 
       #{:failed-to-leave-destination}
@@ -375,11 +393,11 @@
       ;; support doesn't help it maintain its original position. `bouncer` will
       ;; only bounce `attack` if `attack` draws no support willing to dislodge
       ;; `bouncer`.
-      (empty? attack-supporters-willing-to-dislodge)
+      (zero? (num-willing-to-dislodge attack-supporters bouncer))
 
       #{:no-effect-on-dislodgers-province}
-      ;; If `bouncer` was dislodged and `attack` moves to the dislodger's
-      ;; province, `bouncer` can't bounce `attack`.
+      ;; If `attack` is 'following' the attack that dislodged `bouncer`,
+      ;; `bouncer` can't bounce `attack`.
       false
 
       (assert false (str "Unknown situation: " situation)))))
@@ -409,7 +427,7 @@
       (== would-dislodge-own-unit? false)]
      [(conda
        [(fresh [attack-to bouncer-location]
-          (same-country attack bouncer)
+          (same-countryo attack bouncer)
           (featurec attack {:destination attack-to})
           (featurec bouncer {:location bouncer-location})
           (colocated attack-to bouncer-location)
