@@ -181,11 +181,12 @@
     raw-conflict-situation
     (s/valid? ::dt/attack-conflict-rule raw-conflict-situation)
     {:attack-conflict-rule raw-conflict-situation
-     :beleaguered-garrison nil}
+     :beleaguered-garrison-changing-outcome nil}
     (vector? raw-conflict-situation)
     (let [[rule beleaguered-garrison-abbr] raw-conflict-situation]
       {:attack-conflict-rule rule
-       :beleaguered-garrison (apply expand-order beleaguered-garrison-abbr)})))
+       :beleaguered-garrison-changing-outcome
+       (apply expand-order beleaguered-garrison-abbr)})))
 
 (defn-spec expand-resolution-results
   [::resolution-results-abbr] ::dt/resolution-results)

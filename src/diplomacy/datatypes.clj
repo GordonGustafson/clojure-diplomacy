@@ -119,15 +119,15 @@
     :swapped-places-without-convoy
     :failed-to-leave-destination
     :no-effect-on-dislodgers-province})
-(s/def ::beleaguered-garrison (s/nilable ::order))
+;; Beleaguered garrison that changed the outcome of one of the attacks on its
+;; location due to one or more supporting orders of that attack being unwilling
+;; to dislodge the beleaguered garrison (since they're from the same country).
+(s/def ::beleaguered-garrison-changing-outcome (s/nilable ::order))
 (s/def ::attack-conflict-situation
   (s/and
    (s/keys :req-un [::attack-conflict-rule
-                    ::beleaguered-garrison])
-   ;; `:attacked-same-destination` conflicts will have non-`nil`
-   ;; `:beleaguered-garrison` key if there is a unit occupying or failing to
-   ;; leave the location of conflict.
-   #(if (nil? (:beleaguered-garrison %))
+                    ::beleaguered-garrison-changing-outcome])
+   #(if (nil? (:beleaguered-garrison-changing-outcome %))
       true
       (= (:attack-conflict-rule %) :attacked-same-destination))))
 

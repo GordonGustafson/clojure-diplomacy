@@ -244,6 +244,8 @@
                    supported)
          (support-succeedso support))))
 
+(declare depends-on-whether-beleaguered-garrison-leaves)
+
 (defn ^:private conflict-situationo
   "Relation where:
   - `attack` is an attack whose outcome we would like to evaluate.
@@ -267,7 +269,7 @@
   (fresh [from to rule beleaguered-garrison]
     (attacko attack from to)
     (== situation {:attack-conflict-rule rule
-                   :beleaguered-garrison beleaguered-garrison})
+                   :beleaguered-garrison-changing-outcome beleaguered-garrison})
     (conde
      [(fresh [bouncer-remain-loc]
         (remainso bouncer bouncer-remain-loc)
@@ -306,7 +308,23 @@
          ;; Otherwise, this is a normal conflict.
          [(== rule :attacked-same-destination)
           (conda
-           [(remainso beleaguered-garrison to)]
+           [(conde
+             [(remainso beleaguered-garrison to)
+              (multi-pred depends-on-whether-beleaguered-garrison-leaves
+                          attack bouncer beleaguered-garrison)]
+             [(attacko beleaguered-garrison to (lvar 'beleaguered-to))
+              (multi-pred depends-on-whether-beleaguered-garrison-leaves
+                          attack bouncer beleaguered-garrison)
+              ;; Don't call `attack-advancedo` unless it's guaranteed to
+              ;; affect the outcome. This helps avoid non-termination issues.
+              ;;
+              ;; TODO: THINK HARD ABOUT THESE
+              ;; (conso attack attacks-assumed-successful
+              ;;        new-attacks-assumed-successful)
+              ;; (fail-if (membero beleaguered-garrison
+              ;;                   attacks-assumed-successful))
+              (fail-if (attack-advancedo beleaguered-garrison
+                                         attacks-assumed-successful))])]
            [(== beleaguered-garrison nil)])]))]
 
      [(fresh [bouncer-from bouncer-to]
@@ -375,7 +393,8 @@
   [attack bouncer situation]
   (let [attack-supporters (successful-supporters attack)
         bouncer-supporters (successful-supporters bouncer)
-        {:keys [attack-conflict-rule beleaguered-garrison]} situation]
+        {attack-conflict-rule :attack-conflict-rule
+         beleaguered-garrison :beleaguered-garrison-changing-outcome} situation]
     (condp contains? attack-conflict-rule
       #{:attacked-same-destination}
       (<= (if (nil? beleaguered-garrison)
@@ -401,6 +420,23 @@
       false
 
       (assert false (str "Unknown situation: " situation)))))
+
+(defn-spec depends-on-whether-beleaguered-garrison-leaves
+  [::order ::order ::order] boolean?)
+(defn depends-on-whether-beleaguered-garrison-leaves
+  "Function that returns whether the outcome of `attack` in an
+  `:attacked-same-destination` conflict with `bouncer` depends on whether
+  `potential-beleaguered-garrison` advances."
+  [attack bouncer potential-beleaguered-garrison]
+  (let [situation {:attack-conflict-rule :attacked-same-destination}]
+    (not= (bounced-by-strength-in-situation
+           attack bouncer (assoc situation
+                                 :beleaguered-garrison-changing-outcome
+                                 potential-beleaguered-garrison))
+          (bounced-by-strength-in-situation
+           attack bouncer (assoc situation
+                                 :beleaguered-garrison-changing-outcome
+                                 nil)))))
 
 ;; This relation links the relational code in `conflict-situationo` with the
 ;; functional code in `bounced-by-strength-in-situation`, and contains the logic

@@ -572,15 +572,13 @@
     :summary "Support targeting the area where the supporting unit is standing, is illegal."
     :validation-results-abbr {[:italy :army :pru :support :russia :army :lvn :attack :pru] [#{:supports-unsupportable-location?}
                                                                                             [:italy :army :pru :hold]]}
-    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[false [:russia :army :lvn :attack :pru] [:attacked-same-destination
-                                                                                                             [:italy :army :pru :hold]]]
+    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[false [:russia :army :lvn :attack :pru] :attacked-same-destination]
                                                                    [false [:italy :army :pru :hold] :destination-occupied]}
                               [:germany :army :sil :support :germany :army :ber :attack :pru] #{}
                               [:germany :fleet :bal :support :germany :army :ber :attack :pru] #{}
                               [:italy :army :pru :hold] #{}
                               [:russia :army :war :support :russia :army :lvn :attack :pru] #{}
-                              [:russia :army :lvn :attack :pru] #{[true [:germany :army :ber :attack :pru] [:attacked-same-destination
-                                                                                                            [:italy :army :pru :hold]]]
+                              [:russia :army :lvn :attack :pru] #{[true [:germany :army :ber :attack :pru] :attacked-same-destination]
                                                                   [false [:italy :army :pru :hold] :destination-occupied]}}
     :explanation "Russia and Italy wanted to get rid of the Italian army in Prussia (to build an Italian fleet somewhere else). However, they didn't want a possible German attack on Prussia to succeed. They invented this odd order of Italy. It was intended that the attack of the army in Livonia would have strength three, so it would be capable to prevent the possible German attack to succeed. However, the order of Italy is illegal, because a unit may only support to an area where the unit can go by itself. A unit can't go to the area it is already standing, so the Italian order is illegal and the German move from Berlin succeeds. Even if it would be legal, the German move from Berlin would still succeed, because the support of Prussia is cut by Livonia and Berlin."}
    "E1"
@@ -666,7 +664,7 @@
     :resolution-results-abbr {[:england :fleet :nth :hold] #{}
                               [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
-                              [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] [:attacked-same-destination [:england :fleet :nth :hold]]]
+                              [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]
                                                                     [false [:england :fleet :nth :hold] :destination-occupied]}
                               [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
                               [:russia :fleet :nwy :attack :nth] #{[true [:germany :fleet :hel :attack :nth] [:attacked-same-destination [:england :fleet :nth :hold]]]
@@ -675,12 +673,15 @@
    "E8"
    {:long-name "6.E.8. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON AND HEAD TO HEAD BATTLE"
     :summary "Similar to the previous test case, but now the beleaguered fleet is also engaged in a head to head battle."
-    :resolution-results-abbr {[:england :fleet :nth :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:england :fleet :nth :attack :nwy] #{[true [:russia :fleet :nwy :attack :nth] :swapped-places-without-convoy]}
+                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
+                              [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
+                              [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]
+                                                                    [false [:england :fleet :nth :attack :nwy] :failed-to-leave-destination]}
+                              [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
+                              [:russia :fleet :nwy :attack :nth] #{[false [:england :fleet :nth :attack :nwy] :swapped-places-without-convoy]
+                                                                   [true [:germany :fleet :hel :attack :nth] [:attacked-same-destination
+                                                                                                              [:england :fleet :nth :attack :nwy]]]}}
     :explanation "Again, none of the fleets move."}
    "E9"
    {:long-name "6.E.9. ALMOST SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
