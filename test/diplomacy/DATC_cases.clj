@@ -1225,7 +1225,109 @@
                               [:italy :army :bur :support :france :army :gas :attack :mar] #{}
                               [:france :fleet :mar :attack :pie] #{[true [:italy :fleet :pie :hold] :destination-occupied]}
                               [:italy :fleet :pie :hold] #{}}
-    :explanation "Both French moves fail."}})
+    :explanation "Both French moves fail."}
+   "Z3"
+   {:long-name "Z3. A DISRUPTED THREE ARMY CIRCULAR MOVEMENT SAVED BY SUPPORT (see 6.C.3.)"
+    :summary "A support order prevents an attack from disrupting the circular movement."
+    ;; The first order doesn't have a :failed-to-leave-destination failure reason
+    ;; because it's failure was what caused the other unit to fail to leave it's
+    ;; destination.
+    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[false [:turkey :army :bul :attack :con] :attacked-same-destination]}
+                              [:turkey :fleet :bla :support :russia :fleet :ank :attack :con] #{}
+                              [:turkey :army :con :attack :smy] #{}
+                              [:turkey :army :smy :attack :ank] #{}
+                              [:turkey :army :bul :attack :con] #{[true [:russia :fleet :ank :attack :con] :attacked-same-destination]}}
+    :explanation "The units successfully move in a circle."}
+   "Z4"
+   {:long-name "Z4."
+    :summary ""
+    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[false [:italy :army :bul :attack :con] :attacked-same-destination]
+                                                                   [false [:turkey :army :con :attack :smy] :failed-to-leave-destination]}
+                              [:russia :army :arm :attack :ank] #{[true [:turkey :army :smy :attack :ank] :attacked-same-destination]}
+                              [:russia :fleet :bla :support :russia :fleet :ank :attack :con] #{}
+                              [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
+                              [:turkey :army :smy :attack :ank] #{[true [:russia :army :arm :attack :ank] :attacked-same-destination]}
+                              [:italy :army :bul :attack :con] #{[true [:russia :fleet :ank :attack :con] :attacked-same-destination]
+                                                                 [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}}
+    :explanation ""}
+   "Z5"
+   {:long-name "Z5. Changing black sea fleet to Turkish"
+    :summary ""
+    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[true [:italy :army :bul :attack :con] [:attacked-same-destination
+                                                                                                           [:turkey :army :con :attack :smy]]]
+                                                                   [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}
+                              [:russia :army :arm :attack :ank] #{[true [:turkey :army :smy :attack :ank] :attacked-same-destination]
+                                                                  [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
+                              [:turkey :fleet :bla :support :russia :fleet :ank :attack :con] #{}
+                              [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
+                              ;; This order doesn't have a :failed-to-leave-destination failure reason because
+                              ;; it's failure was what caused the other unit to fail to leave it's destination.
+                              [:turkey :army :smy :attack :ank] #{[true [:russia :army :arm :attack :ank] :attacked-same-destination]}
+                              [:italy :army :bul :attack :con] #{[true [:russia :fleet :ank :attack :con] :attacked-same-destination]
+                                                                 [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}}
+    :explanation ""}
+   "Z6"
+   {:long-name "Z6. Z5 plus Italian supporting fleet"
+    :summary ""
+    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[true [:italy :army :bul :attack :con] :attacked-same-destination]
+                                                                   [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}
+                              [:russia :army :arm :attack :ank] #{[true [:turkey :army :smy :attack :ank] :attacked-same-destination]
+                                                                  [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
+                              [:turkey :fleet :bla :support :russia :fleet :ank :attack :con] #{}
+                              [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
+                              [:turkey :army :smy :attack :ank] #{[true [:russia :army :arm :attack :ank] :attacked-same-destination]
+                                                                  [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
+                              [:italy :army :bul :attack :con] #{[true [:russia :fleet :ank :attack :con] :attacked-same-destination]
+                                                                 [false [:turkey :army :con :attack :smy] :failed-to-leave-destination]}
+                              [:italy :fleet :aeg :support :italy :army :bul :attack :con] #{}}
+    :explanation ""}
+   "Z7"
+   {:long-name "Z7. Z5 plus ?"
+    :summary ""
+    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[true [:italy :fleet :aeg :attack :con] [:attacked-same-destination
+                                                                                                            [:turkey :army :con :attack :smy]]]
+                                                                   [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}
+                              [:russia :fleet :bla :support :germany :army :arm :attack :ank] #{}
+                              [:germany :army :arm :attack :ank] #{[true [:turkey :army :smy :attack :ank] [:attacked-same-destination
+                                                                                                             [:russia :fleet :ank :attack :con]]]
+                                                                   ;; TODO: :arm -> :ank was what caused :ank to leave.
+                                                                   ;; We should remove this result if possible (but it's not critical).
+                                                                   [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
+                              [:turkey :army :bul :support :russia :fleet :ank :attack :con] #{}
+                              [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
+                              [:turkey :army :smy :attack :ank] #{[true [:germany :army :arm :attack :ank] :attacked-same-destination]}
+                              [:italy :fleet :aeg :attack :con] #{[true [:russia :fleet :ank :attack :con] :attacked-same-destination]
+                                                                  [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}}
+    :explanation ""}
+
+   "Z8"
+   {:long-name "Z8."
+    :summary ""
+    :resolution-results-abbr {[:germany :army :boh :attack :gal] #{[true [:england :army :rum :attack :gal] :attacked-same-destination]
+                                                                   [true [:turkey :army :gal :attack :sil] :failed-to-leave-destination]}
+                              [:turkey :army :gal :attack :sil] #{[true [:england :army :pru :attack :sil] :attacked-same-destination]
+                                                                  [true [:russia :army :sil :attack :boh] :failed-to-leave-destination]}
+                              [:russia :army :sil :attack :boh] #{[true [:england :army :tyr :attack :boh] :attacked-same-destination]
+                                                                  [true [:germany :army :boh :attack :gal] :failed-to-leave-destination]}
+
+                              [:england :army :tyr :attack :boh] #{[true [:russia :army :sil :attack :boh] :attacked-same-destination]
+                                                                   [true [:germany :army :boh :attack :gal] :failed-to-leave-destination]}
+                              [:england :army :rum :attack :gal] #{[true [:germany :army :boh :attack :gal] :attacked-same-destination]
+                                                                   [true [:turkey :army :gal :attack :sil] :failed-to-leave-destination]}
+                              [:england :army :pru :attack :sil] #{[true [:turkey :army :gal :attack :sil] :attacked-same-destination]
+                                                                   [true [:russia :army :sil :attack :boh] :failed-to-leave-destination]}
+
+                              ;; Every attack is supported once by the country that's leaving the attack's destination.
+                              [:germany :army :mun :support :russia :army :sil :attack :boh] #{}
+                              [:germany :army :vie :support :england :army :tyr :attack :boh] #{}
+
+                              [:turkey :army :bud :support :germany :army :boh :attack :gal] #{}
+                              [:turkey :army :ukr :support :england :army :rum :attack :gal] #{}
+
+                              [:russia :army :war :support :turkey :army :gal :attack :sil] #{}
+                              [:russia :army :ber :support :england :army :pru :attack :sil] #{}}
+    :explanation ""}
+   })
 
 (defn test-complete?
   "Returns whether the argument has any placeholder conflict judgments."

@@ -11,7 +11,6 @@
 
 ;; TODO: convoys
 ;; TODO: dislodging convoys
-;; TODO: can't support dislodge of own units
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                       core.logic Utilities ;;
