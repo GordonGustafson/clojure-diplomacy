@@ -1081,8 +1081,9 @@
                                 [:russia :army :swe :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}
                                 [:russia :fleet :bot :convoy :russia :army :swe :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}}
       :explanation "See issue 4.A.3 and 4.E.1. If for issue 4.A.3 choice a, b or c has been taken, then the army in Sweden moves by convoy and swaps places with the fleet in Norway. However, if for issue 4.A.3 the 1982/2000 has been chosen (choice d), then the \"intent\" is important. The question is whether the fleet in the Gulf of Bothnia can express the intent. If the order for this fleet is considered illegal (see issue 4.E.1), then this order must be ignored and there is no intent to swap. In that case none of the units move. If explicit convoying is used (DPTG, choice e of issue 4.A.3) then the army in Sweden will take the land route and none of the units move. <i>I prefer the 1982/2000 rule and that any orders that can't be valid are illegal. So, the order of the fleet in the Gulf of Bothnia is ignored and can not show the intent. There is no convoy, so no unit will move.</i>"}
-   "G8"
-   {:long-name "6.G.8. EXPLICIT CONVOY THAT ISN'T THERE"
+   ;; commented out because it uses a convoy
+   #_"G8"
+   #_{:long-name "6.G.8. EXPLICIT CONVOY THAT ISN'T THERE"
     :summary "What to do when a unit is explicitly ordered to move via convoy and the convoy is not there?"
     :resolution-results-abbr {[:france :army :bel :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
                               [:england :fleet :nth :attack :hel] #{[:interfered? [:russia :army :naf :hold] :rule]}
