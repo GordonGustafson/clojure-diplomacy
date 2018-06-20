@@ -350,46 +350,48 @@
                               [:austria :army :alb :support :austria :army :tri :attack :ser] #{}
                               [:austria :army :tri :hold] #{}}
     :explanation "The support of the army in Albania fails and the army in Trieste is dislodged by the army from Venice."}
-   ;; TODO: take unit countries into account in resolution
-   ;; "D10"
-   ;; {:long-name "6.D.10. SELF DISLODGMENT PROHIBITED"
-   ;;  :summary "A unit may not dislodge a unit of the same great power."
-   ;;  :resolution-results-abbr {[:germany :army :ber :hold] #{}
-   ;;                            [:germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-   ;;  :explanation "Move to Berlin fails."}
-   ;; "D11"
-   ;; {:long-name "6.D.11. NO SELF DISLODGMENT OF RETURNING UNIT"
-   ;;  :summary "Idem."
-   ;;  :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:russia :army :war :attack :pru] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-   ;;  :explanation "Army in Berlin bounces, but is not dislodged by own unit."}
-   ;; "D12"
-   ;; {:long-name "6.D.12. SUPPORTING A FOREIGN UNIT TO DISLODGE OWN UNIT PROHIBITED"
-   ;;  :summary "You may not help another power in dislodging your own unit."
-   ;;  :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
-   ;;                            [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-   ;;  :explanation "No dislodgment of fleet in Trieste."}
-   ;; "D13"
-   ;; {:long-name "6.D.13. SUPPORTING A FOREIGN UNIT TO DISLODGE A RETURNING OWN UNIT PROHIBITED"
-   ;;  :summary "Idem."
-   ;;  :resolution-results-abbr {[:austria :fleet :tri :attack :adr] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:italy :fleet :apu :attack :adr] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-   ;;  :explanation "No dislodgment of fleet in Trieste."}
-   ;; "D14"
-   ;; {:long-name "6.D.14. SUPPORTING A FOREIGN UNIT IS NOT ENOUGH TO PREVENT DISLODGEMENT"
-   ;;  :summary "If a foreign unit has enough support to dislodge your unit, you may not prevent that dislodgement by supporting the attack."
-   ;;  :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
-   ;;                            [:austria :army :vie :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:italy :army :tyr :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-   ;;                            [:italy :fleet :adr :support :italy :army :ven :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-   ;;  :explanation "The fleet in Trieste is dislodged."}
+   "D10"
+   {:long-name "6.D.10. SELF DISLODGMENT PROHIBITED"
+    :summary "A unit may not dislodge a unit of the same great power."
+    :resolution-results-abbr {[:germany :army :ber :hold] #{}
+                              ;; This does NOT have `would-dislodge-own-unit?` set to `true` because the support is unwilling
+                              ;; to dislodge the friendly unit, so it's bounced by strength, not by the *attacker's* unwillingness
+                              ;; to dislodge. We can consider changing this to maek it less confusing.
+                              [:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :hold] :destination-occupied]}
+                              [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{}}
+    :explanation "Move to Berlin fails."}
+   "D11"
+   {:long-name "6.D.11. NO SELF DISLODGMENT OF RETURNING UNIT"
+    :summary "Idem."
+    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[true [:russia :army :war :attack :pru] :attacked-same-destination]}
+                              [:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :pru] :failed-to-leave-destination]}
+                              [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{}
+                              [:russia :army :war :attack :pru] #{[true [:germany :army :ber :attack :pru] :attacked-same-destination]}}
+    :explanation "Army in Berlin bounces, but is not dislodged by own unit."}
+   "D12"
+   {:long-name "6.D.12. SUPPORTING A FOREIGN UNIT TO DISLODGE OWN UNIT PROHIBITED"
+    :summary "You may not help another power in dislodging your own unit."
+    :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
+                              [:austria :army :vie :support :italy :army :ven :attack :tri] #{}
+                              [:italy :army :ven :attack :tri] #{[true [:austria :fleet :tri :hold] :destination-occupied]}}
+    :explanation "No dislodgment of fleet in Trieste."}
+   "D13"
+   {:long-name "6.D.13. SUPPORTING A FOREIGN UNIT TO DISLODGE A RETURNING OWN UNIT PROHIBITED"
+    :summary "Idem."
+    :resolution-results-abbr {[:austria :fleet :tri :attack :adr] #{[true [:italy :fleet :apu :attack :adr] :attacked-same-destination]}
+                              [:austria :army :vie :support :italy :army :ven :attack :tri] #{}
+                              [:italy :army :ven :attack :tri] #{[true [:austria :fleet :tri :attack :adr] :failed-to-leave-destination]}
+                              [:italy :fleet :apu :attack :adr] #{[true [:austria :fleet :tri :attack :adr] :attacked-same-destination]}}
+    :explanation "No dislodgment of fleet in Trieste."}
+   "D14"
+   {:long-name "6.D.14. SUPPORTING A FOREIGN UNIT IS NOT ENOUGH TO PREVENT DISLODGEMENT"
+    :summary "If a foreign unit has enough support to dislodge your unit, you may not prevent that dislodgement by supporting the attack."
+    :resolution-results-abbr {[:austria :fleet :tri :hold] #{}
+                              [:austria :army :vie :support :italy :army :ven :attack :tri] #{}
+                              [:italy :army :ven :attack :tri] #{[false [:austria :fleet :tri :hold] :destination-occupied]}
+                              [:italy :army :tyr :support :italy :army :ven :attack :tri] #{}
+                              [:italy :fleet :adr :support :italy :army :ven :attack :tri] #{}}
+    :explanation "The fleet in Trieste is dislodged."}
    "D15"
    {:long-name "6.D.15. DEFENDER CAN NOT CUT SUPPORT FOR ATTACK ON ITSELF"
     :summary "A unit that is attacked by a supported unit can not prevent dislodgement by guessing which of the units will do the support."
@@ -1344,6 +1346,14 @@
                               [:russia :army :war :support :turkey :army :gal :attack :sil] #{}
                               [:russia :army :ber :support :england :army :pru :attack :sil] #{}}
     :explanation ""}
+   "Z9"
+   {:long-name "Z9. SELF DISLODGMENT PROHIBITED (6.D.10. variant)"
+    :summary "A unit may not dislodge a unit of the same great power, even if supported by other great powers.."
+    :resolution-results-abbr {[:germany :army :ber :hold] #{}
+                              [:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :hold] :destination-occupied true]}
+                              [:italy :army :mun :support :germany :fleet :kie :attack :ber] #{}}
+    :explanation "Move to Berlin fails."}
+
    })
 
 (defn test-complete?
