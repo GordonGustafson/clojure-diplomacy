@@ -686,23 +686,25 @@
    "E9"
    {:long-name "6.E.9. ALMOST SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
     :summary "Similar to the previous test case, but now the beleaguered fleet is moving away."
-    :resolution-results-abbr {[:england :fleet :nth :attack :nrg] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:england :fleet :nth :attack :nrg] #{}
+                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
+                              [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
+                              [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]}
+                              [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
+                              [:russia :fleet :nwy :attack :nth] #{[false [:germany :fleet :hel :attack :nth] :attacked-same-destination]}}
     :explanation "Both the fleet in the North Sea and the fleet in Norway move."}
    "E10"
    {:long-name "6.E.10. ALMOST CIRCULAR MOVEMENT WITH NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
     :summary "Similar to the previous test case, but now the beleaguered fleet is in circular movement with the weaker attacker. So, the circular movement fails."
-    :resolution-results-abbr {[:england :fleet :nth :attack :den] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :den :attack :hel] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :nwy :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:england :fleet :nth :attack :den] #{[true [:germany :fleet :den :attack :hel] :failed-to-leave-destination]}
+                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
+                              [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
+                              [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]}
+                              [:germany :fleet :den :attack :hel] #{[true [:germany :fleet :hel :attack :nth] :failed-to-leave-destination]}
+                              [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
+                              [:russia :fleet :nwy :attack :nth] #{[true [:germany :fleet :hel :attack :nth] [:attacked-same-destination
+                                                                                                              [:england :fleet :nth :attack :den]]]
+                                                                   [false [:england :fleet :nth :attack :den] :failed-to-leave-destination]}}
     :explanation "There is no movement of fleets."}
    ;; commented out because it uses a convoy
    #_"E11"
@@ -719,42 +721,56 @@
    "E12"
    {:long-name "6.E.12. SUPPORT ON ATTACK ON OWN UNIT CAN BE USED FOR OTHER MEANS"
     :summary "A support on an attack on your own unit has still effect. It can prevent that another army will dislodge the unit."
-    :resolution-results-abbr {[:austria :army :bud :attack :rum] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:austria :army :ser :support :italy :army :vie :attack :bud] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :army :vie :attack :bud] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :gal :attack :bud] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :rum :support :russia :army :gal :attack :bud] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:austria :army :bud :attack :rum] #{[true [:russia :army :rum :support :russia :army :gal :attack :bud] :destination-occupied]}
+                              [:austria :army :ser :support :italy :army :vie :attack :bud] #{}
+                              [:italy :army :vie :attack :bud] #{[true [:russia :army :gal :attack :bud] :attacked-same-destination]
+                                                                 [true [:austria :army :bud :attack :rum] :failed-to-leave-destination]}
+                              [:russia :army :gal :attack :bud] #{[true [:italy :army :vie :attack :bud] :attacked-same-destination]
+                                                                  [false [:austria :army :bud :attack :rum] :failed-to-leave-destination]}
+                              [:russia :army :rum :support :russia :army :gal :attack :bud] #{[false [:austria :army :bud :attack :rum] :attacked-from-supported-location-but-not-dislodged]}}
     :explanation "The support of Serbia on the Italian army prevents that the Russian army in Galicia will advance. No army will move."}
    "E13"
    {:long-name "6.E.13. THREE WAY BELEAGUERED GARRISON"
     :summary "In a beleaguered garrison from three sides, the adjudicator may not  let two attacks fail and then let the third succeed."
-    :resolution-results-abbr {[:england :fleet :edi :support :england :fleet :yor :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :yor :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :bel :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :eng :support :france :fleet :bel :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :edi :support :england :fleet :yor :attack :nth] #{}
+                              [:england :fleet :yor :attack :nth] #{[true [:france :fleet :bel :attack :nth] :attacked-same-destination]
+                                                                    [true [:russia :fleet :nrg :attack :nth] :attacked-same-destination]
+                                                                    [false [:germany :fleet :nth :hold] :destination-occupied]}
+                              [:france :fleet :bel :attack :nth] #{[true [:england :fleet :yor :attack :nth] :attacked-same-destination]
+                                                                   [true [:russia :fleet :nrg :attack :nth] :attacked-same-destination]
+                                                                   [false [:germany :fleet :nth :hold] :destination-occupied]}
+                              [:france :fleet :eng :support :france :fleet :bel :attack :nth] #{}
                               [:germany :fleet :nth :hold] #{}
-                              [:russia :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :nwy :support :russia :fleet :nrg :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:russia :fleet :nrg :attack :nth] #{[true [:england :fleet :yor :attack :nth] :attacked-same-destination]
+                                                                   [true [:france :fleet :bel :attack :nth] :attacked-same-destination]
+                                                                   [false [:germany :fleet :nth :hold] :destination-occupied]}
+                              [:russia :fleet :nwy :support :russia :fleet :nrg :attack :nth] #{}}
     :explanation "None of the fleets move. The German fleet in the North Sea is not dislodged."}
    "E14"
    {:long-name "6.E.14. ILLEGAL HEAD TO HEAD BATTLE CAN STILL DEFEND"
     :summary "If in a head to head battle, one of the units makes an illegal move, than that unit has still the possibility to defend against attacks with strength of one."
-    :resolution-results-abbr {[:england :army :lvp :attack :edi] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :edi :attack :lvp] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:russia :fleet :edi :attack :lvp] [#{:attacks-via-inaccessible-edge?}
+                                                                   [:russia :fleet :edi :hold]]}
+    :resolution-results-abbr {[:england :army :lvp :attack :edi] #{[true [:russia :fleet :edi :hold] :destination-occupied]}
+                              [:russia :fleet :edi :hold] #{}}
     :explanation "The move of the Russian fleet is illegal, but can still prevent the English army to enter Edinburgh. So, none of the units move."}
    "E15"
    {:long-name "6.E.15. THE FRIENDLY HEAD TO HEAD BATTLE"
     :summary "In this case both units in the head to head battle prevent that the other one is dislodged."
-    :resolution-results-abbr {[:england :fleet :hol :support :england :army :ruh :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :army :ruh :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :mun :support :france :army :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :sil :support :france :army :kie :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :ber :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :den :support :germany :army :ber :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :support :germany :army :ber :attack :kie] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :pru :attack :ber] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:england :fleet :hol :support :england :army :ruh :attack :kie] #{}
+                              [:england :army :ruh :attack :kie] #{[true [:germany :army :ber :attack :kie] :attacked-same-destination]
+                                                                   [false [:france :army :kie :attack :ber] :failed-to-leave-destination]}
+                              [:france :army :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places-without-convoy]
+                                                                  [false [:russia :army :pru :attack :ber] :attacked-same-destination]}
+                              [:france :army :mun :support :france :army :kie :attack :ber] #{}
+                              [:france :army :sil :support :france :army :kie :attack :ber] #{}
+                              [:germany :army :ber :attack :kie] #{[true [:france :army :kie :attack :ber] :swapped-places-without-convoy]
+                                                                   [false [:england :army :ruh :attack :kie] :attacked-same-destination]}
+                              [:germany :fleet :den :support :germany :army :ber :attack :kie] #{}
+                              [:germany :fleet :hel :support :germany :army :ber :attack :kie] #{}
+                              [:russia :fleet :bal :support :russia :army :pru :attack :ber] #{}
+                              [:russia :army :pru :attack :ber] #{[true [:france :army :kie :attack :ber] :attacked-same-destination]
+                                                                  [false [:germany :army :ber :attack :kie] :failed-to-leave-destination]}}
     :explanation "None of the moves succeeds. This case is especially difficult for  sequence based adjudicators. They will start adjudicating the head to head battle and continue to adjudicate the attack on one of the units part of the head to head battle. In this process, one of the sides of the head to head battle might be cancelled out. This happens in the DPTG. If this is adjudicated according to the DPTG, the unit in Ruhr or in Prussia will advance (depending on the order the units are adjudicated). This is clearly a bug in the DPTG."}
    ;; commented out because it uses a convoy
    #_"F1"
