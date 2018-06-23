@@ -535,6 +535,8 @@
                               [:turkey :fleet :bla :attack :con] #{[true [:russia :fleet :con :hold] :destination-occupied]}
                               [:turkey :army :bul :support :turkey :fleet :bla :attack :con] #{}}
     :explanation "Again the order to the Russian fleet is with problems, because it does not specify the coast, while both coasts of Bulgaria are possible. If no default coast is taken (see issue 4.B.1), then also here it must be decided whether the order is \"illegal\" (see issue 4.E.1). If the move is \"illegal\" it must be ignored and that makes the hold support of the fleet in the Aegean Sea valid and the Russian fleet will not be dislodged. <i>I don't like default coasts and I prefer that the move is \"illegal\". That means that the fleet in the Black Sea does not dislodge the supported Russian fleet.</i>"}
+   ;; At the moment we assume that each unit is never given more than one order,
+   ;; and I expect things will break if multiple orders are given.
    "D31"
    {:long-name "6.D.31. A TRICKY IMPOSSIBLE SUPPORT"
     :summary "A support order can be impossible for complex reasons."
