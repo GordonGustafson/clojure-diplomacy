@@ -125,6 +125,20 @@ function renderSupport(renderTarget, country, location, assistedOrder) {
                });
 }
 
+function renderConvoy(renderTarget, country, location, assistedOrder) {
+    const centerPoint = LOCATION_TO_UNIT_RENDER_POSITION[location];
+    const convoyedCountry = assistedOrder["country"];
+
+    addSvgNode(renderTarget, "circle",
+               {"cx": centerPoint[0],
+                "cy": centerPoint[1],
+                "r": "15",
+                "class": "convoy-" + convoyedCountry + "-unit",
+                "stroke-width": "3",
+                "fill": "none"
+               });
+}
+
 function renderOrders(renderTarget, orders) {
     for (const order of orders) {
         const {"country": country,
@@ -138,6 +152,8 @@ function renderOrders(renderTarget, orders) {
             renderAttack(renderTarget, country, location, destination);
         } else if (orderType === "support") {
             renderSupport(renderTarget, country, location, assistedOrder);
+        } else if (orderType === "convoy") {
+            renderConvoy(renderTarget, country, location, assistedOrder);
         }
     }
 }

@@ -116,6 +116,14 @@ Created for Diplomap (http://www.games2relax.net/diplomap/)
     .russia-order  {stroke:#008000}
     .turkey-order  {stroke:#FFFF00}
 
+    .convoy-austria-unit {stroke:#FF0000}
+    .convoy-england-unit {stroke:#0000FF}
+    .convoy-france-unit  {stroke:#00FFFF}
+    .convoy-germany-unit {stroke:#808080}
+    .convoy-italy-unit   {stroke:#00FF00}
+    .convoy-russia-unit  {stroke:#008000}
+    .convoy-turkey-unit  {stroke:#FFFF00}
+
     .order-border  {stroke:black; stroke-width:1.8; fill:none}
 
     .support           {stroke:#bbbbbb; fill:none}
