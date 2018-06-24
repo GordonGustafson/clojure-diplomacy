@@ -149,6 +149,7 @@
 ;; Whether the bouncer bounces the attack.
 (s/def ::interfered? boolean?)
 
+(s/def ::failed-to-arrive-judgment #(= :failed-convoy %))
 ;; Map describing the conflict that some order had with `:interferer`.
 ;; `:interfered?` is the outcome of that conflict (whether `:interfered?`
 ;; counteracted the order), and `:conflict-situation` is the rule describing the
@@ -161,12 +162,13 @@
                    ;; attack-specific field doesn't have to appear on all
                    ;; supports? They should be more decoupled?
           :opt-un [::would-dislodge-own-unit?]))
+(s/def ::judgment (s/or ::failed-to-arrive-judgment
+                        ::conflict-judgment))
 
-(s/def ::conflict-judgments (s/coll-of ::conflict-judgment))
 ;; Map from *every* order that went into the resolution engine to the rules
 ;; governing how it was resolved.
 (s/def ::resolution-results (s/map-of ::order
-                                      ::conflict-judgments))
+                                      (s/coll-of ::judgment)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                        retreats, builds, and full pipeline ;;

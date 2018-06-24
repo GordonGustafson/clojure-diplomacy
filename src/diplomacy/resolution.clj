@@ -64,7 +64,15 @@
 
 ;; Puts an order dictionary directly into the fact database.
 (pldb/db-rel raw-order order-map)
+;; A vector of locations that are colocated, such as `[:spa :spa-sc :spa-nc]`.
 (pldb/db-rel colocation-vec colocation-vector)
+;; Indicates that there is a *directed* edge from `loc-a` to `loc-b`. If there
+;; is also an edge from `loc-b` to `loc-a` there must be an additional fact
+;; indicating that. This means there must be 2 facts for every pair of adjacent
+;; locations in the classic map, since every edge in the classic map is
+;; undirected. I don't know of any variants that have edges that can only be
+;; traversed in one direction, but this makes the code simpler.
+(pldb/db-rel adjacent loc-a loc-b)
 
 ;; For performance reasons it may be better to pre-compute the colocation-set of
 ;; every location used in every order, and then simply compare colocation-sets
@@ -148,11 +156,54 @@
     (supported-order-matcheso actual-order-supported
                               supported-order)))
 
+(defn convoyo
+  "Relation where `order` attempts to remain at `location` while convoying
+  `convoyed-attack`."
+  [order location convoyed-attack]
+  (raw-order order)
+  ;; Don't require that `convoyed-attack` was actually given.
+  (featurec order {:order-type :convoy
+                   :location location
+                   :assisted-order convoyed-attack}))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                 Resolving Diplomacy Orders ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 'bounced': attack failed due to conflict with another unit.
 ;; 'advanced': attack succeeded
+
+(defn attack-has-convoy-chain-up-to
+  "Relation where `convoyed-attack` is an attack that is adjacent to a chain of
+  un-dislodged fleets convoying it, and that chain contains a fleet in
+  `final-convoy-chain-location`."
+  [convoyed-attack final-convoy-chain-location]
+  (fresh [attack-start convoy-order]
+    (attacko convoyed-attack attack-start (lvar 'attack-end))
+    ;; Work backwards from `final-convoy-chain-location` toward `attack-start`.
+    ;; TODO: require that `convoy-order` wasn't dislodged?
+    (convoyo convoy-order final-convoy-chain-location convoyed-attack)
+    (conde
+     [(adjacent attack-start final-convoy-chain-location)]
+     [(fresh [next-convoy-location]
+        (adjacent next-convoy-location final-convoy-chain-location)
+        (attack-has-convoy-chain-up-to convoyed-attack next-convoy-location))])))
+
+(defn attack-arrives-by-convoyo
+  ""
+  [convoyed-attack from to]
+  (attacko convoyed-attack from to)
+  (fresh [final-convoy-chain-location]
+    (adjacent final-convoy-chain-location to)
+    (attack-has-convoy-chain-up-to convoyed-attack
+                                   final-convoy-chain-location)))
+
+(defn attack-arriveso
+  ""
+  [attack from to]
+  (attacko attack from to)
+  (conde
+   [(adjacent from to)]
+   [(attack-arrives-by-convoyo attack from to)]))
 
 (declare attack-advancedo)
 
@@ -171,6 +222,7 @@
               supporter-location
               supported-order)
     (conda
+     ;; TODO: should this be `attack-arriveso`?
      [(attacko supported-order
                (lvar 'supported-attack-location)
                supported-attack-destination)]
@@ -178,7 +230,7 @@
     (== judgment {:interferer cutter
                   :conflict-situation situation
                   :interfered? support-cut?})
-    (attacko cutter cutter-from cutter-to)
+    (attack-arriveso cutter cutter-from cutter-to)
     (colocated supporter-location cutter-to)
 
     (conda
@@ -266,7 +318,8 @@
   ;; leaving its destination succeeds, causing an infinite loop.
   [attack bouncer situation attacks-assumed-successful]
   (fresh [from to rule beleaguered-garrison]
-    (attacko attack from to)
+    ;; TODO: should this be `attacko`?
+    (attack-arriveso attack from to)
     (== situation {:attack-conflict-rule rule
                    :beleaguered-garrison-changing-outcome beleaguered-garrison})
     (conde
@@ -280,7 +333,7 @@
         ;; make sure we don't bounce ourselves because we're attacking the
         ;; same place as ourselves.
         (!= bouncer-from from)
-        (attacko bouncer bouncer-from bouncer-to)
+        (attack-arriveso bouncer bouncer-from bouncer-to)
         (colocated to bouncer-to)
         ;; pg 9: "A dislodged unit, even with support, has no effect on the
         ;; province that dislodged it" (see Diagram 13).
@@ -296,7 +349,7 @@
         ;; has no effect on the province that dislodged it.
         (conda
          [(fresh [dislodger dislodger-from dislodger-to]
-            (attacko dislodger dislodger-from dislodger-to)
+            (attack-arriveso dislodger dislodger-from dislodger-to)
             (colocated dislodger-from bouncer-to)
             (colocated dislodger-to bouncer-from)
             ;; I don't think we should pass `attacks-assumed-successful` here
@@ -327,7 +380,7 @@
            [(== beleaguered-garrison nil)])]))]
 
      [(fresh [bouncer-from bouncer-to]
-        (attacko bouncer bouncer-from bouncer-to)
+        (attack-arriveso bouncer bouncer-from bouncer-to)
         (colocated bouncer-from to)
         (colocated bouncer-to from)
         ;; TODO: use :swapped-places-with-convoy when appropriate.
@@ -335,6 +388,7 @@
         (== beleaguered-garrison nil))]
 
      [(fresh [bouncer-from bouncer-to new-attacks-assumed-successful]
+        ;; TODO: should this be `attack-arriveso`?
         (attacko bouncer bouncer-from bouncer-to)
         (colocated bouncer-from to)
         ;; Orders that swap places with `attack` are handled in a different
@@ -437,6 +491,17 @@
                                  :beleaguered-garrison-changing-outcome
                                  nil)))))
 
+(defn attack-failed-to-arrive-judgmento
+  "Relation where `failed-to-arrive-judgment` is a
+  `::dt/failed-to-arrive-judgment` indicating why `attack` failed to arrive at
+  its destination."
+  [attack failed-to-arrive-judgment]
+  (fresh [from to]
+    (attacko attack from to)
+    (fail-if (attack-arriveso attack from to))
+    ;; TODO: add more descriptive possibilities here?
+    (== failed-to-arrive-judgment :failed-convoy)))
+
 ;; This relation links the relational code in `conflict-situationo` with the
 ;; functional code in `bounced-by-strength-in-situation`, and contains the logic
 ;; that disallows countries from dislodging their own units.
@@ -483,7 +548,6 @@
          (== bounced-by-bouncer? false)
          (== would-dislodge-own-unit? false))])])))
 
-;; Convenience wrapper around `attack-conflict-judgmento`.
 (defn ^:private attack-advancedo
   "Relation where `attack` succeeds"
   [attack attacks-assumed-successful]
@@ -495,6 +559,7 @@
                                     :would-dislodge-own-unit?
                                     (lvar 'would-dislodge-own-unit?)}
                                    attacks-assumed-successful)]
+    (attack-arriveso attack (lvar 'from) (lvar 'to))
     ;; `attack` advances if *there does not exist an order that bounces it*.
     ;; Changing `true` to `false` in the call to `attack-conflict-judgmento`
     ;; gives a goal that succeeds if *there exists an order that potentially
@@ -522,13 +587,21 @@
                                         ; convert to vector because `membero`
                                         ; doesn't work on sets!
                                     [colocation-vec (vec co-set)])))
+        adjacency-pairs
+        (->> diplomacy-map
+             :edge-accessibility
+             (mapcat (fn [[location edge-accessibility-map]]
+                       (map #(-> [adjacent location %])
+                            (keys edge-accessibility-map)))))
         database (apply pldb/db (concat raw-order-vectors
-                                        colocation-vecs))]
+                                        colocation-vecs
+                                        adjacency-pairs))]
     (->>
      (run-db*-with-nested-runs
       database
       [order judgment]
       (conde
+       [(attack-failed-to-arrive-judgmento order judgment)]
        [(attack-conflict-judgmento order judgment [])]
        [(support-judgmento order judgment)]))
      (map (fn [[attack judgment]] {attack #{judgment}}))
