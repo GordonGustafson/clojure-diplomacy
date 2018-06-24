@@ -440,17 +440,17 @@
 ;; This relation links the relational code in `conflict-situationo` with the
 ;; functional code in `bounced-by-strength-in-situation`, and contains the logic
 ;; that disallows countries from dislodging their own units.
-(defn attack-judgmento
-  "Relation where `judgment` is the judgment for `attack`, and
-  `attacks-assumed-successful` is a vector of attacks that will be assumed to
-  successfully vacate their destinations for the purposes of identifying
+(defn attack-conflict-judgmento
+  "Relation where `conflict-judgment` is a `::dt/conflict-judgment` for `attack`,
+  and `attacks-assumed-successful` is a vector of attacks that will be assumed
+  to successfully vacate their destinations for the purposes of identifying
   conflicts."
-  [attack judgment attacks-assumed-successful]
+  [attack conflict-judgment attacks-assumed-successful]
   (fresh [bouncer situation bounced-by-bouncer? would-dislodge-own-unit?]
-    (== judgment {:interferer bouncer
-                  :conflict-situation situation
-                  :interfered? bounced-by-bouncer?
-                  :would-dislodge-own-unit? would-dislodge-own-unit?})
+    (== conflict-judgment {:interferer bouncer
+                           :conflict-situation situation
+                           :interfered? bounced-by-bouncer?
+                           :would-dislodge-own-unit? would-dislodge-own-unit?})
     (conflict-situationo attack bouncer situation
                          attacks-assumed-successful)
     (conda
@@ -483,23 +483,23 @@
          (== bounced-by-bouncer? false)
          (== would-dislodge-own-unit? false))])])))
 
-;; Convenience wrapper around `attack-judgmento`.
+;; Convenience wrapper around `attack-conflict-judgmento`.
 (defn ^:private attack-advancedo
   "Relation where `attack` succeeds"
   [attack attacks-assumed-successful]
   (let [some-order-bounced-us-goal
-        (attack-judgmento attack
-                          {:interferer (lvar 'bouncer)
-                           :conflict-situation (lvar 'situation)
-                           :interfered? true
-                           :would-dislodge-own-unit?
-                           (lvar 'would-dislodge-own-unit?)}
-                          attacks-assumed-successful)]
+        (attack-conflict-judgmento attack
+                                   {:interferer (lvar 'bouncer)
+                                    :conflict-situation (lvar 'situation)
+                                    :interfered? true
+                                    :would-dislodge-own-unit?
+                                    (lvar 'would-dislodge-own-unit?)}
+                                   attacks-assumed-successful)]
     ;; `attack` advances if *there does not exist an order that bounces it*.
-    ;; Changing `true` to `false` in the call to `attack-judgmento` gives a goal
-    ;; that succeeds if *there exists an order that potentially bounced `attack`
-    ;; but did not successfully bounce it* (that goal could still succeed if
-    ;; some *other* order successfully bounced `attack`).
+    ;; Changing `true` to `false` in the call to `attack-conflict-judgmento`
+    ;; gives a goal that succeeds if *there exists an order that potentially
+    ;; bounced `attack` but did not successfully bounce it* (that goal could
+    ;; still succeed if some *other* order successfully bounced `attack`).
     (fail-if some-order-bounced-us-goal)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -529,7 +529,7 @@
       database
       [order judgment]
       (conde
-       [(attack-judgmento order judgment [])]
+       [(attack-conflict-judgmento order judgment [])]
        [(support-judgmento order judgment)]))
      (map (fn [[attack judgment]] {attack #{judgment}}))
      (apply merge-with clojure.set/union)
