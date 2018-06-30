@@ -160,11 +160,12 @@
   "Relation where `order` attempts to remain at `location` while convoying
   `convoyed-attack`."
   [order location convoyed-attack]
-  (raw-order order)
-  ;; Don't require that `convoyed-attack` was actually given.
-  (featurec order {:order-type :convoy
-                   :location location
-                   :assisted-order convoyed-attack}))
+  (all
+   (raw-order order)
+   ;; Don't require that `convoyed-attack` was actually given.
+   (featurec order {:order-type :convoy
+                    :location location
+                    :assisted-order convoyed-attack})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                 Resolving Diplomacy Orders ;;
@@ -174,36 +175,45 @@
 
 (defn attack-has-convoy-chain-up-to
   "Relation where `convoyed-attack` is an attack that is adjacent to a chain of
-  un-dislodged fleets convoying it, and that chain contains a fleet in
+  non-dislodged fleets convoying it, and that chain contains a fleet in
   `final-convoy-chain-location`."
-  [convoyed-attack final-convoy-chain-location]
+  [convoyed-attack final-convoy-chain-location convoys-used]
   (fresh [attack-start convoy-order]
     (attacko convoyed-attack attack-start (lvar 'attack-end))
     ;; Work backwards from `final-convoy-chain-location` toward `attack-start`.
     ;; TODO: require that `convoy-order` wasn't dislodged?
     (convoyo convoy-order final-convoy-chain-location convoyed-attack)
-    (conde
-     [(adjacent attack-start final-convoy-chain-location)]
-     [(fresh [next-convoy-location]
-        (adjacent next-convoy-location final-convoy-chain-location)
-        (attack-has-convoy-chain-up-to convoyed-attack next-convoy-location))])))
+    (fail-if (membero convoy-order convoys-used))
+    (fresh [new-convoys-used]
+      (conso convoy-order convoys-used
+             new-convoys-used)
+      (conde
+       [(adjacent attack-start final-convoy-chain-location)]
+       [(fresh [next-convoy-location]
+          (adjacent next-convoy-location final-convoy-chain-location)
+          (attack-has-convoy-chain-up-to convoyed-attack
+                                         next-convoy-location
+                                         new-convoys-used))]))))
 
 (defn attack-arrives-by-convoyo
   ""
   [convoyed-attack from to]
-  (attacko convoyed-attack from to)
-  (fresh [final-convoy-chain-location]
-    (adjacent final-convoy-chain-location to)
-    (attack-has-convoy-chain-up-to convoyed-attack
-                                   final-convoy-chain-location)))
+  (all
+   (attacko convoyed-attack from to)
+   (fresh [final-convoy-chain-location]
+     (adjacent final-convoy-chain-location to)
+     (attack-has-convoy-chain-up-to convoyed-attack
+                                    final-convoy-chain-location
+                                    []))))
 
 (defn attack-arriveso
   ""
   [attack from to]
-  (attacko attack from to)
-  (conde
-   [(adjacent from to)]
-   [(attack-arrives-by-convoyo attack from to)]))
+  (all
+   (attacko attack from to)
+   (conde
+    [(adjacent from to)]
+    [(attack-arrives-by-convoyo attack from to)])))
 
 (declare attack-advancedo)
 
