@@ -30,7 +30,7 @@
 (defmacro fail-if
   "fail if the given goal succeeds, use with extreme caution"
   [goal]
-  `(conda [~goal fail]
+  `(condu [~goal fail]
           [succeed]))
 
 (defn findall
@@ -66,7 +66,7 @@
 (defn colocated
   "Relation where `location-a` and `location-b` are colocated."
   [location-a location-b]
-  (conda
+  (condu
    [(== location-a location-b)]
    [(fresh [common-colocation-vec]
       (colocation-vec common-colocation-vec)
@@ -104,7 +104,7 @@
   This requires some logic because supporting a hold can also indicate
   supporting a unit that's supporting or convoying."
   [supported-order order]
-  (conde
+  (condu
    ;; pg 7: A unit ordered to move can only be supported by a support order that
    ;; matches the move the unit is trying to make.
    [(fresh [attack-from attack-to]
@@ -119,7 +119,7 @@
    [(fresh [supported-location]
       (featurec supported-order {:order-type :hold
                                  :location supported-location})
-      (conde
+      (condu
        [(featurec order {:order-type :hold
                          :location supported-location})]
        [(featurec order {:order-type :support
@@ -173,7 +173,7 @@
     (fresh [new-convoys-used]
       (conso convoy-order convoys-used
              new-convoys-used)
-      (conde
+      (condu
        [(adjacent attack-start final-convoy-chain-location)]
        [(fresh [next-convoy-location]
           (adjacent next-convoy-location final-convoy-chain-location)
@@ -197,7 +197,7 @@
   [attack from to]
   (all
    (attacko attack from to)
-   (conde
+   (condu
     [(adjacent from to)]
     [(attack-arrives-by-convoyo attack from to)])))
 
@@ -217,7 +217,7 @@
     (supporto support
               supporter-location
               supported-order)
-    (conda
+    (condu
      ;; TODO: should this be `attack-arriveso`?
      [(attacko supported-order
                (lvar 'supported-attack-location)
@@ -229,7 +229,7 @@
     (attack-arriveso cutter cutter-from cutter-to)
     (colocated supporter-location cutter-to)
 
-    (conda
+    (condu
      ;; pg 16: "An attack by a country one of its own units doesn't cut support."
      [(same-countryo support cutter)
       (== situation :attacked-by-same-country)
@@ -241,7 +241,7 @@
       (== support-cut? true)]
 
      [(== cutter-from supported-attack-destination)
-      (conda
+      (condu
        ;; pg 12: "Support is cut if the unit giving support is dislodged."
        ;;
        ;; Only evaluate this goal when it's outcome determines `support-cut?`.
@@ -318,7 +318,7 @@
                    :attack-supporters attack-supporters
                    :bouncer-supporters bouncer-supporters
                    :beleaguered-garrison-changing-outcome beleaguered-garrison})
-    (conde
+    (condu
      [(fresh [bouncer-remain-loc]
         (remainso bouncer bouncer-remain-loc)
         (colocated to bouncer-remain-loc)
@@ -347,7 +347,7 @@
         ;; that C_tur attacked where B_rus came from does not prevent A_rus
         ;; from moving into where B_rus came from, because a dislodged unit
         ;; has no effect on the province that dislodged it.
-        (conda
+        (condu
          [(fresh [dislodger dislodger-from dislodger-to]
             (attack-arriveso dislodger dislodger-from dislodger-to)
             (colocated dislodger-from bouncer-to)
@@ -359,8 +359,8 @@
           (== beleaguered-garrison nil)]
          ;; Otherwise, this is a normal conflict.
          [(== rule :attacked-same-destination)
-          (conda
-           [(conde
+          (condu
+           [(condu
              [(remainso beleaguered-garrison to)
               (multi-pred depends-on-whether-beleaguered-garrison-leaves
                           attack bouncer beleaguered-garrison)]
@@ -522,14 +522,14 @@
                            :would-dislodge-own-unit? would-dislodge-own-unit?})
     (conflict-situationo attack bouncer situation
                          attacks-assumed-successful)
-    (conda
+    (condu
      [(multi-pred bounced-by-strength-in-situation
                   attack
                   bouncer
                   situation)
       (== bounced-by-bouncer? true)
       (== would-dislodge-own-unit? false)]
-     [(conda
+     [(condu
        [(fresh [attack-to bouncer-location]
           (same-countryo attack bouncer)
           (featurec attack {:destination attack-to})
