@@ -33,28 +33,14 @@
   `(conda [~goal fail]
           [succeed]))
 
-;; Core.logic stores active databases in `(def ^:dynamic *logic-dbs* [])`,
-;; which `pldb/with-db` sets using `binding`. This means that code only has
-;; access to the db from `with-db` when it is **executed** 'inside' the
-;; `with-db`. `run` generates a lazy sequence, so code inside `run` will not be
-;; executed 'inside' the `with-db` block unless we force evaluation with
-;; `doall` (https://cemerick.com/2009/11/03/be-mindful-of-clojures-binding/).
-;; Thus, removing this `doall` causes nested runs to run with an *empty* fact
-;; database!
-;;
-;; There are other solutions worth considering:
-;; - pass the fact database all the way down to the site of the nested run
-;; - set our own global var for the fact database (instead of piggybacking on
-;;     core.logic's internal ^:dynamic var)
-;; - eliminate the need for nested runs (I use them to count the possible values
-;;     a variable can take).
-;; - implement findall in core.logic http://dev.clojure.org/jira/browse/LOGIC-68
-(defmacro run-db*-with-nested-runs [db bindings goals]
-  "Like `run-db*`, except calls to `run` in `goals` also use `db` for their fact
-  database."
-  `(pldb/with-db ~db
-     (doall
-      (run* ~bindings ~goals))))
+(defn findall
+  "Unifies `result-set-var` with the list of values for `query-var` that satisfy
+  `goal` in the current substitution. Unifies `result-set-var` with the empty
+  list if `goal` fails."
+  [query-var goal result-set-var]
+  (fn [current-substitution]
+    ((== result-set-var (solutions current-substitution query-var goal))
+     current-substitution)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Diplomacy Orders in core.logic ;;
@@ -289,21 +275,18 @@
     ;; if some *other* order successfully cut `support`).
     (fail-if some-order-cut-us-goal)))
 
-(defn successful-supporters
-  "Set of units that successfully support `supported`. Non-relational."
-  [supported]
-  (when (empty? clojure.core.logic/*logic-dbs*)
-    ;; This helps more than it hurts at the moment; it's hard to notice that
-    ;; you're using an empty fact database.
-    (throw (IllegalStateException.
-            "nested run running with empty fact database!")))
-  ;; TODO: can this `run*` return the same order multiple times? Shouldn't
-  ;;       matter because of the call to `set` afterwards, but I'm curious.
-  (set (run* [support]
-         (supporto support
-                   (lvar 'location)
-                   supported)
-         (support-succeedso support))))
+(defn successful-supporterso
+  "Unifies `supporters` with the list of orders that successfully support
+  `supported`. `supported` must be ground."
+  [supported supporters]
+  (fresh [support]
+    (findall [support]
+             (all
+              (supporto support
+                        (lvar 'location)
+                        supported)
+              (support-succeedso support))
+             supporters)))
 
 (declare depends-on-whether-beleaguered-garrison-leaves)
 
@@ -327,15 +310,20 @@
   ;; each `conflict-situationo` goal in the cycle depends on whether the attack
   ;; leaving its destination succeeds, causing an infinite loop.
   [attack bouncer situation attacks-assumed-successful]
-  (fresh [from to rule beleaguered-garrison]
+  (fresh [from to rule attack-supporters bouncer-supporters
+          beleaguered-garrison]
     ;; TODO: should this be `attacko`?
     (attack-arriveso attack from to)
     (== situation {:attack-conflict-rule rule
+                   :attack-supporters attack-supporters
+                   :bouncer-supporters bouncer-supporters
                    :beleaguered-garrison-changing-outcome beleaguered-garrison})
     (conde
      [(fresh [bouncer-remain-loc]
         (remainso bouncer bouncer-remain-loc)
         (colocated to bouncer-remain-loc)
+        (successful-supporterso attack attack-supporters)
+        (successful-supporterso bouncer bouncer-supporters)
         (== rule :destination-occupied)
         (== beleaguered-garrison nil))]
 
@@ -345,6 +333,8 @@
         (!= bouncer-from from)
         (attack-arriveso bouncer bouncer-from bouncer-to)
         (colocated to bouncer-to)
+        (successful-supporterso attack attack-supporters)
+        (successful-supporterso bouncer bouncer-supporters)
         ;; pg 9: "A dislodged unit, even with support, has no effect on the
         ;; province that dislodged it" (see Diagram 13).
         ;;
@@ -393,6 +383,8 @@
         (attack-arriveso bouncer bouncer-from bouncer-to)
         (colocated bouncer-from to)
         (colocated bouncer-to from)
+        (successful-supporterso attack attack-supporters)
+        (successful-supporterso bouncer bouncer-supporters)
         ;; TODO: use :swapped-places-with-convoy when appropriate.
         (== rule :swapped-places-without-convoy)
         (== beleaguered-garrison nil))]
@@ -404,6 +396,8 @@
         ;; Orders that swap places with `attack` are handled in a different
         ;; case.
         (fail-if (colocated bouncer-to from))
+        (successful-supporterso attack attack-supporters)
+        (successful-supporterso bouncer bouncer-supporters)
         ;; Assume this attack advanced
         (conso attack attacks-assumed-successful
                new-attacks-assumed-successful)
@@ -454,9 +448,9 @@
 
   Providing the wrong `situation` will give bogus results."
   [attack bouncer situation]
-  (let [attack-supporters (successful-supporters attack)
-        bouncer-supporters (successful-supporters bouncer)
-        {attack-conflict-rule :attack-conflict-rule
+  (let [{attack-conflict-rule :attack-conflict-rule
+         attack-supporters  :attack-supporters
+         bouncer-supporters :bouncer-supporters
          beleaguered-garrison :beleaguered-garrison-changing-outcome} situation]
     (condp contains? attack-conflict-rule
       #{:attacked-same-destination}
@@ -607,7 +601,7 @@
                                         colocation-vecs
                                         adjacency-pairs))]
     (->>
-     (run-db*-with-nested-runs
+     (run-db*
       database
       [order judgment]
       (conde

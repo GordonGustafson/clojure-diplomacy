@@ -344,3 +344,24 @@
       fill-in-supply-center-ownerships
       fill-in-missing-valid-orders
       fill-in-unit-positions-before))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                     fully expanding a test ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec judgments-equal-enough? [::dt/judgment :dt/judgment] boolean?)
+(defn judgments-equal-enough?
+  "To avoid making our tests too verbose, we ignore certain parts of
+  `dt/judgment`s so we don't have to provide expected values for them in every
+  single test. This function returns whether two judgments are equal if we
+  ignore those parts."
+  [expected actual]
+  (or (= expected actual)
+      (and (= (:interferer expected) (:interferer actual))
+           (= (:interfered? expected) (:interfered? actual))
+           (= (:would-dislodge-own-unit? expected)
+              (:would-dislodge-own-unit? actual))
+           (= (get-in expected [:conflict-situation ::attack-conflict-rule])
+              (get-in actual [:conflict-situation ::attack-conflict-rule]))
+           (= (get-in expected [:conflict-situation ::would-dislodge-own-unit?])
+              (get-in actual [:conflict-situation ::would-dislodge-own-unit?])))))

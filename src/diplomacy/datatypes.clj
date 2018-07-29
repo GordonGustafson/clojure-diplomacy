@@ -76,6 +76,7 @@
                                             :support #{:assisted-order}
                                             :convoy  #{:assisted-order}))]
              (= (set (keys order)) expected-keys)))))
+(s/def ::support-order (s/and ::order #(= (:order-type %) :support)))
 (s/def ::assisted-order (s/and ::order
                                #(contains? #{:hold :attack} (:order-type %))))
 (s/def ::orders (s/coll-of ::order))
@@ -122,10 +123,14 @@
 ;; Beleaguered garrison that changed the outcome of one of the attacks on its
 ;; location due to one or more supporting orders of that attack being unwilling
 ;; to dislodge the beleaguered garrison (since they're from the same country).
+(s/def ::attack-supporters (s/coll-of ::support-order))
+(s/def ::bouncer-supporters (s/coll-of ::support-order))
 (s/def ::beleaguered-garrison-changing-outcome (s/nilable ::order))
 (s/def ::attack-conflict-situation
   (s/and
    (s/keys :req-un [::attack-conflict-rule
+                    ::attack-supporters
+                    ::bouncer-supporters
                     ::beleaguered-garrison-changing-outcome])
    #(if (nil? (:beleaguered-garrison-changing-outcome %))
       true
