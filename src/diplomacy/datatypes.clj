@@ -154,7 +154,7 @@
 ;; Whether the bouncer bounces the attack.
 (s/def ::interfered? boolean?)
 
-(s/def ::failed-to-arrive-judgment #(= :failed-convoy %))
+(s/def ::failed-to-arrive-judgment #(= :no-successful-convoy %))
 ;; Map describing the conflict that some order had with `:interferer`.
 ;; `:interfered?` is the outcome of that conflict (whether `:interfered?`
 ;; counteracted the order), and `:conflict-situation` is the rule describing the

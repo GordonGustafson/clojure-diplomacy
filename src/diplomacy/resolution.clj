@@ -504,7 +504,7 @@
     (attacko attack from to)
     (fail-if (attack-arriveso attack from to))
     ;; TODO: add more descriptive possibilities here?
-    (== failed-to-arrive-judgment :failed-convoy)))
+    (== failed-to-arrive-judgment :no-successful-convoy)))
 
 ;; This relation links the relational code in `conflict-situationo` with the
 ;; functional code in `bounced-by-strength-in-situation`, and contains the logic
