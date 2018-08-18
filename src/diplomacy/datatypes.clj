@@ -91,7 +91,7 @@
     :supports-wrong-order-type?
     :uses-nonexistent-location?
     :attacks-inaccessible-location?
-    :attacks-via-inaccessible-edge?
+    :fleet-attacks-via-inaccessible-edge?
     :supports-unsupportable-location?
     :ordered-unit-does-not-exist?})
 (s/def ::validation-failure-reasons (s/coll-of ::validation-failure-reason))

@@ -58,6 +58,9 @@
 ;; locations in the classic map, since every edge in the classic map is
 ;; undirected. I don't know of any variants that have edges that can only be
 ;; traversed in one direction, but this makes the code simpler.
+;;
+;; All edges between adjacent land locations are accessible to armies, so we
+;; don't need any edge-accessibility information in the resolution phase.
 (pldb/db-rel adjacent loc-a loc-b)
 
 ;; For performance reasons it may be better to pre-compute the colocation-set of

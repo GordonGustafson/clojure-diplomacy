@@ -44,13 +44,14 @@
 
 (deftest test-attacks-current-location?
   (run-test-cases validation-failure-reasons-in-classic-map
-   {#{:attacks-current-location? :attacks-via-inaccessible-edge?}
-    [{:country    :turkey
+   {#{:attacks-current-location?}
+    [{:country     :turkey
       :unit-type   :army
       :location    :con
       :order-type  :attack
-      :destination :con}
-     {:country    :italy
+      :destination :con}]
+    #{:attacks-current-location? :fleet-attacks-via-inaccessible-edge?}
+    [{:country     :italy
       :unit-type   :fleet
       :location    :rom
       :order-type  :attack
@@ -76,11 +77,9 @@
 (deftest test-uses-nonexistent-location?
   (run-test-cases validation-failure-reasons-in-classic-map
    {#{:uses-nonexistent-location?}
-    [(expand-order :turkey :army :cleveland :hold)]
-    #{:uses-nonexistent-location? :attacks-via-inaccessible-edge?}
-     [(expand-order :italy :army :disneyland :attack :ven)]
-    #{:uses-nonexistent-location? :attacks-inaccessible-location?
-      :attacks-via-inaccessible-edge?}
+    [(expand-order :turkey :army :cleveland :hold)
+     (expand-order :italy :army :disneyland :attack :ven)]
+    #{:uses-nonexistent-location? :attacks-inaccessible-location?}
     [(expand-order :italy :army :ven :attack :disneyland)]
     #{:uses-nonexistent-location? :supports-unsupportable-location?}
     [(expand-order :england :fleet :eng :support
@@ -92,15 +91,17 @@
 
 (deftest test-attacks-inaccessible-location?
   (run-test-cases validation-failure-reasons-in-classic-map
-   { #{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
-    [(expand-order :italy :fleet :ven :attack :tyr)
-     (expand-order :italy :army :ven :attack :adr)]}))
+   {#{:attacks-inaccessible-location? :fleet-attacks-via-inaccessible-edge?}
+    [(expand-order :italy :fleet :ven :attack :tyr)]
+    #{:attacks-inaccessible-location?}
+    [(expand-order :italy :army :ven :attack :adr)]}))
 
-(deftest test-attacks-via-inaccessible-edge?
+(deftest test-fleet-attacks-via-inaccessible-edge?
   (run-test-cases validation-failure-reasons-in-classic-map
-   {#{:attacks-via-inaccessible-edge?}
+   {#{}
+     [(expand-order :italy :army :spa :attack :syr)]
+   #{:fleet-attacks-via-inaccessible-edge?}
     [(expand-order :italy :fleet :ven :attack :lon)
-     (expand-order :italy :army :spa :attack :syr)
      (expand-order :turkey :fleet :ank :attack :smy)]}))
 
 (deftest test-supports-unsupportable-location?

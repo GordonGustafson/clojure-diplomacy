@@ -8,28 +8,28 @@
   {"A1"
    {:long-name "6.A.1 MOVING TO AN AREA THAT IS NOT A NEIGHBOUR"
     :summary "Check if an illegal move (without convoy) will fail."
-    :validation-results-abbr {[:england :fleet :nth :attack :pic] [#{:attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:england :fleet :nth :attack :pic] [#{:fleet-attacks-via-inaccessible-edge?}
                                                                    [:england :fleet :nth :hold]]}
     :resolution-results-abbr {[:england :fleet :nth :hold] #{}}
     :explanation "Order should fail."}
    "A2"
    {:long-name "6.A.2. MOVE ARMY TO SEA"
     :summary "Check if an army could not be moved to open sea."
-    :validation-results-abbr {[:england :army :lvp :attack :iri] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:england :army :lvp :attack :iri] [#{:attacks-inaccessible-location?}
                                                                   [:england :army :lvp :hold]]}
     :resolution-results-abbr {[:england :army :lvp :hold] #{}}
     :explanation "Order should fail."}
    "A3"
    {:long-name "6.A.3. MOVE FLEET TO LAND"
     :summary "Check whether a fleet can not move to land."
-    :validation-results-abbr {[:germany :fleet :kie :attack :mun] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:germany :fleet :kie :attack :mun] [#{:attacks-inaccessible-location? :fleet-attacks-via-inaccessible-edge?}
                                                                    [:germany :fleet :kie :hold]]}
     :resolution-results-abbr {[:germany :fleet :kie :hold] #{}}
     :explanation "Order should fail."}
    "A4"
    {:long-name "6.A.4. MOVE TO OWN SECTOR"
     :summary "Moving to the same sector is an illegal move (2000 rulebook, page 4, \"An Army can be ordered to move into an adjacent inland or coastal province.\")."
-    :validation-results-abbr {[:germany :fleet :kie :attack :kie] [#{:attacks-current-location? :attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:germany :fleet :kie :attack :kie] [#{:attacks-current-location? :fleet-attacks-via-inaccessible-edge?}
                                                                    [:germany :fleet :kie :hold]]}
     :resolution-results-abbr {[:germany :fleet :kie :hold] #{}}
     :explanation "Program should not crash."}
@@ -67,7 +67,7 @@
    "A9"
    {:long-name "6.A.9. FLEETS MUST FOLLOW COAST IF NOT ON SEA"
     :summary "If two places are adjacent, that does not mean that a fleet can move between those two places. An implementation that only holds one list of adjacent places for each place, is incorrect."
-    :validation-results-abbr {[:italy :fleet :rom :attack :ven] [#{:attacks-via-inaccessible-edge?} [:italy :fleet :rom :hold]]}
+    :validation-results-abbr {[:italy :fleet :rom :attack :ven] [#{:fleet-attacks-via-inaccessible-edge?} [:italy :fleet :rom :hold]]}
     :resolution-results-abbr {[:italy :fleet :rom :hold] #{}}
     :explanation "Move fails. An army can go from Rome to Venice, but a fleet can not."}
    "A10"
@@ -97,7 +97,7 @@
    "B1"
    {:long-name "6.B.1. MOVING WITH UNSPECIFIED COAST WHEN COAST IS NECESSARY"
     :summary "Coast is significant in this case:"
-    :validation-results-abbr {[:france :fleet :por :attack :spa] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?} [:france :fleet :por :hold]]}
+    :validation-results-abbr {[:france :fleet :por :attack :spa] [#{:attacks-inaccessible-location? :fleet-attacks-via-inaccessible-edge?} [:france :fleet :por :hold]]}
     :resolution-results-abbr {[:france :fleet :por :hold] #{}}
     :explanation "Some adjudicators take a default coast (see issue 4.B.1). <i>I prefer that the move fails.</i>"}
    ;; TODO: Currently a fleet moving to a non-coastal version of a location with
@@ -106,13 +106,13 @@
    "B2"
    {:long-name "6.B.2. MOVING WITH UNSPECIFIED COAST WHEN COAST IS NOT NECESSARY"
     :summary "There is only one coast possible in this case:"
-    :validation-results-abbr {[:france :fleet :gas :attack :spa] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
+    :validation-results-abbr {[:france :fleet :gas :attack :spa] [#{:attacks-inaccessible-location? :fleet-attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
     :resolution-results-abbr {[:france :fleet :gas :hold] #{}}
     :explanation "Since the North Coast is the only coast that can be reached, it seems logical that the a move is attempted to the north coast of Spain. Some adjudicators require that a coast is also specified in this case and will decide that the move fails or take a default coast (see issue 4.B.2). <i>I prefer that an attempt is made to the only possible coast, the north coast of Spain.</i>"}
    "B3"
    {:long-name "6.B.3. MOVING WITH WRONG COAST WHEN COAST IS NOT NECESSARY"
     :summary "If only one coast is possible, but the wrong coast can be specified."
-    :validation-results-abbr {[:france :fleet :gas :attack :spa-sc] [#{:attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
+    :validation-results-abbr {[:france :fleet :gas :attack :spa-sc] [#{:fleet-attacks-via-inaccessible-edge?} [:france :fleet :gas :hold]]}
     :resolution-results-abbr {[:france :fleet :gas :hold] #{}}
     :explanation "If the rules are played very clemently, a move will be attempted to the north coast of Spain. However, since this order is very clear and precise, it is more common that the move fails (see issue 4.B.3). <i>I prefer that the move fails.</i>"}
    "B4"
@@ -173,7 +173,7 @@
    {:long-name "6.B.10. UNIT ORDERED WITH WRONG COAST"
     :summary "A player might specify the wrong coast for the ordered unit. France has a fleet on the south coast of Spain and orders:"
     :unit-positions-before {:spa-sc {:unit-type :fleet :country :france}}
-    :validation-results-abbr {[:france :fleet :spa-nc :attack :gol] [#{:ordered-unit-does-not-exist? :attacks-via-inaccessible-edge?} nil]}
+    :validation-results-abbr {[:france :fleet :spa-nc :attack :gol] [#{:ordered-unit-does-not-exist? :fleet-attacks-via-inaccessible-edge?} nil]}
     :resolution-results-abbr {[:france :fleet :spa-sc :hold] #{}}
     :explanation "If only perfect orders are accepted, then the move will fail, but since the coast for the ordered unit has no purpose, it might also be ignored (see issue 4.B.5). <i>I prefer that a move will be attempted.</i>"}
    "B11"
@@ -187,7 +187,7 @@
    "B12"
    {:long-name "6.B.12. ARMY MOVEMENT WITH COASTAL SPECIFICATION"
     :summary "For armies the coasts are irrelevant:"
-    :validation-results-abbr {[:france :army :gas :attack :spa-nc] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?} [:france :army :gas :hold]]}
+    :validation-results-abbr {[:france :army :gas :attack :spa-nc] [#{:attacks-inaccessible-location?} [:france :army :gas :hold]]}
     :resolution-results-abbr {[:france :army :gas :hold] #{}}
     :explanation "If only perfect orders are accepted, then the move will fail. But it is also possible that coasts are ignored in this case and a move will be attempted (see issue 4.B.6). <i>I prefer that a move will be attempted.</i>"}
    "B13"
@@ -452,7 +452,7 @@
    "D22"
    {:long-name "6.D.22. IMPOSSIBLE FLEET MOVE CAN NOT BE SUPPORTED"
     :summary "If a fleet tries moves to a land area it seems pointless to support the fleet, since the move will fail anyway. However, in such case, the support is also invalid for defense purposes."
-    :validation-results-abbr {[:germany :fleet :kie :attack :mun] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:germany :fleet :kie :attack :mun] [#{:attacks-inaccessible-location? :fleet-attacks-via-inaccessible-edge?}
                                                                    [:germany :fleet :kie :hold]]}
     :resolution-results-abbr {[:germany :fleet :kie :hold] #{}
                               [:germany :army :bur :support :germany :fleet :kie :attack :mun] #{}
@@ -462,7 +462,7 @@
    "D23"
    {:long-name "6.D.23. IMPOSSIBLE COAST MOVE CAN NOT BE SUPPORTED"
     :summary "Comparable with the previous test case, but now the fleet move is impossible for coastal reasons."
-    :validation-results-abbr {[:france :fleet :spa-nc :attack :gol] [#{:attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:france :fleet :spa-nc :attack :gol] [#{:fleet-attacks-via-inaccessible-edge?}
                                                                      [:france :fleet :spa-nc :hold]]}
     :resolution-results-abbr {[:italy :fleet :gol :attack :spa-sc] #{[false [:france :fleet :spa-nc :hold] :destination-occupied]}
                               [:italy :fleet :wes :support :italy :fleet :gol :attack :spa-sc] #{}
@@ -472,7 +472,7 @@
    "D24"
    {:long-name "6.D.24. IMPOSSIBLE ARMY MOVE CAN NOT BE SUPPORTED"
     :summary "Comparable with the previous test case, but now an army tries to move into sea and the support is used in a beleaguered garrison."
-    :validation-results-abbr {[:france :army :mar :attack :gol] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:france :army :mar :attack :gol] [#{:attacks-inaccessible-location?}
                                                                  [:france :army :mar :hold]]}
     :resolution-results-abbr {[:france :army :mar :hold] #{}
                               [:france :fleet :spa-sc :support :france :army :mar :attack :gol] #{}
@@ -509,7 +509,7 @@
    "D28"
    {:long-name "6.D.28. IMPOSSIBLE MOVE AND SUPPORT"
     :summary "If a move is impossible then it can be treated as \"illegal\", which makes a hold support possible."
-    :validation-results-abbr {[:russia :fleet :rum :attack :hol] [#{:attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:russia :fleet :rum :attack :hol] [#{:fleet-attacks-via-inaccessible-edge?}
                                                                  [:russia :fleet :rum :hold]]}
     :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{}
                               [:russia :fleet :rum :hold] #{}
@@ -520,7 +520,7 @@
    "D29"
    {:long-name "6.D.29. MOVE TO IMPOSSIBLE COAST AND SUPPORT"
     :summary "Similar to the previous test case, but now the move can be \"illegal\" because of the wrong coast."
-    :validation-results-abbr {[:russia :fleet :rum :attack :bul-sc] [#{:attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:russia :fleet :rum :attack :bul-sc] [#{:fleet-attacks-via-inaccessible-edge?}
                                                                      [:russia :fleet :rum :hold]]}
     :resolution-results-abbr {[:austria :army :bud :support :russia :fleet :rum :hold] #{}
                               [:russia :fleet :rum :hold] #{}
@@ -531,7 +531,7 @@
    "D30"
    {:long-name "6.D.30. MOVE WITHOUT COAST AND SUPPORT"
     :summary "Similar to the previous test case, but now the move can be \"illegal\" because of missing coast."
-    :validation-results-abbr {[:russia :fleet :con :attack :bul] [#{:attacks-inaccessible-location? :attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:russia :fleet :con :attack :bul] [#{:attacks-inaccessible-location? :fleet-attacks-via-inaccessible-edge?}
                                                                      [:russia :fleet :con :hold]]}
     :resolution-results-abbr {[:italy :fleet :aeg :support :russia :fleet :con :hold] #{}
                               [:russia :fleet :con :hold] #{}
@@ -743,7 +743,7 @@
    "E14"
    {:long-name "6.E.14. ILLEGAL HEAD TO HEAD BATTLE CAN STILL DEFEND"
     :summary "If in a head to head battle, one of the units makes an illegal move, than that unit has still the possibility to defend against attacks with strength of one."
-    :validation-results-abbr {[:russia :fleet :edi :attack :lvp] [#{:attacks-via-inaccessible-edge?}
+    :validation-results-abbr {[:russia :fleet :edi :attack :lvp] [#{:fleet-attacks-via-inaccessible-edge?}
                                                                    [:russia :fleet :edi :hold]]}
     :resolution-results-abbr {[:england :army :lvp :attack :edi] #{[true [:russia :fleet :edi :hold] :destination-occupied]}
                               [:russia :fleet :edi :hold] #{}}
@@ -1304,6 +1304,11 @@
                               [:italy :army :mun :support :germany :fleet :kie :attack :ber] #{}}
     :explanation "Move to Berlin fails."}
 
+   "Z10"
+   {:long-name "Z10. ARMY MOVING TO AN AREA THAT IS NOT A NEIGHBOUR"
+    :summary "Check if an illegal move (without convoy) will fail."
+    :resolution-results-abbr {[:england :army :lon :attack :syr] #{:no-successful-convoy}}
+    :explanation "Order should fail."}
    })
 
 (defn test-complete?

@@ -188,6 +188,26 @@
        :beleaguered-garrison-changing-outcome
        (apply expand-order beleaguered-garrison-abbr)})))
 
+(defn-spec expand-conflict-judgment
+  [::conflict-judgment-abbr ::dt/order] ::dt/conflict-judgment)
+(defn expand-conflict-judgment
+  [{interfered? 0
+    interferer 1
+    situation-abbr 2
+    would-dislodge-own-unit? 3
+    ;; would-dislodge-own-unit? is optional in
+    ;; ::resolution-results-abbr.
+    :or {would-dislodge-own-unit? false}}
+   expanded-order]
+  (let [res {:interferer (apply expand-order interferer)
+             :conflict-situation
+             (expand-conflict-situation situation-abbr)
+             :interfered? interfered?}]
+    (if (attack? expanded-order)
+      (assoc res :would-dislodge-own-unit?
+             would-dislodge-own-unit?)
+      res)))
+
 (defn-spec expand-resolution-results
   [::resolution-results-abbr] ::dt/resolution-results)
 (defn expand-resolution-results
@@ -199,21 +219,16 @@
         (for [[k v] orders]
           (let [expanded-order (apply expand-order k)]
             [expanded-order
-             (set (map (fn [{interfered? 0
-                             interferer 1
-                             situation-abbr 2
-                             would-dislodge-own-unit? 3
-                             ;; would-dislodge-own-unit? is optional in
-                             ;; ::resolution-results-abbr.
-                             :or {would-dislodge-own-unit? false}}]
-                         (let [res {:interferer (apply expand-order interferer)
-                                    :conflict-situation
-                                    (expand-conflict-situation situation-abbr)
-                                    :interfered? interfered?}]
-                           (if (attack? expanded-order)
-                             (assoc res :would-dislodge-own-unit?
-                                    would-dislodge-own-unit?)
-                             res)))
+             (set (map (fn [judgment-abbr]
+                         ;; Don't check for validity with`::conflict-judgment-abbr`,
+                         ;; since the unfinished tests won't be valid!
+                         (if (s/valid? ::dt/failed-to-arrive-judgment
+                                       judgment-abbr)
+                           ;; ::dt/failed-to-arrive-judgment doesn't have an
+                           ;; abbreviated form.
+                           judgment-abbr
+                           (expand-conflict-judgment judgment-abbr
+                                                     expanded-order)))
                        v))]))))
 
 (defn-spec expand-orders-phase-test-options

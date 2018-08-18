@@ -15,7 +15,7 @@
   [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
 (defn-spec attacks-inaccessible-location?
   [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
-(defn-spec attacks-via-inaccessible-edge?
+(defn-spec fleet-attacks-via-inaccessible-edge?
   [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
 (defn-spec supports-unsupportable-location?
   [::dt/dmap ::dt/unit-positions ::dt/order] boolean?)
@@ -65,11 +65,13 @@
   (and (ord/attack? order)
        (not (map/location-accessible-to? diplomacy-map destination unit-type))))
 
-;; TODO(convoy): rethink this, since army attacks can use complete convoys
-(defn attacks-via-inaccessible-edge?
+;; This handles both inaccessible edges and edges that don't exist (non-adjacent
+;; locations).
+(defn fleet-attacks-via-inaccessible-edge?
   [diplomacy-map unit-positions {:keys [unit-type location destination]
                                  :as order}]
-  (and (ord/attack? order)
+  (and (ord/fleet? order)
+       (ord/attack? order)
        (not (map/edge-accessible-to? diplomacy-map
                                      location
                                      destination
@@ -119,7 +121,7 @@
                           (var convoy-with-wrong-unit-types?)
                           (var uses-nonexistent-location?)
                           (var attacks-inaccessible-location?)
-                          (var attacks-via-inaccessible-edge?)
+                          (var fleet-attacks-via-inaccessible-edge?)
                           (var supports-unsupportable-location?)
                           (var ordered-unit-does-not-exist?)]
         invalidators     (map var-get invalidator-vars)

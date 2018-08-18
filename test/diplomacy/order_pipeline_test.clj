@@ -38,7 +38,8 @@
     ;; likely a severe problem with the testing setup, so we use `assert`
     ;; instead of `test/is`.
     (assert (= (set (keys expected-res))
-               (set (keys actual-res))))
+               (set (keys actual-res)))
+            (str "Assertion failure in " test-identifier))
 
     (let [orders (keys expected-res)]
       (doall (map (fn [order]
