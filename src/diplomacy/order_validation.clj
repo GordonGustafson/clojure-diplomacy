@@ -39,13 +39,15 @@
   (and (ord/support? order)
        (not (or (ord/attack? assisted-order) (ord/hold? assisted-order)))))
 
-;; (defn convoys-wrong-order-type? [{:keys [assisted-order] :as order}]
-;;   (and (ord/convoy? order)
-;;        (not (ord/attack? assisted-order))))
+(defn convoys-wrong-order-type?
+  [diplomacy-map unit-positions {:keys [assisted-order] :as order}]
+  (and (ord/convoy? order)
+       (not (ord/attack? assisted-order))))
 
-;; (defn convoy-with-wrong-unit-types? [{:keys [assisted-order] :as order}]
-;;   (and (ord/convoy? order)
-;;        (not (and (fleet? order) (army? assisted-order)))))
+(defn convoy-with-wrong-unit-types?
+  [diplomacy-map unit-positions {:keys [assisted-order] :as order}]
+  (and (ord/convoy? order)
+       (not (and (ord/fleet? order) (ord/army? assisted-order)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                orders invalid in SOME maps ;;
@@ -113,6 +115,8 @@
   [diplomacy-map unit-positions order]
   (let [invalidator-vars [(var attacks-current-location?)
                           (var supports-wrong-order-type?)
+                          (var convoys-wrong-order-type?)
+                          (var convoy-with-wrong-unit-types?)
                           (var uses-nonexistent-location?)
                           (var attacks-inaccessible-location?)
                           (var attacks-via-inaccessible-edge?)

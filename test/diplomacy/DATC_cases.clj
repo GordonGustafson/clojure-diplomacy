@@ -36,11 +36,14 @@
    "A5"
    {:long-name "6.A.5. MOVE TO OWN SECTOR WITH CONVOY"
       :summary "Moving to the same sector is still illegal with convoy (2000 rulebook, page 4, \"Note: An Army can move across water provinces from one coastal province to another...\")."
-      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :yor :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:england :army :yor :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:england :army :lvp :support :england :army :yor :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:germany :fleet :lon :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:germany :army :wal :support :germany :fleet :lon :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :validation-results-abbr {[:england :army :yor :attack :yor] [#{:attacks-current-location?}
+                                                                  [:england :army :yor :hold]]}
+
+      :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :yor :attack :yor] #{}
+                                [:england :army :yor :hold] #{}
+                                [:england :army :lvp :support :england :army :yor :attack :yor] #{}
+                                [:germany :fleet :lon :attack :yor] #{[false [:england :army :yor :hold] :destination-occupied]}
+                                [:germany :army :wal :support :germany :fleet :lon :attack :yor] #{}}
       :explanation "The move of the army in Yorkshire is illegal. This makes the support of Liverpool also illegal and without the support, the Germans have a stronger force. The army in London dislodges the army in Yorkshire."}
    #_"A6"
    #_{:long-name "6.A.6. ORDERING A UNIT OF ANOTHER COUNTRY"
