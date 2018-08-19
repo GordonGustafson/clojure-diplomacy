@@ -52,10 +52,13 @@
       :explanation "Order should fail."}
    "A7"
    {:long-name "6.A.7. ONLY ARMIES CAN BE CONVOYED"
-      :summary "A fleet can not be convoyed."
-      :resolution-results-abbr {[:england :fleet :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:england :fleet :nth :convoy :england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}}
-      :explanation "Move from London to Belgium should fail."}
+    :summary "A fleet can not be convoyed."
+                              ;; Fleets can never be convoyed, so validation requires they only move to adjacent locations.
+    :validation-results-abbr {[:england :fleet :lon :attack :bel] [#{:fleet-attacks-via-inaccessible-edge?} [:england :fleet :lon :hold]]}
+    :resolution-results-abbr {[:england :fleet :lon :hold] #{}
+                              ;; Convoy order validation doesn't look at the convoyed order.
+                              [:england :fleet :nth :convoy :england :army :lon :attack :bel] #{}}
+    :explanation "Move from London to Belgium should fail."}
    "A8"
    {:long-name "6.A.8. SUPPORT TO HOLD YOURSELF IS NOT POSSIBLE"
     :summary "An army can not get an additional hold power by supporting itself."
