@@ -283,7 +283,7 @@
   `supported`. `supported` must be ground."
   [supported supporters]
   (fresh [support]
-    (findall [support]
+    (findall support
              (all
               (supporto support
                         (lvar 'location)
