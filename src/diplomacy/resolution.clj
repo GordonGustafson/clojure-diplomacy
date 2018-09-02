@@ -482,7 +482,7 @@
       (assert false (str "Unknown situation: " situation)))))
 
 (defn-spec depends-on-whether-beleaguered-garrison-leaves
-  [::order ::order ::order] boolean?)
+  [::dt/order ::dt/order ::dt/order] boolean?)
 (defn depends-on-whether-beleaguered-garrison-leaves
   "Function that returns whether the outcome of `attack` in an
   `:attacked-same-destination` conflict with `bouncer` depends on whether
