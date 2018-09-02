@@ -42,8 +42,9 @@
          :conflict-situation ::dt/conflict-situation
          :would-dislodge-own-unit?
          (s/? ::dt/would-dislodge-own-unit?)))
-(s/def ::judgment-abbr (s/or ::dt/failed-to-arrive-judgment
-                             ::conflict-judgment-abbr))
+(s/def ::judgment-abbr
+  (s/or :failed-to-arrive-judgment-tag ::dt/failed-to-arrive-judgment
+        :conflict-judgment-abbr-tag ::conflict-judgment-abbr))
 (s/def ::resolution-results-abbr (s/map-of
                                   ::order-abbr
                                   (s/coll-of ::judgment-abbr)))

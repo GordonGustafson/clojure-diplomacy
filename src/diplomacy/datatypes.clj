@@ -167,8 +167,9 @@
                    ;; attack-specific field doesn't have to appear on all
                    ;; supports? They should be more decoupled?
           :opt-un [::would-dislodge-own-unit?]))
-(s/def ::judgment (s/or ::failed-to-arrive-judgment
-                        ::conflict-judgment))
+(s/def ::judgment
+  (s/or :failed-to-arrive-judgment-tag ::failed-to-arrive-judgment
+        :conflict-judgment-tag ::conflict-judgment))
 
 ;; Map from *every* order that went into the resolution engine to the rules
 ;; governing how it was resolved.
