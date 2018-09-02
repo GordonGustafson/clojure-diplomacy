@@ -46,13 +46,14 @@
                     (let [failure-message (str test-identifier
                                                " - "
                                                (te/order-to-abbr order))]
-                      (test/is (te/judgments-equal-enough?
+                      (test/is (=
                                 (get expected-val order)
                                 (get actual-val order))
                                (str failure-message " - validation"))
-                      (test/is (te/judgments-equal-enough?
+                      (test/is (=
                                 (get expected-res order)
-                                (get actual-res order))
+                                (set (map te/remove-unchecked-parts-of-actual-judgment
+                                          (get actual-res order))))
                                (str failure-message " - resolution"))))
                   orders)))
 

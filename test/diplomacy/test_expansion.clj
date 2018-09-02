@@ -3,7 +3,7 @@
             [clojure.set :as set]
             [clojure.core.match :refer [match]]
             [diplomacy.datatypes :as dt]
-            [diplomacy.util :refer [defn-spec]]
+            [diplomacy.util :refer [defn-spec dissoc-in]]
             [clojure.spec.alpha :as s]))
 
 ;;; Verbose test cases are difficult ot write, nad difficult to understand when
@@ -373,22 +373,17 @@
       fill-in-unit-positions-before))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                     fully expanding a test ;;
+;;                                 comparing expected and actual test results ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec judgments-equal-enough? [::dt/judgment :dt/judgment] boolean?)
-(defn judgments-equal-enough?
-  "To avoid making our tests too verbose, we ignore certain parts of
-  `dt/judgment`s so we don't have to provide expected values for them in every
-  single test. This function returns whether two judgments are equal if we
-  ignore those parts."
-  [expected actual]
-  (or (= expected actual)
-      (and (= (:interferer expected) (:interferer actual))
-           (= (:interfered? expected) (:interfered? actual))
-           (= (:would-dislodge-own-unit? expected)
-              (:would-dislodge-own-unit? actual))
-           (= (get-in expected [:conflict-situation ::attack-conflict-rule])
-              (get-in actual [:conflict-situation ::attack-conflict-rule]))
-           (= (get-in expected [:conflict-situation ::would-dislodge-own-unit?])
-              (get-in actual [:conflict-situation ::would-dislodge-own-unit?])))))
+(defn-spec remove-unchecked-parts-of-actual-judgment
+  [::dt/judgment] ::dt/judgment)
+(defn remove-unchecked-parts-of-actual-judgment
+  [actual-judgment]
+  (if (and (s/valid? ::dt/conflict-judgment actual-judgment)
+           (s/valid? ::dt/attack-conflict-situation
+                     (:conflict-situation actual-judgment)))
+    (-> actual-judgment
+        (dissoc-in [:conflict-situation :attack-supporters])
+        (dissoc-in [:conflict-situation :bouncer-supporters]))
+    actual-judgment))

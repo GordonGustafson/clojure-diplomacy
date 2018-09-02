@@ -129,9 +129,11 @@
 (s/def ::attack-conflict-situation
   (s/and
    (s/keys :req-un [::attack-conflict-rule
-                    ::attack-supporters
-                    ::bouncer-supporters
-                    ::beleaguered-garrison-changing-outcome])
+                    ::beleaguered-garrison-changing-outcome]
+           ;; These are used by the resolution phase, but not checked in the
+           ;; tests because they would make the tests quite verbose.
+           :opt-un [::attack-supporters
+                    ::bouncer-supporters])
    #(if (nil? (:beleaguered-garrison-changing-outcome %))
       true
       (= (:attack-conflict-rule %) :attacked-same-destination))))
