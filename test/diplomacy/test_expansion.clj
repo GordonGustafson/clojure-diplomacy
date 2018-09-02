@@ -42,9 +42,11 @@
          :conflict-situation ::dt/conflict-situation
          :would-dislodge-own-unit?
          (s/? ::dt/would-dislodge-own-unit?)))
+(s/def ::judgment-abbr (s/or ::dt/failed-to-arrive-judgment
+                             ::conflict-judgment-abbr))
 (s/def ::resolution-results-abbr (s/map-of
                                   ::order-abbr
-                                  (s/coll-of ::conflict-judgment-abbr)))
+                                  (s/coll-of ::judgment-abbr)))
 
 (s/def ::unit-positions-before ::dt/unit-positions)
 (s/def ::supply-center-ownership-before ::dt/supply-center-ownership)
@@ -208,6 +210,15 @@
              would-dislodge-own-unit?)
       res)))
 
+(defn-spec expand-judgment
+  [::judgment-abbr ::dt/order] ::dt/judgment)
+(defn expand-judgment
+  [judgment-abbr expanded-order]
+  (if (s/valid? ::dt/failed-to-arrive-judgment judgment-abbr)
+    ;; ::dt/failed-to-arrive-judgment doesn't need expanding
+    judgment-abbr
+    (expand-conflict-judgment judgment-abbr expanded-order)))
+
 (defn-spec expand-resolution-results
   [::resolution-results-abbr] ::dt/resolution-results)
 (defn expand-resolution-results
@@ -227,8 +238,8 @@
                            ;; ::dt/failed-to-arrive-judgment doesn't have an
                            ;; abbreviated form.
                            judgment-abbr
-                           (expand-conflict-judgment judgment-abbr
-                                                     expanded-order)))
+                           (expand-judgment judgment-abbr
+                                            expanded-order)))
                        v))]))))
 
 (defn-spec expand-orders-phase-test-options
