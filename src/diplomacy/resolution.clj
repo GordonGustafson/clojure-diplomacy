@@ -366,10 +366,12 @@
            [(condu
              [(remainso beleaguered-garrison to)
               (multi-pred depends-on-whether-beleaguered-garrison-leaves
-                          attack bouncer beleaguered-garrison)]
+                          attack bouncer attack-supporters bouncer-supporters
+                          beleaguered-garrison)]
              [(attacko beleaguered-garrison to (lvar 'beleaguered-to))
               (multi-pred depends-on-whether-beleaguered-garrison-leaves
-                          attack bouncer beleaguered-garrison)
+                          attack bouncer attack-supporters bouncer-supporters
+                          beleaguered-garrison)
               ;; Don't call `attack-advancedo` unless it's guaranteed to
               ;; affect the outcome. This helps avoid non-termination issues.
               ;;
@@ -482,13 +484,15 @@
       (assert false (str "Unknown situation: " situation)))))
 
 (defn-spec depends-on-whether-beleaguered-garrison-leaves
-  [::dt/order ::dt/order ::dt/order] boolean?)
+  [::dt/order ::dt/order ::dt/orders ::dt/orders ::dt/order] boolean?)
 (defn depends-on-whether-beleaguered-garrison-leaves
   "Function that returns whether the outcome of `attack` in an
   `:attacked-same-destination` conflict with `bouncer` depends on whether
   `potential-beleaguered-garrison` advances."
-  [attack bouncer potential-beleaguered-garrison]
-  (let [situation {:attack-conflict-rule :attacked-same-destination}]
+  [attack bouncer attack-supporters bouncer-supporters potential-beleaguered-garrison]
+  (let [situation {:attack-conflict-rule :attacked-same-destination
+                   :attack-supporters attack-supporters
+                   :bouncer-supporters bouncer-supporters}]
     (not= (bounced-by-strength-in-situation
            attack bouncer (assoc situation
                                  :beleaguered-garrison-changing-outcome
