@@ -173,7 +173,7 @@
          :wes    {:mid sea, :spa-sc sea, :gol sea, :tyn sea, :tun sea, :naf sea}
          :yor    {:lvp land, :edi coast, :nth sea, :lon coast, :wal land}}
         colocation-sets
-        #{#{:bud :bul-ec :bul-sc}
+        #{#{:bul :bul-ec :bul-sc}
           #{:spa :spa-nc :spa-sc}
           #{:stp :stp-nc :stp-sc}}
         supply-centers
