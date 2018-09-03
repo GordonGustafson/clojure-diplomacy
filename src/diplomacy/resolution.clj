@@ -321,7 +321,7 @@
                    :attack-supporters attack-supporters
                    :bouncer-supporters bouncer-supporters
                    :beleaguered-garrison-changing-outcome beleaguered-garrison})
-    (condu
+    (conde
      [(fresh [bouncer-remain-loc]
         (remainso bouncer bouncer-remain-loc)
         (colocated to bouncer-remain-loc)
