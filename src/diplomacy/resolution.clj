@@ -174,41 +174,40 @@
 ;; 'bounced': attack failed due to conflict with another unit.
 ;; 'advanced': attack succeeded
 
-(defn attack-has-convoy-chain-up-to
-  "Relation where `convoyed-attack` is an attack that is adjacent to a chain of
-  non-dislodged fleets convoying it, and that chain contains a fleet in
-  `final-convoy-chain-location`."
-  [convoyed-attack final-convoy-chain-location convoys-used]
-  (fresh [attack-start convoy-order]
-    (attacko convoyed-attack attack-start (lvar 'attack-end))
-    ;; Work backwards from `final-convoy-chain-location` toward `attack-start`.
-    ;; TODO: require that `convoy-order` wasn't dislodged?
-    (convoyo convoy-order final-convoy-chain-location convoyed-attack)
-    (fail-if (membero convoy-order convoys-used))
-    (fresh [new-convoys-used]
-      (conso convoy-order convoys-used
-             new-convoys-used)
-      (conda
-       ;; Armies can 'get on' and 'get off' at `colocated-adjacent` areas, since
-       ;; the land location for a location with two coasts isn't `adjacent` to
-       ;; any bodies of water.
-       [(colocated-adjacent attack-start final-convoy-chain-location)]
-       [(fresh [next-convoy-location]
-          (adjacent next-convoy-location final-convoy-chain-location)
-          (attack-has-convoy-chain-up-to convoyed-attack
-                                         next-convoy-location
-                                         new-convoys-used))]))))
+(defn convoy-chain-between-convoys
+  "Relation where there are a chain of convoys convoying `attack` between the
+  first convoy at `start` and the last convoy at `end`."
+  [attack start end locations-used]
+  (condu
+   [(adjacent start end)]
+   [(fresh [next-location new-locations-used]
+      (convoyo (lvar 'next-convoy) next-location attack)
+      (adjacent start next-location)
+      (fail-if (membero next-location locations-used))
+      (conso next-location locations-used new-locations-used)
+      (convoy-chain-between-convoys attack next-location end
+                                    new-locations-used))]))
 
 (defn attack-arrives-by-convoyo
   ""
-  [convoyed-attack from to]
+  [attack from to]
   (all
-   (attacko convoyed-attack from to)
-   (fresh [final-convoy-chain-location]
-     (colocated-adjacent final-convoy-chain-location to)
-     (attack-has-convoy-chain-up-to convoyed-attack
-                                    final-convoy-chain-location
-                                    []))))
+   (attacko attack from to)
+    (fresh [chain-start chain-end]
+      ;; Armies can 'get on' and 'get off' at `colocated-adjacent` areas, since
+      ;; the land location for a location with two coasts isn't `adjacent` to any
+      ;; bodies of water.
+      (convoyo (lvar 'first-convoy) chain-start attack)
+      (colocated-adjacent chain-start from)
+
+      (convoyo (lvar 'last-convoy) chain-end attack)
+      (colocated-adjacent chain-end to)
+      (condu
+       [(== chain-start chain-end)]
+       [(convoy-chain-between-convoys attack
+                                      chain-start
+                                      chain-end
+                                      [])]))))
 
 (defn attack-arriveso
   ""
