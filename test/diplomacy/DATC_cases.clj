@@ -231,13 +231,13 @@
    "C4"
    {:long-name "6.C.4. A CIRCULAR MOVEMENT WITH ATTACKED CONVOY"
       :summary "When the circular movement contains an attacked convoy, the circular movement succeeds. The adjudication algorithm should handle attack of convoys before calculating circular movement."
-      :resolution-results-abbr {[:austria :army :tri :attack :ser] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:austria :army :ser :attack :bul] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:turkey :army :bul :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
+      :resolution-results-abbr {[:austria :army :tri :attack :ser] #{}
+                                [:austria :army :ser :attack :bul] #{}
+                                [:turkey :army :bul :attack :tri] #{}
                                 [:turkey :fleet :aeg :convoy :turkey :army :bul :attack :tri] #{}
                                 [:turkey :fleet :ion :convoy :turkey :army :bul :attack :tri] #{}
                                 [:turkey :fleet :adr :convoy :turkey :army :bul :attack :tri] #{}
-                                [:italy :fleet :nap :attack :ion] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                                [:italy :fleet :nap :attack :ion] #{[true [:turkey :fleet :ion :convoy :turkey :army :bul :attack :tri] :destination-occupied]}}
       :explanation "The fleet in the Ionian Sea is attacked but not dislodged. The circular movement succeeds. The Austrian and Turkish armies will advance."}
    "C5"
    {:long-name "6.C.5. A DISRUPTED CIRCULAR MOVEMENT DUE TO DISLODGED CONVOY"

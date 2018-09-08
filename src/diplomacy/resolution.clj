@@ -69,12 +69,24 @@
 (defn colocated
   "Relation where `location-a` and `location-b` are colocated."
   [location-a location-b]
-  (condu
+  ;; This is `conde` instead of `condu` so this can 'return' all colocated
+  ;; locations if one argument is ground and the other free (currently used by
+  ;; `colocated-adjacent`).
+  (conde
    [(== location-a location-b)]
    [(fresh [common-colocation-vec]
       (colocation-vec common-colocation-vec)
       (membero location-a common-colocation-vec)
       (membero location-b common-colocation-vec))]))
+
+(defn colocated-adjacent
+  "Relation where there exists a pair of adjacent locations colocated with `location-a` and
+  `location-b`, respectively."
+  [location-a location-b]
+  (fresh [colocated-a colocated-b]
+    (colocated location-a colocated-a)
+    (colocated location-b colocated-b)
+    (adjacent colocated-a colocated-b)))
 
 (defn same-countryo
   "Relation where `order-a` and `order-b` are given by the same country."
@@ -176,8 +188,11 @@
     (fresh [new-convoys-used]
       (conso convoy-order convoys-used
              new-convoys-used)
-      (condu
-       [(adjacent attack-start final-convoy-chain-location)]
+      (conda
+       ;; Armies can 'get on' and 'get off' at `colocated-adjacent` areas, since
+       ;; the land location for a location with two coasts isn't `adjacent` to
+       ;; any bodies of water.
+       [(colocated-adjacent attack-start final-convoy-chain-location)]
        [(fresh [next-convoy-location]
           (adjacent next-convoy-location final-convoy-chain-location)
           (attack-has-convoy-chain-up-to convoyed-attack
@@ -190,7 +205,7 @@
   (all
    (attacko convoyed-attack from to)
    (fresh [final-convoy-chain-location]
-     (adjacent final-convoy-chain-location to)
+     (colocated-adjacent final-convoy-chain-location to)
      (attack-has-convoy-chain-up-to convoyed-attack
                                     final-convoy-chain-location
                                     []))))
