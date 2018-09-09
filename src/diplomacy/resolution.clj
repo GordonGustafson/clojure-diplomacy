@@ -584,13 +584,14 @@
                                     :would-dislodge-own-unit?
                                     (lvar 'would-dislodge-own-unit?)}
                                    attacks-assumed-successful)]
-    (attack-arriveso attack (lvar 'from) (lvar 'to))
-    ;; `attack` advances if *there does not exist an order that bounces it*.
-    ;; Changing `true` to `false` in the call to `attack-conflict-judgmento`
-    ;; gives a goal that succeeds if *there exists an order that potentially
-    ;; bounced `attack` but did not successfully bounce it* (that goal could
-    ;; still succeed if some *other* order successfully bounced `attack`).
-    (fail-if some-order-bounced-us-goal)))
+    (all
+     (attack-arriveso attack (lvar 'from) (lvar 'to))
+     ;; `attack` advances if *there does not exist an order that bounces it*.
+     ;; Changing `true` to `false` in the call to `attack-conflict-judgmento`
+     ;; gives a goal that succeeds if *there exists an order that potentially
+     ;; bounced `attack` but did not successfully bounce it* (that goal could
+     ;; still succeed if some *other* order successfully bounced `attack`).
+     (fail-if some-order-bounced-us-goal))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      Public Interface for Order Resolution ;;
