@@ -174,16 +174,19 @@
 ;; 'bounced': attack failed due to conflict with another unit.
 ;; 'advanced': attack succeeded
 
+(declare convoy-dislodged)
+
 (defn convoy-chain-between-convoys
   "Relation where there are a chain of convoys convoying `attack` between the
   first convoy at `start` and the last convoy at `end`."
   [attack start end locations-used]
   (condu
    [(adjacent start end)]
-   [(fresh [next-location new-locations-used]
-      (convoyo (lvar 'next-convoy) next-location attack)
+   [(fresh [next-convoy next-location new-locations-used]
+      (convoyo next-convoy next-location attack)
       (adjacent start next-location)
       (fail-if (membero next-location locations-used))
+      (fail-if (convoy-dislodged next-convoy))
       (conso next-location locations-used new-locations-used)
       (convoy-chain-between-convoys attack next-location end
                                     new-locations-used))]))
@@ -193,15 +196,18 @@
   [attack from to]
   (all
    (attacko attack from to)
-    (fresh [chain-start chain-end]
+    (fresh [first-convoy chain-start
+            last-convoy chain-end]
       ;; Armies can 'get on' and 'get off' at `colocated-adjacent` areas, since
       ;; the land location for a location with two coasts isn't `adjacent` to any
       ;; bodies of water.
-      (convoyo (lvar 'first-convoy) chain-start attack)
+      (convoyo first-convoy chain-start attack)
       (colocated-adjacent chain-start from)
+      (fail-if (convoy-dislodged first-convoy))
 
-      (convoyo (lvar 'last-convoy) chain-end attack)
+      (convoyo last-convoy chain-end attack)
       (colocated-adjacent chain-end to)
+      (fail-if (convoy-dislodged last-convoy))
       (condu
        [(== chain-start chain-end)]
        [(convoy-chain-between-convoys attack
@@ -592,6 +598,14 @@
      ;; bounced `attack` but did not successfully bounce it* (that goal could
      ;; still succeed if some *other* order successfully bounced `attack`).
      (fail-if some-order-bounced-us-goal))))
+
+(defn ^:private convoy-dislodged
+  "Relation where `convoy-order` is dislodged"
+  [convoy-order]
+  (fresh [dislodger location]
+    (convoyo convoy-order location (lvar 'convoyed-attack))
+    (attacko dislodger (lvar 'from) location)
+    (attack-advancedo dislodger [])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      Public Interface for Order Resolution ;;

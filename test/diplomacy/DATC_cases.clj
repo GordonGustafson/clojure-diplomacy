@@ -242,14 +242,14 @@
    "C5"
    {:long-name "6.C.5. A DISRUPTED CIRCULAR MOVEMENT DUE TO DISLODGED CONVOY"
       :summary "When the circular movement contains a convoy, the circular movement is disrupted when the convoying fleet is dislodged. The adjudication algorithm should disrupt convoys before calculating circular movement."
-      :resolution-results-abbr {[:austria :army :tri :attack :ser] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:austria :army :ser :attack :bul] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:turkey :army :bul :attack :tri] #{[:interfered? [:russia :army :naf :hold] :rule]}
+      :resolution-results-abbr {[:austria :army :tri :attack :ser] #{[true [:austria :army :ser :attack :bul] :failed-to-leave-destination]}
+                                [:austria :army :ser :attack :bul] #{[true [:turkey :army :bul :attack :tri] :failed-to-leave-destination]}
+                                [:turkey :army :bul :attack :tri] #{:no-successful-convoy}
                                 [:turkey :fleet :aeg :convoy :turkey :army :bul :attack :tri] #{}
                                 [:turkey :fleet :ion :convoy :turkey :army :bul :attack :tri] #{}
                                 [:turkey :fleet :adr :convoy :turkey :army :bul :attack :tri] #{}
-                                [:italy :fleet :nap :attack :ion] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                                [:italy :fleet :tun :support :italy :fleet :nap :attack :ion] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                                [:italy :fleet :nap :attack :ion] #{[false [:turkey :fleet :ion :convoy :turkey :army :bul :attack :tri] :destination-occupied]}
+                                [:italy :fleet :tun :support :italy :fleet :nap :attack :ion] #{}}
       :explanation "Due to the dislodged convoying fleet, all Austrian and Turkish armies will not move."}
    "C6"
    {:long-name "6.C.6. TWO ARMIES WITH TWO CONVOYS"
