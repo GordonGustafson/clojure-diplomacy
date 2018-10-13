@@ -249,8 +249,17 @@
     (== judgment {:interferer cutter
                   :conflict-situation situation
                   :interfered? support-cut?})
-    (attack-arriveso cutter cutter-from cutter-to)
+    (attacko cutter cutter-from cutter-to)
     (colocated supporter-location cutter-to)
+    ;; RESUME HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ;; Why this doesn't print anything is driving me nuts.
+    (multi-pred (fn [a b c d e f g h] (do (println a b c d e f g h) true))
+                supporter-location supported-order supported-attack-destination
+                cutter situation support-cut?
+                cutter-from cutter-to)
+    (do (println "BEFORE attack-arriveso") succeed)
+    (attack-arriveso cutter cutter-from cutter-to)
+    (do (println "AFTER  attack-arriveso") succeed)
 
     (condu
      ;; pg 16: "An attack by a country one of its own units doesn't cut support."
