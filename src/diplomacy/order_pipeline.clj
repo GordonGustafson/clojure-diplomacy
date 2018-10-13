@@ -1,6 +1,6 @@
 (ns diplomacy.order-pipeline
   (:require [diplomacy.order-validation :as order-validation]
-            [diplomacy.resolution :as resolution]
+            [diplomacy.resolution-core-logic :as resolution]
             [diplomacy.post-resolution :as post-resolution]
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]

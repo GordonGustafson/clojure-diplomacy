@@ -1,4 +1,4 @@
-(ns diplomacy.resolution
+(ns diplomacy.resolution-core-logic
   ;; Don't get zooped by this!
   (:refer-clojure :exclude [==])
   (:use [clojure.core.logic])
