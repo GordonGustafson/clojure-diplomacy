@@ -76,7 +76,9 @@
                                             :support #{:assisted-order}
                                             :convoy  #{:assisted-order}))]
              (= (set (keys order)) expected-keys)))))
+(s/def ::attack-order (s/and ::order #(= (:order-type %) :attack)))
 (s/def ::support-order (s/and ::order #(= (:order-type %) :support)))
+(s/def ::convoy-order (s/and ::order #(= (:order-type %) :convoy)))
 (s/def ::assisted-order (s/and ::order
                                #(contains? #{:hold :attack} (:order-type %))))
 (s/def ::orders (s/coll-of ::order))
@@ -145,6 +147,9 @@
     :attacked-by-same-country})
 (s/def ::support-conflict-situation ::support-conflict-rule)
 
+(s/def ::conflict-rule
+  (s/or :attack-rule-tag ::attack-conflict-rule
+        :support-rule-tag ::support-conflict-rule))
 (s/def ::conflict-situation
   (s/or :attack-sit ::attack-conflict-situation
         :support-sit ::support-conflict-situation))
@@ -172,11 +177,12 @@
 (s/def ::judgment
   (s/or :failed-to-arrive-judgment-tag ::failed-to-arrive-judgment
         :conflict-judgment-tag ::conflict-judgment))
+(s/def ::judgments (s/coll-of ::judgment))
 
 ;; Map from *every* order that went into the resolution engine to the rules
 ;; governing how it was resolved.
 (s/def ::resolution-results (s/map-of ::order
-                                      (s/coll-of ::judgment)))
+                                      ::judgments))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                        retreats, builds, and full pipeline ;;
