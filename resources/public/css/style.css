@@ -33,10 +33,10 @@ body {
     flex-direction: row;
 }
 
-.test-complete {
+.test-ready {
     color: black;
 }
 
-.test-incomplete {
+.test-not-ready {
     color: red;
 }

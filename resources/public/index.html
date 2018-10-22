@@ -12,7 +12,7 @@
     <div id="non-map">
       <div id="test-buttons">
         {% for button-datum in DATC-button-data %}
-        <button class="render-button {% if button-datum.test-complete? %}test-complete{% else %}test-incomplete{% endif %}"
+        <button class="render-button {% if button-datum.test-ready? %}test-ready{% else %}test-not-ready{% endif %}"
                 data-orders-phase-test-url="/DATC/{{button-datum.DATC-key}}/orders-phase-test">
           {{button-datum.DATC-key}}
         </button>
