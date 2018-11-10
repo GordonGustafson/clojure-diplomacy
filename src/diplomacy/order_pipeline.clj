@@ -1,6 +1,8 @@
 (ns diplomacy.order-pipeline
   (:require [diplomacy.order-validation :as order-validation]
-            [diplomacy.resolution-core-logic :as resolution]
+            ;; CHANGE RESOLUTION ENGINE BY CHANGING THIS IMPORT
+            ;; [diplomacy.resolution-core-logic :as resolution]
+            [diplomacy.resolution-iterative :as resolution]
             [diplomacy.post-resolution :as post-resolution]
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]
