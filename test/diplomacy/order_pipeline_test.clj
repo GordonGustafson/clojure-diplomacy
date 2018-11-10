@@ -78,14 +78,14 @@
   (doseq [[short-name test] diplomacy.DATC-cases/finished-DATC-cases]
     (run-test-case diplomacy.map-data/classic-map test (:long-name test))))
 
-(test/deftest test-rulebook-sample-game
+#_(test/deftest test-rulebook-sample-game
   (doseq [[game-time test]
           diplomacy.rulebook-sample-game/rulebook-sample-game-cases]
     (run-test-case diplomacy.map-data/classic-map
                    test
                    (str (:season game-time) " " (:year game-time)))))
 
-(test/deftest test-rulebook-diagrams
+#_(test/deftest test-rulebook-diagrams
   (doseq [[diagram-number test]
           diplomacy.rulebook-diagrams/rulebook-diagram-cases]
     (run-test-case diplomacy.map-data/classic-map

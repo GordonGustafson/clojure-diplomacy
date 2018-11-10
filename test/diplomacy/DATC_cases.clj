@@ -5,21 +5,7 @@
             [diplomacy.datatypes :as dt]))
 
 (def DATC-cases-abbr
-  {
-   "C5"
-   {:long-name "6.C.5. A DISRUPTED CIRCULAR MOVEMENT DUE TO DISLODGED CONVOY"
-      :summary "When the circular movement contains a convoy, the circular movement is disrupted when the convoying fleet is dislodged. The adjudication algorithm should disrupt convoys before calculating circular movement."
-      :resolution-results-abbr {[:austria :army :tri :attack :ser] #{[true [:austria :army :ser :attack :bul] :failed-to-leave-destination]}
-                                [:austria :army :ser :attack :bul] #{[true [:turkey :army :bul :attack :tri] :failed-to-leave-destination]}
-                                [:turkey :army :bul :attack :tri] #{:no-successful-convoy}
-                                [:turkey :fleet :aeg :convoy :turkey :army :bul :attack :tri] #{}
-                                [:turkey :fleet :ion :convoy :turkey :army :bul :attack :tri] #{}
-                                [:turkey :fleet :adr :convoy :turkey :army :bul :attack :tri] #{}
-                                [:italy :fleet :nap :attack :ion] #{[false [:turkey :fleet :ion :convoy :turkey :army :bul :attack :tri] :destination-occupied]}
-                                [:italy :fleet :tun :support :italy :fleet :nap :attack :ion] #{}}
-      :explanation "Due to the dislodged convoying fleet, all Austrian and Turkish armies will not move."}
-   }
-  #_{"A1"
+  {"A1"
    {:long-name "6.A.1 MOVING TO AN AREA THAT IS NOT A NEIGHBOUR"
     :summary "Check if an illegal move (without convoy) will fail."
     :validation-results-abbr {[:england :fleet :nth :attack :pic] [#{:fleet-attacks-via-inaccessible-edge?}
@@ -1334,20 +1320,11 @@
 ;; implemented yet.
 (def blacklisted-cases
   #{
-    "A1"
-    "A2"
-    "A3"
-    "A4"
     "A5"
-    "A7"
     "A8"
-    "A9"
     "A10"
     "A11"
     "A12"
-    "B1"
-    "B2"
-    "B3"
     "B4"
     "B5"
     "B6"
@@ -1495,4 +1472,4 @@
 (def finished-DATC-cases
   (->> all-DATC-cases
   ;; (filter (fn [[k v]] (test-complete? v)))
-  (filter (fn [[k v]] (not (contains? blacklisted-cases k))))))
+  (filter (fn [[k v]] (test-ready? k)))))
