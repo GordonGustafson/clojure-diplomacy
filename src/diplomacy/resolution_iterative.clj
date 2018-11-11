@@ -16,37 +16,46 @@
 ;;                                               Specs Internal to Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::conflict-state (s/or :resolved-tag ::dt/judgment
-                              :no-conflict-tag (partial = :no-conflict)
-                              :pending-tag ::dt/conflict-rule))
-;; At the moment `::judgment` also contains the interfering order, occasionally
-;; duplicating information between the key and value of the nested map. Fixing
-;; this isn't necessary.
-(s/def ::conflict-states (s/map-of ::order
-                                   (s/map-of ::order ::conflict-state)))
-(s/def ::order-resolution-queue (s/and ::dt/orders queue?))
-(s/def ::location-to-order-map (s/map-of ::dt/location ::dt/order))
+;; A judgment that there is no conflict (a possibility not covered by
+;; `::dt/judgment`).
+(s/def ::no-conflict-judgment (s/tuple ::dt/conflict-rule
+                                       (partial = :no-conflict)))
+(s/def ::resolved-conflict-state (s/or :judgment-tag ::dt/judgment
+                                       :no-conflict-tag ::no-conflict-judgment))
+(s/def ::pending-conflict-state ::dt/conflict-rule)
+(s/def ::conflict-state (s/or :resolved-tag ::resolved-conflict-state
+                              :pending-tag ::pending-conflict-state))
+;; At the moment `::judgment` also contains the interfering order, duplicating
+;; information between the key and value of the nested map. Fixing this isn't
+;; necessary.
+;;
+;; TBD: make this only contain resolved conflicts?
+(s/def ::conflict-map (s/map-of ::order (s/map-of ::order ::conflict-state)))
+(s/def ::pending-conflict
+  (s/tuple ::dt/order ::dt/order ::pending-conflict-state))
+(s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) queue?))
 
+(s/def ::location-to-order-map (s/map-of ::dt/location ::dt/order))
 (s/def ::resolution-state
-  (s/keys :req-un [::conflict-states
-                   ::order-resolution-queue
+  (s/keys :req-un [::conflict-map
+                   ::conflict-queue
                    ;; Fields that never change during resolution
                    ::location-to-order-map
                    ::dmap]))
 
-(s/def ::conflict-state-update (s/tuple ::dt/order ::dt/order ::conflict-state))
+(s/def ::conflict-state-update
+  (s/tuple ::dt/order ::dt/order ::conflict-state))
 (s/def ::conflict-state-updates (s/coll-of ::conflict-state-update))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                    Resolution Control Flow ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(declare evaluate-attack evaluate-support evaluate-convoy
-         apply-conflict-state-updates)
+(declare conflict-rule-to-eval-func apply-conflict-state-updates)
 
 (defn-spec resolution-complete? [::resolution-state] boolean?)
-(defn resolution-complete? [{:keys [conflict-states]}]
+(defn resolution-complete? [{:keys [conflict-map]}]
   (let [all-conflict-states
-        (for [[order conflicting-orders-map] conflict-states
+        (for [[order conflicting-orders-map] conflict-map
               [conflicting-order conflict-state] conflicting-orders-map]
           conflict-state)]
     (every? #(or (s/valid? ::dt/judgment %)
@@ -59,33 +68,30 @@
 
   The return value will only be equal to the argument if resolution is
   complete."
-  [{:keys [conflict-states order-resolution-queue
+  [{:keys [conflict-map conflict-queue
            location-to-order-map dmap]
     :as resolution-state}]
 
   (if (resolution-complete? resolution-state)
     resolution-state
-    (let [order (peek order-resolution-queue)
-          evaluation-func-for-order (case (:order-type order)
-                                      :attack evaluate-attack
-                                      :support evaluate-support
-                                      :convoy evaluate-convoy)
+    (let [[order-a order-b conflict-rule] (peek conflict-queue)
+          eval-func-for-rule (get conflict-rule-to-eval-func conflict-rule)
           conflict-state-updates
-          (evaluation-func-for-order resolution-state order)]
+          (eval-func-for-rule resolution-state order-a order-b)]
       (-> resolution-state
-          (update :order-resolution-queue move-front-to-back)
-          (update :conflict-states #(apply-conflict-state-updates
-                                     % conflict-state-updates))))))
+          (update :conflict-queue move-front-to-back)
+          (update :conflict-map #(apply-conflict-state-updates
+                                  % conflict-state-updates))))))
 
 (defn-spec apply-conflict-state-updates
   [::resolution-state ::conflict-state-updates] ::resolution-state)
 (defn apply-conflict-state-updates
   "Applies the updates in `conflict-state-updates` to `resolution-state`,
   performing any necessary bookkeeping."
-  [conflict-states conflict-state-updates]
+  [conflict-map conflict-state-updates]
   (reduce (fn [states [order conflicting-order conflict-state]]
             (assoc-in states [order conflicting-order] conflict-state))
-          conflict-states
+          conflict-map
           conflict-state-updates))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -138,27 +144,48 @@
 ;;                                                            Diplomacy Rules ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec evaluate-attack [::resolution-state ::dt/attack-order]
+(defn-spec evaluate-destination-occupied
+  [::resolution-state ::dt/attack-order ::dt/order]
   ::conflict-state-updates)
-(defn evaluate-attack
+(defn evaluate-destination-occupied
   ""
-  [{:keys [conflict-states] :as resolution-state}
-   order]
+  [resolution-state attack remain]
   )
 
-(defn-spec evaluate-support [::resolution-state ::dt/support-order]
+(defn-spec evaluate-attacked-same-destination
+  [::resolution-state ::dt/attack-order ::dt/attack-order]
   ::conflict-state-updates)
-(defn evaluate-support
+(defn evaluate-attacked-same-destination
   ""
-  [resolution-state order]
+  [resolution-state attack-a attack-b]
+  [[attack-a attack-b {:interferer attack-b
+                       :conflict-situation :attacked-same-destination
+                       :interfered? true}]
+   [attack-b attack-a {:interferer attack-a
+                       :conflict-situation :attacked-same-destination
+                       :interfered? true}]])
+
+(defn-spec evaluate-swapped-places-without-convoy
+  [::resolution-state ::dt/attack-order ::dt/attack-order]
+  ::conflict-state-updates)
+(defn evaluate-swapped-places-without-convoy
+  ""
+  [resolution-state attack-a attack-b]
   )
 
-(defn-spec evaluate-convoy [::resolution-state ::dt/convoy-order]
+(defn-spec evaluate-failed-to-leave-destination
+  [::resolution-state ::dt/attack-order ::dt/attack-order]
   ::conflict-state-updates)
-(defn evaluate-convoy
+(defn evaluate-failed-to-leave-destination
   ""
-  [resolution-state order]
+  [resolution-state attack-a attack-b]
   )
+
+(def conflict-rule-to-eval-func
+  {:destination-occupied          evaluate-destination-occupied
+   :attacked-same-destination     evaluate-attacked-same-destination
+   :swapped-places-without-convoy evaluate-swapped-places-without-convoy
+   :failed-to-leave-destination   evaluate-failed-to-leave-destination})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
@@ -173,25 +200,23 @@
     (reduce #(if (= %1 %2) (reduced %2) %2) f-results)))
 
 (defn-spec get-all-potential-conflicts [::location-to-order-map ::dt/order]
-  (s/map-of ::order ::conflict-state))
+  (s/coll-of ::pending-conflict))
 (defn ^:private get-all-potential-conflicts
   [location-to-order-map {:keys [location order-type] :as order}]
   (case order-type
     :hold []
     :convoy []
     :attack
-    (let [destination (:destination order)
-          order-conflict-rule-pairs
-          (concat
-           (map #(-> [% :destination-occupied])
-                (remains-at location-to-order-map destination))
-           (map #(-> [% :attacked-same-destination])
-                (attacks-to location-to-order-map destination))
-           (map #(-> [% :swapped-places-without-convoy])
-                (attacks-from-to location-to-order-map destination location))
-           (map #(-> [% :failed-to-leave-destination])
-                (attacks-from location-to-order-map destination)))]
-      (into {} order-conflict-rule-pairs))
+    (let [destination (:destination order)]
+      (concat
+       (map #(-> [order % :destination-occupied])
+            (remains-at location-to-order-map destination))
+       (map #(-> [order % :attacked-same-destination])
+            (attacks-to location-to-order-map destination))
+       (map #(-> [order % :swapped-places-without-convoy])
+            (attacks-from-to location-to-order-map destination location))
+       (map #(-> [order % :failed-to-leave-destination])
+            (attacks-from location-to-order-map destination))))
     ;; TODO: support logic
     :support []))
 
@@ -211,26 +236,23 @@
   (let [location-to-order-map (->> orders
                                    (map (juxt :location identity))
                                    (into {}))
-        conflict-states
-        (->> orders
-             (map (juxt identity (partial get-all-potential-conflicts
-                                          location-to-order-map)))
-             (into {}))
-        order-resolution-queue (->> orders
-                                    (filter (complement orders/hold?))
-                                    (into clojure.lang.PersistentQueue/EMPTY))
+        all-conflicts (mapcat (partial get-all-potential-conflicts
+                                       location-to-order-map)
+                              orders)
+        conflict-queue (into clojure.lang.PersistentQueue/EMPTY all-conflicts)
+        conflict-map (apply-conflict-state-updates {} all-conflicts)
         initial-resolution-state
-        {:conflict-states conflict-states
-         :order-resolution-queue order-resolution-queue
+        {:conflict-map conflict-map
+         :conflict-queue conflict-queue
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
         final-resolution-state
         (fixpoint take-resolution-step initial-resolution-state)
-        final-conflict-states (:conflict-states final-resolution-state)]
+        final-conflict-map (:conflict-map final-resolution-state)]
     (merge
-     ;; There should only be finished judgments in `final-conflict-states`, and
+     ;; There should only be finished judgments in `final-conflict-map`, and
      ;; those judgments already contain the conflicting order.
-     (->> final-conflict-states
+     (->> final-conflict-map
           (map (fn [[order conflicting-orders-map]]
                  [order (vals conflicting-orders-map)]))
           (into {}))

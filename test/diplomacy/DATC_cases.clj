@@ -1321,6 +1321,7 @@
 (def blacklisted-cases
   #{
     "A5"
+    "A7"
     "A8"
     "A10"
     "A11"
