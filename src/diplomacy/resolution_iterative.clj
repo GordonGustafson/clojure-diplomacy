@@ -165,12 +165,14 @@
     {:interferer attack-b
      :conflict-situation {:attack-conflict-rule :attacked-same-destination
                           :beleaguered-garrison-changing-outcome nil}
-     :interfered? true}]
+     :interfered? true
+     :would-dislodge-own-unit? false}]
    [attack-b attack-a
     {:interferer attack-a
      :conflict-situation {:attack-conflict-rule :attacked-same-destination
                           :beleaguered-garrison-changing-outcome nil}
-     :interfered? true}]])
+     :interfered? true
+     :would-dislodge-own-unit? false}]])
 
 (defn-spec evaluate-swapped-places-without-convoy
   [::resolution-state ::dt/attack-order ::dt/attack-order]
