@@ -30,10 +30,11 @@
 ;; necessary.
 ;;
 ;; TBD: make this only contain resolved conflicts?
-(s/def ::conflict-map (s/map-of ::order (s/map-of ::order ::conflict-state)))
+(s/def ::conflict-map (s/map-of ::dt/order
+                                (s/map-of ::dt/order ::conflict-state)))
 (s/def ::pending-conflict
   (s/tuple ::dt/order ::dt/order ::pending-conflict-state))
-(s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) queue?))
+(s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) #_queue?))
 
 (s/def ::location-to-order-map (s/map-of ::dt/location ::dt/order))
 (s/def ::resolution-state
@@ -52,14 +53,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (declare conflict-rule-to-eval-func apply-conflict-state-updates)
 
-(defn-spec resolution-complete? [::resolution-state] boolean?)
-(defn resolution-complete? [{:keys [conflict-map]}]
+(defn-spec resolution-complete? [::conflict-map] boolean?)
+(defn resolution-complete? [conflict-map]
   (let [all-conflict-states
         (for [[order conflicting-orders-map] conflict-map
               [conflicting-order conflict-state] conflicting-orders-map]
           conflict-state)]
-    (every? #(or (s/valid? ::dt/judgment %)
-                 (partial = :no-conflict))
+    (every? (partial s/valid? ::resolved-conflict-state)
             all-conflict-states)))
 
 (defn-spec take-resolution-step [::resolution-state] ::resolution-state)
@@ -72,7 +72,7 @@
            location-to-order-map dmap]
     :as resolution-state}]
 
-  (if (resolution-complete? resolution-state)
+  (if (resolution-complete? (:conflict-map resolution-state))
     resolution-state
     (let [[order-a order-b conflict-rule] (peek conflict-queue)
           eval-func-for-rule (get conflict-rule-to-eval-func conflict-rule)
@@ -84,13 +84,13 @@
                                   % conflict-state-updates))))))
 
 (defn-spec apply-conflict-state-updates
-  [::resolution-state ::conflict-state-updates] ::resolution-state)
+  [::conflict-map ::conflict-state-updates] ::conflict-map)
 (defn apply-conflict-state-updates
-  "Applies the updates in `conflict-state-updates` to `resolution-state`,
+  "Applies the updates in `conflict-state-updates` to `conflict-map`,
   performing any necessary bookkeeping."
   [conflict-map conflict-state-updates]
-  (reduce (fn [states [order conflicting-order conflict-state]]
-            (assoc-in states [order conflicting-order] conflict-state))
+  (reduce (fn [cmap [order conflicting-order conflict-state]]
+            (assoc-in cmap [order conflicting-order] conflict-state))
           conflict-map
           conflict-state-updates))
 
@@ -104,10 +104,11 @@
   "A sequence of the orders that attempt to hold, support, or convoy at
   `location`. The sequence will have 0 or 1 elements."
   [location-to-order-map location]
-  (let [order (location-to-order-map location)]
+  (if-let [order (location-to-order-map location)]
     (if (contains? #{:hold :support :convoy} (:order-type order))
       [order]
-      [])))
+      [])
+    []))
 
 (defn-spec attacks-to [::location-to-order-map ::dt/location]
   ::dt/orders)
@@ -124,21 +125,23 @@
 (defn attacks-from-to
   ""
   [location-to-order-map from to]
-  (let [order (location-to-order-map from)]
+  (if-let [order (location-to-order-map from)]
     (if (and (orders/attack? order)
              (= (:destination order) to))
       [order]
-      [])))
+      [])
+    []))
 
 (defn-spec attacks-from [::location-to-order-map ::dt/location]
   ::dt/orders)
 (defn attacks-from
   ""
   [location-to-order-map from]
-  (let [order (location-to-order-map from)]
+  (if-let [order (location-to-order-map from)]
     (if (orders/attack? order)
       [order]
-      [])))
+      [])
+    []))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                            Diplomacy Rules ;;
@@ -158,12 +161,16 @@
 (defn evaluate-attacked-same-destination
   ""
   [resolution-state attack-a attack-b]
-  [[attack-a attack-b {:interferer attack-b
-                       :conflict-situation :attacked-same-destination
-                       :interfered? true}]
-   [attack-b attack-a {:interferer attack-a
-                       :conflict-situation :attacked-same-destination
-                       :interfered? true}]])
+  [[attack-a attack-b
+    {:interferer attack-b
+     :conflict-situation {:attack-conflict-rule :attacked-same-destination
+                          :beleaguered-garrison-changing-outcome nil}
+     :interfered? true}]
+   [attack-b attack-a
+    {:interferer attack-a
+     :conflict-situation {:attack-conflict-rule :attacked-same-destination
+                          :beleaguered-garrison-changing-outcome nil}
+     :interfered? true}]])
 
 (defn-spec evaluate-swapped-places-without-convoy
   [::resolution-state ::dt/attack-order ::dt/attack-order]
