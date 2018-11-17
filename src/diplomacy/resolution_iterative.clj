@@ -105,7 +105,7 @@
   `location`. The sequence will have 0 or 1 elements."
   [location-to-order-map location]
   (let [order (location-to-order-map location)]
-    (when (contains? #{:hold :support :convoy} (:order-type order))
+    (if (contains? #{:hold :support :convoy} (:order-type order))
       [order]
       [])))
 
