@@ -218,8 +218,9 @@
       (concat
        (map #(-> [order % :destination-occupied])
             (remains-at location-to-order-map destination))
-       (map #(-> [order % :attacked-same-destination])
-            (attacks-to location-to-order-map destination))
+       (->> (attacks-to location-to-order-map destination)
+            (filter #(not= order %))
+            (map #(-> [order % :attacked-same-destination])))
        (map #(-> [order % :swapped-places-without-convoy])
             (attacks-from-to location-to-order-map destination location))
        (map #(-> [order % :failed-to-leave-destination])
