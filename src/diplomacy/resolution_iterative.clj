@@ -154,7 +154,10 @@
 (defn evaluate-destination-occupied
   ""
   [resolution-state attack remain]
-  )
+  [[attack remain
+    (j/create-attack-judgment :interferer remain
+                              :attack-rule :destination-occupied
+                              :interfered? true)]])
 
 (defn-spec evaluate-attacked-same-destination
   [::resolution-state ::dt/attack-order ::dt/attack-order]
