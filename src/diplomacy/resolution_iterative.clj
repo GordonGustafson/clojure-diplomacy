@@ -180,7 +180,14 @@
 (defn evaluate-swapped-places-without-convoy
   ""
   [resolution-state attack-a attack-b]
-  )
+  [[attack-a attack-b
+    (j/create-attack-judgment :interferer attack-b
+                              :attack-rule :swapped-places-without-convoy
+                              :interfered? true)]
+   [attack-b attack-a
+    (j/create-attack-judgment :interferer attack-a
+                              :attack-rule :swapped-places-without-convoy
+                              :interfered? true)]])
 
 (defn-spec evaluate-failed-to-leave-destination
   [::resolution-state ::dt/attack-order ::dt/attack-order]
