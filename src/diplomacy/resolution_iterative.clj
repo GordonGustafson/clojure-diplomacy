@@ -1,5 +1,6 @@
 (ns diplomacy.resolution-iterative
-  (:require [diplomacy.orders :as orders]
+  (:require [diplomacy.judgments :as j]
+            [diplomacy.orders :as orders]
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
@@ -162,17 +163,13 @@
   ""
   [resolution-state attack-a attack-b]
   [[attack-a attack-b
-    {:interferer attack-b
-     :conflict-situation {:attack-conflict-rule :attacked-same-destination
-                          :beleaguered-garrison-changing-outcome nil}
-     :interfered? true
-     :would-dislodge-own-unit? false}]
+    (j/create-attack-judgment :interferer attack-b
+                              :attack-rule :attacked-same-destination
+                              :interfered? true)]
    [attack-b attack-a
-    {:interferer attack-a
-     :conflict-situation {:attack-conflict-rule :attacked-same-destination
-                          :beleaguered-garrison-changing-outcome nil}
-     :interfered? true
-     :would-dislodge-own-unit? false}]])
+    (j/create-attack-judgment :interferer attack-a
+                              :attack-rule :attacked-same-destination
+                              :interfered? true)]])
 
 (defn-spec evaluate-swapped-places-without-convoy
   [::resolution-state ::dt/attack-order ::dt/attack-order]
