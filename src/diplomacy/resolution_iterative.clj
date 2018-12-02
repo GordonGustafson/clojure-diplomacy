@@ -13,7 +13,7 @@
 
 (defn move-front-to-back
   [queue]
-  (conj queue (pop queue)))
+  (conj (pop queue) (peek queue)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                               Specs Internal to Resolution ;;
