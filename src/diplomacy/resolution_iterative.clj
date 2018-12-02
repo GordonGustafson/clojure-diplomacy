@@ -5,7 +5,8 @@
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
-;; (require 'clojure.pprint)
+(def debug false)
+(require 'clojure.pprint)
 
 (defn queue?
   [collection]
@@ -74,7 +75,11 @@
   [{:keys [conflict-map conflict-queue
            location-to-order-map dmap]
     :as resolution-state}]
-  ;; (clojure.pprint/pprint conflict-map)
+  (when debug
+    (print "conflict-queue: ")
+    (clojure.pprint/pprint conflict-queue)
+    (print "conflict-map: ")
+    (clojure.pprint/pprint conflict-map))
 
   (if (resolution-complete? (:conflict-map resolution-state))
     resolution-state
