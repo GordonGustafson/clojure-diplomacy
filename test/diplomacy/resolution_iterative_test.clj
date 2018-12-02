@@ -102,4 +102,4 @@
           (te/expand-order :italy :army :apu :attack :ven))
          [[(te/expand-order :italy :army :apu :attack :ven)
            (te/expand-order :austria :army :ven :hold)
-           :destination-occupied]])))
+           :occupying-destination]])))

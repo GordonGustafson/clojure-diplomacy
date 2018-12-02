@@ -20,13 +20,27 @@
 ;;                                               Specs Internal to Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(s/def ::attack-conflict-pattern #{:occupying-destination
+                                   :attacking-same-destination
+                                   :swapping-places
+                                   :leaving-destination})
+(s/def ::support-conflict-pattern #{:attacking
+                                    :attacking-from-supported-location
+                                    ;; TODO: is this where we want to handle
+                                    ;; this?
+                                    :same-country-attacking})
+(s/def ::conflict-pattern
+  (s/or :attack-pattern-tag ::attack-conflict-pattern
+        :support-pattern-tag ::support-conflict-pattern))
+
+
 ;; A judgment that there is no conflict (a possibility not covered by
 ;; `::dt/judgment`).
-(s/def ::no-conflict-judgment (s/tuple ::dt/conflict-rule
+(s/def ::no-conflict-judgment (s/tuple ::conflict-pattern
                                        (partial = :no-conflict)))
 (s/def ::resolved-conflict-state (s/or :judgment-tag ::dt/judgment
                                        :no-conflict-tag ::no-conflict-judgment))
-(s/def ::pending-conflict-state ::dt/conflict-rule)
+(s/def ::pending-conflict-state ::conflict-pattern)
 (s/def ::conflict-state (s/or :resolved-tag ::resolved-conflict-state
                               :pending-tag ::pending-conflict-state))
 ;; At the moment `::judgment` also contains the interfering order, duplicating
@@ -177,10 +191,10 @@
 ;;                                                            Diplomacy Rules ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec evaluate-destination-occupied
+(defn-spec evaluate-occupying-destination
   [::resolution-state ::dt/attack-order ::dt/order]
   ::conflict-state-updates)
-(defn evaluate-destination-occupied
+(defn evaluate-occupying-destination
   ""
   [resolution-state attack remain]
   [[attack remain
@@ -188,10 +202,10 @@
                               :attack-rule :destination-occupied
                               :interfered? true)]])
 
-(defn-spec evaluate-attacked-same-destination
+(defn-spec evaluate-attacking-same-destination
   [::resolution-state ::dt/attack-order ::dt/attack-order]
   ::conflict-state-updates)
-(defn evaluate-attacked-same-destination
+(defn evaluate-attacking-same-destination
   ""
   [resolution-state attack-a attack-b]
   [[attack-a attack-b
@@ -203,10 +217,10 @@
                               :attack-rule :attacked-same-destination
                               :interfered? true)]])
 
-(defn-spec evaluate-swapped-places-without-convoy
+(defn-spec evaluate-swapping-places
   [::resolution-state ::dt/attack-order ::dt/attack-order]
   ::conflict-state-updates)
-(defn evaluate-swapped-places-without-convoy
+(defn evaluate-swapping-places
   ""
   [resolution-state attack-a attack-b]
   [[attack-a attack-b
@@ -218,30 +232,30 @@
                               :attack-rule :swapped-places-without-convoy
                               :interfered? true)]])
 
-(defn-spec evaluate-failed-to-leave-destination
+(defn-spec evaluate-leaving-destination
   [::resolution-state ::dt/attack-order ::dt/attack-order]
   ::conflict-state-updates)
-(defn evaluate-failed-to-leave-destination
+(defn evaluate-leaving-destination
   ""
   [resolution-state attack-a attack-b]
   )
 
-(def conflict-rule-to-eval-func
-  {:destination-occupied          evaluate-destination-occupied
-   :attacked-same-destination     evaluate-attacked-same-destination
-   :swapped-places-without-convoy evaluate-swapped-places-without-convoy
-   :failed-to-leave-destination   evaluate-failed-to-leave-destination})
+(def conflict-pattern-to-eval-func
+  {:occupying-destination      evaluate-occupying-destination
+   :attacking-same-destination evaluate-attacking-same-destination
+   :swapping-places            evaluate-swapping-places
+   :leaving-destination        evaluate-leaving-destination})
 
 (defn-spec evaluate-conflict [::resolution-state ::pending-conflict]
   ::conflict-state-updates)
 (defn evaluate-conflict
   [{:keys [conflict-map] :as resolution-state}
-   [order-a order-b conflict-rule]]
+   [order-a order-b conflict-pattern]]
   (if (s/valid? ::resolved-conflict-state
                 (get-in conflict-map [order-a order-b]))
     ;; No conflict state updates if we've already resolved this conflict.
     []
-    (let [eval-func (get conflict-rule-to-eval-func conflict-rule)]
+    (let [eval-func (get conflict-pattern-to-eval-func conflict-pattern)]
       (eval-func resolution-state order-a order-b))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -267,14 +281,14 @@
     :attack
     (let [destination (:destination order)]
       (concat
-       (map #(-> [order % :destination-occupied])
+       (map #(-> [order % :occupying-destination])
             (remains-at dmap location-to-order-map destination))
        (->> (attacks-to dmap location-to-order-map destination)
             (filter #(not= order %))
-            (map #(-> [order % :attacked-same-destination])))
-       (map #(-> [order % :swapped-places-without-convoy])
+            (map #(-> [order % :attacking-same-destination])))
+       (map #(-> [order % :swapping-places])
             (attacks-from-to dmap location-to-order-map destination location))
-       (map #(-> [order % :failed-to-leave-destination])
+       (map #(-> [order % :leaving-destination])
             (attacks-from dmap location-to-order-map destination))))
     ;; TODO: support logic
     :support []))
