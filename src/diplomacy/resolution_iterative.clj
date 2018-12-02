@@ -1,9 +1,11 @@
 (ns diplomacy.resolution-iterative
   (:require [diplomacy.judgments :as j]
             [diplomacy.orders :as orders]
+            [diplomacy.map-functions :as maps]
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
+;; (require 'clojure.pprint)
 
 (defn queue?
   [collection]
@@ -72,6 +74,7 @@
   [{:keys [conflict-map conflict-queue
            location-to-order-map dmap]
     :as resolution-state}]
+  ;; (clojure.pprint/pprint conflict-map)
 
   (if (resolution-complete? (:conflict-map resolution-state))
     resolution-state
@@ -99,46 +102,68 @@
 ;;                                   Utilities for Expressing Diplomacy Rules ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec remains-at [::location-to-order-map ::dt/location]
+(defn-spec get-at-colocated-location
+  [::dt/dmap ::location-to-order-map ::dt/location]
+  (s/nilable ::dt/order))
+(defn get-at-colocated-location
+  [dmap location-to-order-map location]
+  (let [colocated-locations (maps/colocation-set-for-location dmap location)
+        orders-at-colocated-locations
+        ;; RESUME HERE: check whether `(get _ 0 _)` is doing the right thing
+        ;; if this is a set then it may always be returning nil
+        (->> colocated-locations
+             (map location-to-order-map)
+             (filter (complement nil?)))
+        ;; Technically this shouldn't be an assert since it indicates a problem
+        ;; with the game state being resolved rather than the resolution code
+        ;; itself, but I feel safer keeping it until we no longer want the
+        ;; invariant on game states.
+        _ (assert (<= (count orders-at-colocated-locations) 1))]
+    ;; Returns `nil` if `orders-at-colocated-locations` is empty.
+    (first orders-at-colocated-locations)))
+
+(defn-spec remains-at [::dt/dmap ::location-to-order-map ::dt/location]
   ::dt/orders)
 (defn remains-at
   "A sequence of the orders that attempt to hold, support, or convoy at
   `location`. The sequence will have 0 or 1 elements."
-  [location-to-order-map location]
-  (if-let [order (location-to-order-map location)]
+  [dmap location-to-order-map location]
+  (if-let [order (get-at-colocated-location
+                  dmap location-to-order-map location)]
     (if (contains? #{:hold :support :convoy} (:order-type order))
       [order]
       [])
     []))
 
-(defn-spec attacks-to [::location-to-order-map ::dt/location]
+(defn-spec attacks-to [::dt/dmap ::location-to-order-map ::dt/location]
   ::dt/orders)
 (defn attacks-to
   ""
-  [location-to-order-map to]
+  [dmap location-to-order-map to]
   (->> location-to-order-map
        (vals)
        (filter #(and (orders/attack? %)
-                     (= (:destination %) to)))))
+                     (maps/locations-colocated? dmap (:destination %) to)))))
 
-(defn-spec attacks-from-to [::location-to-order-map ::dt/location ::dt/location]
+(defn-spec attacks-from-to
+  [::dmap ::location-to-order-map ::dt/location ::dt/location]
   ::dt/orders)
 (defn attacks-from-to
   ""
-  [location-to-order-map from to]
-  (if-let [order (location-to-order-map from)]
+  [dmap location-to-order-map from to]
+  (if-let [order (get-at-colocated-location dmap location-to-order-map from)]
     (if (and (orders/attack? order)
-             (= (:destination order) to))
+             (maps/locations-colocated? dmap (:destination order) to))
       [order]
       [])
     []))
 
-(defn-spec attacks-from [::location-to-order-map ::dt/location]
+(defn-spec attacks-from [::dt/dmap ::location-to-order-map ::dt/location]
   ::dt/orders)
 (defn attacks-from
   ""
-  [location-to-order-map from]
-  (if-let [order (location-to-order-map from)]
+  [dmap location-to-order-map from]
+  (if-let [order (get-at-colocated-location dmap location-to-order-map from)]
     (if (orders/attack? order)
       [order]
       [])
@@ -207,7 +232,7 @@
 ;;                                             Utilities for Public Interface ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ^:private fixpoint
+(defn fixpoint
   "Apply `f` to `initial`, then apply `f` again to the result, repeating until
   applying `f` yields a result equal to the input to `f`. Return that
   result (which is a fixpoint of `f`)."
@@ -215,10 +240,11 @@
   (let [f-results (iterate f initial)]
     (reduce #(if (= %1 %2) (reduced %2) %2) f-results)))
 
-(defn-spec get-all-potential-conflicts [::location-to-order-map ::dt/order]
+(defn-spec get-all-potential-conflicts
+  [::dt/dmap ::location-to-order-map ::dt/order]
   (s/coll-of ::pending-conflict))
-(defn ^:private get-all-potential-conflicts
-  [location-to-order-map {:keys [location order-type] :as order}]
+(defn get-all-potential-conflicts
+  [dmap location-to-order-map {:keys [location order-type] :as order}]
   (case order-type
     :hold []
     :convoy []
@@ -226,16 +252,23 @@
     (let [destination (:destination order)]
       (concat
        (map #(-> [order % :destination-occupied])
-            (remains-at location-to-order-map destination))
-       (->> (attacks-to location-to-order-map destination)
+            (remains-at dmap location-to-order-map destination))
+       (->> (attacks-to dmap location-to-order-map destination)
             (filter #(not= order %))
             (map #(-> [order % :attacked-same-destination])))
        (map #(-> [order % :swapped-places-without-convoy])
-            (attacks-from-to location-to-order-map destination location))
+            (attacks-from-to dmap location-to-order-map destination location))
        (map #(-> [order % :failed-to-leave-destination])
-            (attacks-from location-to-order-map destination))))
+            (attacks-from dmap location-to-order-map destination))))
     ;; TODO: support logic
     :support []))
+
+(defn-spec make-location-to-order-map [::dt/orders] ::location-to-order-map)
+(defn make-location-to-order-map
+  [orders]
+  (->> orders
+       (map (juxt :location identity))
+       (into {})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      Public Interface for Order Resolution ;;
@@ -250,11 +283,9 @@
   (the orders that may interfere with it, whether they successfully interfered,
   and the situation that determined that result)."
   [orders diplomacy-map]
-  (let [location-to-order-map (->> orders
-                                   (map (juxt :location identity))
-                                   (into {}))
+  (let [location-to-order-map (make-location-to-order-map orders)
         all-conflicts (mapcat (partial get-all-potential-conflicts
-                                       location-to-order-map)
+                                       diplomacy-map location-to-order-map)
                               orders)
         conflict-queue (into clojure.lang.PersistentQueue/EMPTY all-conflicts)
         conflict-map (apply-conflict-state-updates {} all-conflicts)
