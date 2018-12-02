@@ -55,7 +55,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                    Resolution Control Flow ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(declare conflict-rule-to-eval-func apply-conflict-state-updates)
+(declare evaluate-conflict apply-conflict-state-updates)
 
 (defn-spec resolution-complete? [::conflict-map] boolean?)
 (defn resolution-complete? [conflict-map]
@@ -83,10 +83,9 @@
 
   (if (resolution-complete? (:conflict-map resolution-state))
     resolution-state
-    (let [[order-a order-b conflict-rule] (peek conflict-queue)
-          eval-func-for-rule (get conflict-rule-to-eval-func conflict-rule)
-          conflict-state-updates
-          (eval-func-for-rule resolution-state order-a order-b)]
+    (let [pending-conflict (peek conflict-queue)
+          conflict-state-updates (evaluate-conflict resolution-state
+                                                    pending-conflict)]
       (-> resolution-state
           (update :conflict-queue move-front-to-back)
           (update :conflict-map #(apply-conflict-state-updates
@@ -232,6 +231,18 @@
    :attacked-same-destination     evaluate-attacked-same-destination
    :swapped-places-without-convoy evaluate-swapped-places-without-convoy
    :failed-to-leave-destination   evaluate-failed-to-leave-destination})
+
+(defn-spec evaluate-conflict [::resolution-state ::pending-conflict]
+  ::conflict-state-updates)
+(defn evaluate-conflict
+  [{:keys [conflict-map] :as resolution-state}
+   [order-a order-b conflict-rule]]
+  (if (s/valid? ::resolved-conflict-state
+                (get-in conflict-map [order-a order-b]))
+    ;; No conflict state updates if we've already resolved this conflict.
+    []
+    (let [eval-func (get conflict-rule-to-eval-func conflict-rule)]
+      (eval-func resolution-state order-a order-b))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
