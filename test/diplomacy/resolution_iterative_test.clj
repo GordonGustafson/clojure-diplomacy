@@ -1,6 +1,7 @@
 (ns diplomacy.resolution-iterative-test
   (:require [diplomacy.resolution-iterative :refer :all]
             [diplomacy.map-data :refer [classic-map]]
+            [diplomacy.judgments :as j]
             [diplomacy.test-expansion :as te]
             [clojure.test :refer [deftest is]]))
 
@@ -103,3 +104,48 @@
          [[(te/expand-order :italy :army :apu :attack :ven)
            (te/expand-order :austria :army :ven :hold)
            :occupying-destination]])))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                        Resolving Conflicts ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def no-conflict-ex [:leaving-destination :no-conflict])
+(def interfered-judgment-ex
+  (j/create-attack-judgment
+   :interferer (te/expand-order :italy :army :apu :attack :ven)
+   :attack-rule :destination-occupied
+   :interfered? true))
+(def not-interfered-judgment-ex
+  (j/create-attack-judgment
+   :interferer (te/expand-order :italy :army :apu :attack :ven)
+   :attack-rule :destination-occupied
+   :interfered? false))
+(def pending-conflict-ex :leaving-destination)
+
+(deftest test-interfering-state?
+  (is (= (interfering-state? no-conflict-ex) false))
+  (is (= (interfering-state? interfered-judgment-ex) true))
+  (is (= (interfering-state? not-interfered-judgment-ex) false)))
+
+(deftest test-pending-conflict-state?
+  (is (= (pending-conflict-state? no-conflict-ex) false))
+  (is (= (pending-conflict-state? interfered-judgment-ex) false))
+  (is (= (pending-conflict-state? not-interfered-judgment-ex) false))
+  (is (= (pending-conflict-state? pending-conflict-ex) true)))
+
+(deftest test-conflict-states-to-order-status
+  (is (= (conflict-states-to-order-status []) :succeeded))
+  (is (= (conflict-states-to-order-status [no-conflict-ex]) :succeeded))
+  (is (= (conflict-states-to-order-status [interfered-judgment-ex]) :failed))
+  (is (= (conflict-states-to-order-status [not-interfered-judgment-ex]) :succeeded))
+  (is (= (conflict-states-to-order-status [pending-conflict-ex]) :pending))
+  (is (= (conflict-states-to-order-status [no-conflict-ex no-conflict-ex]) :succeeded))
+  (is (= (conflict-states-to-order-status [no-conflict-ex interfered-judgment-ex]) :failed))
+  (is (= (conflict-states-to-order-status [no-conflict-ex not-interfered-judgment-ex]) :succeeded))
+  (is (= (conflict-states-to-order-status [no-conflict-ex pending-conflict-ex]) :pending))
+  (is (= (conflict-states-to-order-status [interfered-judgment-ex interfered-judgment-ex]) :failed))
+  (is (= (conflict-states-to-order-status [interfered-judgment-ex not-interfered-judgment-ex]) :failed))
+  (is (= (conflict-states-to-order-status [interfered-judgment-ex pending-conflict-ex]) :failed))
+  (is (= (conflict-states-to-order-status [not-interfered-judgment-ex not-interfered-judgment-ex]) :succeeded))
+  (is (= (conflict-states-to-order-status [not-interfered-judgment-ex pending-conflict-ex]) :pending))
+  (is (= (conflict-states-to-order-status [pending-conflict-ex pending-conflict-ex]) :pending)))

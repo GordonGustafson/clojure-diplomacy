@@ -34,15 +34,18 @@
         :support-pattern-tag ::support-conflict-pattern))
 
 
-;; A judgment that there is no conflict (a possibility not covered by
+;; The case that there is no conflict (a possibility not covered by
 ;; `::dt/judgment`).
-(s/def ::no-conflict-judgment (s/tuple ::conflict-pattern
-                                       (partial = :no-conflict)))
+(s/def ::no-conflict (s/tuple ::conflict-pattern
+                              (partial = :no-conflict)))
 (s/def ::resolved-conflict-state (s/or :judgment-tag ::dt/judgment
-                                       :no-conflict-tag ::no-conflict-judgment))
+                                       :no-conflict-tag ::no-conflict))
 (s/def ::pending-conflict-state ::conflict-pattern)
 (s/def ::conflict-state (s/or :resolved-tag ::resolved-conflict-state
                               :pending-tag ::pending-conflict-state))
+;; Whether an order is known to succeed, known to fail (due to being interefered
+;; with), or not known yet.
+(s/def ::order-status #{:succeeded :failed :pending})
 ;; At the moment `::judgment` also contains the interfering order, duplicating
 ;; information between the key and value of the nested map. Fixing this isn't
 ;; necessary.
@@ -115,6 +118,51 @@
             (assoc-in cmap [order conflicting-order] conflict-state))
           conflict-map
           conflict-state-updates))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                              Resolving Conflicts Utilities ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec interfering-state? [::resolved-conflict-state] boolean?)
+(defn interfering-state?
+  "Whether `rcs` is a judgment where the interferer successfully interferes."
+  [rcs]
+  (cond
+    (s/valid? ::dt/judgment rcs) (:interfered? rcs)
+    (s/valid? ::no-conflict rcs) false
+    :else (assert false
+                  "interfering-state? passed invalid resolved-conflict-state")))
+
+(defn-spec pending-conflict-state? [::conflict-state] boolean?)
+(defn pending-conflict-state?
+  [conflict-state]
+  (s/valid? ::pending-conflict-state conflict-state))
+
+(defn-spec conflict-states-to-order-status [(s/coll-of ::conflict-state)]
+  ::order-status)
+(defn conflict-states-to-order-status
+  [conflict-states]
+  (cond
+    (some #(and (not (pending-conflict-state? %))
+                (interfering-state? %))
+          conflict-states)
+    :failed
+    (some pending-conflict-state? conflict-states)
+    :pending
+    (every? (complement interfering-state?) conflict-states)
+    :succeeded
+    :else (assert false "This code is unreachable")))
+
+(defn-spec order-status [::dt/resolution-state ::dt/order]
+  ::order-status)
+(defn order-status
+  "Whether `order` is known to succeed, known to fail, or doesn't have a known
+  outcome in `resolution-state`."
+  [{:keys [conflict-map]} order]
+  (let [conflict-states (-> order
+                            conflict-map
+                            vals)]
+    (conflict-states-to-order-status conflict-states)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Resolving Conflicts ;;
