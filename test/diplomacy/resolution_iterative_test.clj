@@ -149,3 +149,28 @@
   (is (= (conflict-states-to-order-status [not-interfered-judgment-ex not-interfered-judgment-ex]) :succeeded))
   (is (= (conflict-states-to-order-status [not-interfered-judgment-ex pending-conflict-ex]) :pending))
   (is (= (conflict-states-to-order-status [pending-conflict-ex pending-conflict-ex]) :pending)))
+
+(deftest test-supported-order-matches?
+  (let [true-cases  [[[:austria :army :vie :attack :tyr] [:austria :army :vie :attack :tyr]]
+                     [[:austria :army :vie :hold] [:austria :army :vie :hold]]
+                     [[:austria :army :vie :hold] [:austria :army :vie :support :austria :army :bud :attack :gal]]
+                     [[:austria :fleet :adr :hold] [:austria :fleet :adr :convoy :austria :army :tri :attack :apu]]]
+        false-cases [[[:austria :army :vie :attack :tyr] [:austria :army :vie :attack :mun]]
+                     [[:austria :army :vie :attack :tyr] [:austria :army :boh :attack :tyr]]
+                     [[:austria :army :vie :attack :tyr] [:austria :army :boh :hold]]
+                     [[:austria :army :vie :hold] [:austria :army :vie :attack :mun]]
+                     [[:austria :army :vie :hold] [:austria :army :boh :support :austria :army :gal :hold]]]]
+    (doall
+     (map (fn [case]
+            (is (= true
+                   (apply supported-order-matches?
+                          (map (partial apply te/expand-order)
+                               case)))))
+          true-cases))
+    (doall
+     (map (fn [case]
+            (is (= false
+                   (apply supported-order-matches?
+                          (map (partial apply te/expand-order)
+                               case)))))
+          false-cases))))

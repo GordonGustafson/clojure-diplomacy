@@ -236,6 +236,24 @@
     (conflict-states-to-order-status conflict-states)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                       Support Calculations ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec supported-order-matches? [::dt/order ::dt/order] boolean?)
+(defn supported-order-matches?
+  "Whether supporting `assisted-order` would give support for `order-given`.
+  This requires some logic because supporting a hold can also indicate
+  supporting a unit that's supporting or convoying."
+  [assisted-order order-given]
+  (if (orders/attack? order-given)
+    (= assisted-order order-given)
+    (and (orders/hold? assisted-order)
+         (= (:location assisted-order)
+            (:location order-given))
+         (= (orders/get-unit assisted-order)
+            (orders/get-unit order-given)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Resolving Conflicts ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
