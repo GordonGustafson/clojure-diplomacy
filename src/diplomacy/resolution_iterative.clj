@@ -56,12 +56,15 @@
 (s/def ::pending-conflict
   (s/tuple ::dt/order ::dt/order ::pending-conflict-state))
 (s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) #_queue?))
+;; Map from orders to the orders attempting to support them.
+(s/def ::support-map (s/map-of ::dt/order ::dt/orders))
 
 (s/def ::location-to-order-map (s/map-of ::dt/location ::dt/order))
 (s/def ::resolution-state
   (s/keys :req-un [::conflict-map
                    ::conflict-queue
                    ;; Fields that never change during resolution
+                   ::support-map
                    ::location-to-order-map
                    ::dmap]))
 
@@ -236,24 +239,6 @@
     (conflict-states-to-order-status conflict-states)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                       Support Calculations ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn-spec supported-order-matches? [::dt/order ::dt/order] boolean?)
-(defn supported-order-matches?
-  "Whether supporting `assisted-order` would give support for `order-given`.
-  This requires some logic because supporting a hold can also indicate
-  supporting a unit that's supporting or convoying."
-  [assisted-order order-given]
-  (if (orders/attack? order-given)
-    (= assisted-order order-given)
-    (and (orders/hold? assisted-order)
-         (= (:location assisted-order)
-            (:location order-given))
-         (= (orders/get-unit assisted-order)
-            (orders/get-unit order-given)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Resolving Conflicts ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -359,6 +344,46 @@
     ;; TODO: support logic
     :support []))
 
+(defn-spec supported-order-matches? [::dt/order ::dt/order] boolean?)
+(defn supported-order-matches?
+  "Whether supporting `assisted-order` would give support for `order-given`.
+  This requires some logic because supporting a hold can also indicate
+  supporting a unit that's supporting or convoying."
+  [assisted-order order-given]
+  (if (orders/attack? order-given)
+    (= assisted-order order-given)
+    (and (orders/hold? assisted-order)
+         (= (:location assisted-order)
+            (:location order-given))
+         (= (orders/get-unit assisted-order)
+            (orders/get-unit order-given)))))
+
+;; This does not take a diplomacy map because we currently require locations in
+;; support orders to match exactly (a support order using the wrong colocated
+;; location does not give support).
+(defn-spec make-support-map [::location-to-order-map] ::support-map)
+(defn make-support-map
+  [location-to-order-map]
+  (let [orders (vals location-to-order-map)
+        support-orders (filter orders/support? orders)
+        support-pairs
+        (mapcat
+         (fn [{:keys [assisted-order] :as support-order}]
+           (let [order-at-assisted-location (location-to-order-map
+                                             (:location assisted-order))]
+             (if (and (not (nil? order-at-assisted-location))
+                      (supported-order-matches? assisted-order
+                                                order-at-assisted-location))
+               [[order-at-assisted-location support-order]]
+               [])))
+         support-orders)]
+    (reduce (fn [support-map [supported-order supporting-order]]
+              (if (contains? support-map supported-order)
+                (update support-map supported-order #(conj % supporting-order))
+                (assoc support-map supported-order [supporting-order])))
+            {}
+            support-pairs)))
+
 (defn-spec make-location-to-order-map [::dt/orders] ::location-to-order-map)
 (defn make-location-to-order-map
   [orders]
@@ -388,6 +413,7 @@
         initial-resolution-state
         {:conflict-map conflict-map
          :conflict-queue conflict-queue
+         :support-map (make-support-map location-to-order-map)
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
         final-resolution-state

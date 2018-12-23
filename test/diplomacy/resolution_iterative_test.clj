@@ -174,3 +174,46 @@
                           (map (partial apply te/expand-order)
                                case)))))
           false-cases))))
+
+(deftest test-make-support-map
+  (let [cases {
+               [] {}
+               [[:austria :army :vie :hold]]
+               {}
+
+               [[:austria :army :vie :hold]
+                [:austria :army :boh :support :austria :army :gal :hold]]
+               {}
+
+               [[:austria :army :vie :hold]
+                [:austria :army :boh :support :austria :army :vie :hold]]
+               {[:austria :army :vie :hold]
+                [[:austria :army :boh :support :austria :army :vie :hold]]}
+
+               [[:austria :army :vie :hold]
+                [:austria :army :boh :support :austria :army :vie :hold]
+                [:austria :army :gal :support :austria :army :vie :hold]]
+               {[:austria :army :vie :hold]
+                [[:austria :army :boh :support :austria :army :vie :hold]
+                 [:austria :army :gal :support :austria :army :vie :hold]]}
+
+               [[:austria :army :vie :support :austria :army :boh :hold]
+                [:austria :army :boh :support :austria :army :vie :hold]]
+               {[:austria :army :vie :support :austria :army :boh :hold]
+                [[:austria :army :boh :support :austria :army :vie :hold]]
+                [:austria :army :boh :support :austria :army :vie :hold]
+                [[:austria :army :vie :support :austria :army :boh :hold]]}
+               }
+        ]
+    (doall
+     (map (fn [[input expected-output]]
+            (is (= (->> input
+                        (map (partial apply te/expand-order))
+                        (make-location-to-order-map)
+                        (make-support-map))
+                   (->> expected-output
+                        (map (fn [[k vs]]
+                               [(apply te/expand-order k)
+                                (map (partial apply te/expand-order) vs)]))
+                        (into {})))))
+          cases))))
