@@ -217,3 +217,36 @@
                                 (map (partial apply te/expand-order) vs)]))
                         (into {})))))
           cases))))
+
+(deftest surely-bounced-by-strength?-helper-test
+  (let [cases [
+               [[] [] true]
+               [[] [:succeeded] true]
+               [[:succeeded] [] false]
+               [[:succeeded] [:succeeded] true]
+               [[:failed] [] true]
+               [[:succeeded] [:failed] false]
+               [[:succeeded] [:failed :failed] false]
+               [[:succeeded] [:succeeded :succeeded] true]
+               [[:succeeded :succeeded] [:succeeded :succeeded] true]
+               [[:succeeded :succeeded] [:succeeded] false]
+
+               [[:pending] [] false]
+               [[:pending] [:pending] false]
+               [[:pending] [:succeeded] true]
+               [[:pending :pending] [] false]
+               [[:pending :pending] [:succeeded] false]
+               [[:pending :succeeded] [:succeeded :pending :pending] false]
+               [[:pending :succeeded] [:succeeded :succeeded] true]
+               [[:pending :succeeded :failed :failed] [:succeeded :succeeded] true]
+               [[:succeeded :succeeded :pending :failed :failed] [:succeeded :succeeded :failed] false]
+               ]]
+    (doall
+     (map (fn [[attack-support-statuses
+                bouncer-support-statuses
+                expected-output]]
+            (is (= (surely-bounced-by-strength?-helper attack-support-statuses
+                                                       bouncer-support-statuses)
+                   expected-output)
+                (str attack-support-statuses "\n" bouncer-support-statuses)))
+          cases))))

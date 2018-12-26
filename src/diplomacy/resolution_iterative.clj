@@ -239,6 +239,43 @@
     (conflict-states-to-order-status conflict-states)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                        Determining Support ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec supporting-order-statuses [::dt/resolution-state ::dt/order]
+  ::order-status)
+(defn supporting-order-statuses
+  [{:keys [support-map] :as resolution-state} order]
+  (let [supporting-orders (get support-map order [])]
+    (map (partial order-status resolution-state) supporting-orders)))
+
+(defn-spec surely-bounced-by-strength?-helper
+  [(s/coll-of ::order-status) (s/coll-of ::order-status)] boolean?)
+(defn surely-bounced-by-strength?-helper
+  ;; TODO: make this handle all the extra cases
+  ;; `bounced-by-strength-in-situation` does in
+  ;; `diplomacy.resolution-core-logic`.
+  "Whether `bouncer` is *sure* to have enough support to bounce `attack`, where
+  they each have the corresponding support statuses."
+  [attack-support-statuses bouncer-support-statuses]
+  (let [attack-support-counts (frequencies attack-support-statuses)
+        bouncer-support-counts (frequencies bouncer-support-statuses)
+        max-possible-attack-support
+        (+ (get attack-support-counts :succeeded 0)
+           (get attack-support-counts :pending 0))
+        guaranteed-bouncer-support
+        (get bouncer-support-counts :succeeded 0)]
+    (<= max-possible-attack-support guaranteed-bouncer-support)))
+
+(defn-spec surely-bounced-by-strength?
+  [::dt/resolution-state ::dt/order ::dt/order] boolean?)
+(defn surely-bounced-by-strength?
+  [resolution-state attack bouncer]
+  (surely-bounced-by-strength?-helper
+   (supporting-order-statuses resolution-state attack)
+   (supporting-order-statuses resolution-state bouncer)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Resolving Conflicts ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
