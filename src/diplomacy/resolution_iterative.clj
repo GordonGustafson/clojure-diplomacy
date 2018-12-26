@@ -66,7 +66,7 @@
                    ;; Fields that never change during resolution
                    ::support-map
                    ::location-to-order-map
-                   ::dmap]))
+                   ::dt/dmap]))
 
 (s/def ::conflict-state-update
   (s/tuple ::dt/order ::dt/order ::conflict-state))
@@ -170,7 +170,7 @@
                      (maps/locations-colocated? dmap (:destination %) to)))))
 
 (defn-spec attacks-from-to
-  [::dmap ::location-to-order-map ::dt/location ::dt/location]
+  [::dt/dmap ::location-to-order-map ::dt/location ::dt/location]
   ::dt/orders)
 (defn attacks-from-to
   ""
