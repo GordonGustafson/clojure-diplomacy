@@ -1312,6 +1312,11 @@
     :summary "Check if an illegal move (without convoy) will fail."
     :resolution-results-abbr {[:england :army :lon :attack :syr] #{:no-successful-convoy}}
     :explanation "Order should fail."}
+   "Z11"
+   {:long-name "Z11. UNCONTESTED ATTACK SUCCEEDS"
+    :summary "Just one attack order"
+    :resolution-results-abbr {[:germany :army :sil :attack :war] #{}}
+    :explanation ""}
    })
 
 ;; This whitelist was originally added to allow running
@@ -1335,6 +1340,7 @@
     "B11"
     "B12"
     "B13"
+    "Z11"
     })
 
 (defn test-complete?

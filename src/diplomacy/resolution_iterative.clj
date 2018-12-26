@@ -457,14 +457,13 @@
         (fixpoint take-resolution-step initial-resolution-state)
         final-conflict-map (:conflict-map final-resolution-state)]
     (merge
+     ;; Assume everything is uncontested, then add the results of the conflicts.
+     (->> orders
+          (map #(-> [% #{}]))
+          (into {}))
      ;; There should only be finished judgments in `final-conflict-map`, and
      ;; those judgments already contain the conflicting order.
      (->> final-conflict-map
           (map (fn [[order conflicting-orders-map]]
                  [order (vals conflicting-orders-map)]))
-          (into {}))
-     ;; Add the holds to the result
-     (->> orders
-          (filter orders/hold?)
-          (map #(-> [% #{}]))
           (into {})))))
