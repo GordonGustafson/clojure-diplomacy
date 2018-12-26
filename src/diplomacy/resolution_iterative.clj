@@ -243,7 +243,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec supporting-order-statuses [::resolution-state ::dt/order]
-  ::order-status)
+  (s/coll-of ::order-status))
 (defn supporting-order-statuses
   [{:keys [support-map] :as resolution-state} order]
   (let [supporting-orders (get support-map order [])]
