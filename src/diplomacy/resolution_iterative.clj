@@ -227,7 +227,7 @@
     :succeeded
     :else (assert false "This code is unreachable")))
 
-(defn-spec order-status [::dt/resolution-state ::dt/order]
+(defn-spec order-status [::resolution-state ::dt/order]
   ::order-status)
 (defn order-status
   "Whether `order` is known to succeed, known to fail, or doesn't have a known
@@ -242,7 +242,7 @@
 ;;                                                        Determining Support ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec supporting-order-statuses [::dt/resolution-state ::dt/order]
+(defn-spec supporting-order-statuses [::resolution-state ::dt/order]
   ::order-status)
 (defn supporting-order-statuses
   [{:keys [support-map] :as resolution-state} order]
@@ -268,7 +268,7 @@
     (<= max-possible-attack-support guaranteed-bouncer-support)))
 
 (defn-spec surely-bounced-by-strength?
-  [::dt/resolution-state ::dt/order ::dt/order] boolean?)
+  [::resolution-state ::dt/order ::dt/order] boolean?)
 (defn surely-bounced-by-strength?
   [resolution-state attack bouncer]
   (surely-bounced-by-strength?-helper
