@@ -19,8 +19,8 @@
 (deftest test-resolution-complete?
   (is (false?
        (resolution-complete?
-        {austria-attack-tyr {italy-attack-tyr :attacked-same-destination}
-         italy-attack-tyr {austria-attack-tyr :attacked-same-destination}})))
+        {austria-attack-tyr {italy-attack-tyr :attacking-same-destination}
+         italy-attack-tyr {austria-attack-tyr :attacking-same-destination}})))
   (is (true?
        (resolution-complete?
         {austria-attack-tyr {italy-attack-tyr
