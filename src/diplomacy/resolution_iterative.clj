@@ -108,6 +108,9 @@
     (let [pending-conflict (peek conflict-queue)
           conflict-state-updates (evaluate-conflict resolution-state
                                                     pending-conflict)]
+      (when debug
+        (print "conflict-state-updates: ")
+        (clojure.pprint/pprint conflict-state-updates))
       (-> resolution-state
           (update :conflict-queue
                   #(-> %
