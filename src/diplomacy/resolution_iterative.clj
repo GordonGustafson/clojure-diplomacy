@@ -90,8 +90,8 @@
 (defn take-resolution-step
   "Takes one step of the resolution algorithm.
 
-  The return value will only be equal to the argument if resolution is
-  complete."
+  PRECONDITION: `(not (resolution-complete? resolution-state))`
+  "
   [{:keys [conflict-map conflict-queue
            location-to-order-map dmap]
     :as resolution-state}]
@@ -101,23 +101,19 @@
     (print "conflict-map: ")
     (clojure.pprint/pprint conflict-map))
 
-  (if (resolution-complete? conflict-map)
-    (do
-      (assert (empty? conflict-queue))
-      resolution-state)
-    (let [pending-conflict (peek conflict-queue)
-          conflict-state-updates (evaluate-conflict resolution-state
-                                                    pending-conflict)]
-      (when debug
-        (print "conflict-state-updates: ")
-        (clojure.pprint/pprint conflict-state-updates))
-      (-> resolution-state
-          (update :conflict-queue
-                  #(-> %
-                       (move-front-to-back)
-                       (remove-conflicts conflict-state-updates)))
-          (update :conflict-map #(apply-conflict-state-updates
-                                  % conflict-state-updates))))))
+  (let [pending-conflict (peek conflict-queue)
+        conflict-state-updates (evaluate-conflict resolution-state
+                                                  pending-conflict)]
+    (when debug
+      (print "conflict-state-updates: ")
+      (clojure.pprint/pprint conflict-state-updates))
+    (-> resolution-state
+        (update :conflict-queue
+                #(-> %
+                     (move-front-to-back)
+                     (remove-conflicts conflict-state-updates)))
+        (update :conflict-map #(apply-conflict-state-updates
+                                % conflict-state-updates)))))
 
 (defn-spec apply-conflict-state-updates
   [::conflict-map ::conflict-state-updates] ::conflict-map)
@@ -380,14 +376,6 @@
 ;;                                             Utilities for Public Interface ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn fixpoint
-  "Apply `f` to `initial`, then apply `f` again to the result, repeating until
-  applying `f` yields a result equal to the input to `f`. Return that
-  result (which is a fixpoint of `f`)."
-  [f initial]
-  (let [f-results (iterate f initial)]
-    (reduce #(if (= %1 %2) (reduced %2) %2) f-results)))
-
 (defn-spec get-all-potential-conflicts
   [::dt/dmap ::location-to-order-map ::dt/order]
   (s/coll-of ::pending-conflict))
@@ -484,7 +472,9 @@
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
         final-resolution-state
-        (fixpoint take-resolution-step initial-resolution-state)
+        (->> (iterate take-resolution-step initial-resolution-state)
+             (filter #(resolution-complete? (:conflict-map %)))
+             (first))
         final-conflict-map (:conflict-map final-resolution-state)]
     (merge
      ;; Assume everything is uncontested, then add the results of the conflicts.
