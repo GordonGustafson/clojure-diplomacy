@@ -75,7 +75,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                    Resolution Control Flow ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(declare evaluate-conflict apply-conflict-state-updates)
+(declare evaluate-conflict apply-conflict-state-updates remove-conflicts)
 
 (defn-spec resolution-complete? [::conflict-map] boolean?)
 (defn resolution-complete? [conflict-map]
@@ -101,13 +101,18 @@
     (print "conflict-map: ")
     (clojure.pprint/pprint conflict-map))
 
-  (if (resolution-complete? (:conflict-map resolution-state))
-    resolution-state
+  (if (resolution-complete? conflict-map)
+    (do
+      (assert (empty? conflict-queue))
+      resolution-state)
     (let [pending-conflict (peek conflict-queue)
           conflict-state-updates (evaluate-conflict resolution-state
                                                     pending-conflict)]
       (-> resolution-state
-          (update :conflict-queue move-front-to-back)
+          (update :conflict-queue
+                  #(-> %
+                       (move-front-to-back)
+                       (remove-conflicts conflict-state-updates)))
           (update :conflict-map #(apply-conflict-state-updates
                                   % conflict-state-updates))))))
 
@@ -121,6 +126,28 @@
             (assoc-in cmap [order conflicting-order] conflict-state))
           conflict-map
           conflict-state-updates))
+
+(defn-spec remove-conflict
+  [::conflict-queue ::conflict-state-update] ::conflict-queue)
+(defn remove-conflict
+  "Removes the conflict in `conflict-state-update` from `conflict-queue`."
+  [conflict-queue conflict-state-update]
+  ;; Not necessary, but useful to check this invariant while we have it.
+  (assert (s/valid? ::resolved-conflict-state (nth conflict-state-update 2)))
+  (->> conflict-queue
+       (filter (fn [queue-item]
+                 (not= (take 2 queue-item)
+                       (take 2 conflict-state-update))))
+       (into clojure.lang.PersistentQueue/EMPTY)))
+
+(defn-spec remove-conflicts
+  [::conflict-queue ::conflict-state-updates] ::conflict-queue)
+(defn remove-conflicts
+  "Removes all conflicts in `conflict-state-update` from `conflict-queue`."
+  [conflict-queue conflict-state-updates]
+  "Removes all conflicts in `conflict-state-updates` from `conflict-queue`."
+  ;; This is inefficient, but we can optimize later
+  (reduce remove-conflict conflict-queue conflict-state-updates))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              Map Utilities ;;
