@@ -365,12 +365,12 @@
 (defn evaluate-conflict
   [{:keys [conflict-map] :as resolution-state}
    [order-a order-b conflict-pattern]]
-  (if (s/valid? ::resolved-conflict-state
-                (get-in conflict-map [order-a order-b]))
-    ;; No conflict state updates if we've already resolved this conflict.
-    []
-    (let [eval-func (get conflict-pattern-to-eval-func conflict-pattern)]
-      (eval-func resolution-state order-a order-b))))
+  (assert (= conflict-pattern
+             (get-in conflict-map [order-a order-b]))
+          (str "(= " conflict-pattern " "
+                     (get-in conflict-map [order-a order-b]) ")"))
+  (let [eval-func (get conflict-pattern-to-eval-func conflict-pattern)]
+    (eval-func resolution-state order-a order-b)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
@@ -394,8 +394,11 @@
             (map #(-> [order % :attacking-same-destination])))
        (map #(-> [order % :swapping-places])
             (attacks-from-to dmap location-to-order-map destination location))
-       (map #(-> [order % :leaving-destination])
-            (attacks-from dmap location-to-order-map destination))))
+       (->> (attacks-from dmap location-to-order-map destination)
+            ;; Exclude `:swapping-places` conflicts
+            (filter #(not (maps/locations-colocated?
+                           dmap (:destination %) location)))
+            (map #(-> [order % :leaving-destination])))))
     ;; TODO: support logic
     :support []))
 
