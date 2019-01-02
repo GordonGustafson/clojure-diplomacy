@@ -1317,6 +1317,13 @@
     :summary "Just one attack order"
     :resolution-results-abbr {[:germany :army :sil :attack :war] #{}}
     :explanation ""}
+   "Z12"
+   {:long-name "Z12. SUPPORTED ATTACK ON UNSUPPORTED HOLD"
+    :summary "Check if support allows an attack to overcome a hold"
+    :resolution-results-abbr {[:germany :army :sil :attack :war] #{[false [:russia :army :war :hold] :destination-occupied]}
+                              [:germany :army :pru :support :germany :army :sil :attack :war] #{}
+                              [:russia :army :war :hold] #{}}
+    :explanation ""}
    })
 
 ;; This whitelist was originally added to allow running
@@ -1341,6 +1348,7 @@
     "B12"
     "B13"
     "Z11"
+    "Z12"
     })
 
 (defn test-complete?

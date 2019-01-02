@@ -19,8 +19,8 @@
 (deftest test-resolution-complete?
   (is (false?
        (resolution-complete?
-        {austria-attack-tyr {italy-attack-tyr :attacking-same-destination}
-         italy-attack-tyr {austria-attack-tyr :attacking-same-destination}})))
+        {austria-attack-tyr {italy-attack-tyr :attacked-same-destination}
+         italy-attack-tyr {austria-attack-tyr :attacked-same-destination}})))
   (is (true?
        (resolution-complete?
         {austria-attack-tyr {italy-attack-tyr
@@ -103,13 +103,13 @@
           (te/expand-order :italy :army :apu :attack :ven))
          [[(te/expand-order :italy :army :apu :attack :ven)
            (te/expand-order :austria :army :ven :hold)
-           :occupying-destination]])))
+           :destination-occupied]])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Resolving Conflicts ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def no-conflict-ex [:leaving-destination :no-conflict])
+(def no-conflict-ex [:failed-to-leave-destination :no-conflict])
 (def interfered-judgment-ex
   (j/create-attack-judgment
    :interferer (te/expand-order :italy :army :apu :attack :ven)
@@ -120,7 +120,7 @@
    :interferer (te/expand-order :italy :army :apu :attack :ven)
    :attack-rule :destination-occupied
    :interfered? false))
-(def pending-conflict-ex :leaving-destination)
+(def pending-conflict-ex :failed-to-leave-destination)
 
 (deftest test-interfering-state?
   (is (= (interfering-state? no-conflict-ex) false))
@@ -216,37 +216,4 @@
                                [(apply te/expand-order k)
                                 (map (partial apply te/expand-order) vs)]))
                         (into {})))))
-          cases))))
-
-(deftest surely-bounced-by-strength?-helper-test
-  (let [cases [
-               [[] [] true]
-               [[] [:succeeded] true]
-               [[:succeeded] [] false]
-               [[:succeeded] [:succeeded] true]
-               [[:failed] [] true]
-               [[:succeeded] [:failed] false]
-               [[:succeeded] [:failed :failed] false]
-               [[:succeeded] [:succeeded :succeeded] true]
-               [[:succeeded :succeeded] [:succeeded :succeeded] true]
-               [[:succeeded :succeeded] [:succeeded] false]
-
-               [[:pending] [] false]
-               [[:pending] [:pending] false]
-               [[:pending] [:succeeded] true]
-               [[:pending :pending] [] false]
-               [[:pending :pending] [:succeeded] false]
-               [[:pending :succeeded] [:succeeded :pending :pending] false]
-               [[:pending :succeeded] [:succeeded :succeeded] true]
-               [[:pending :succeeded :failed :failed] [:succeeded :succeeded] true]
-               [[:succeeded :succeeded :pending :failed :failed] [:succeeded :succeeded :failed] false]
-               ]]
-    (doall
-     (map (fn [[attack-support-statuses
-                bouncer-support-statuses
-                expected-output]]
-            (is (= (surely-bounced-by-strength?-helper attack-support-statuses
-                                                       bouncer-support-statuses)
-                   expected-output)
-                (str attack-support-statuses "\n" bouncer-support-statuses)))
           cases))))

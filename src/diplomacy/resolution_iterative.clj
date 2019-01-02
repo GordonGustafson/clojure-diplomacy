@@ -20,27 +20,13 @@
 ;;                                               Specs Internal to Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::attack-conflict-pattern #{:occupying-destination
-                                   :attacking-same-destination
-                                   :swapping-places
-                                   :leaving-destination})
-(s/def ::support-conflict-pattern #{:attacking
-                                    :attacking-from-supported-location
-                                    ;; TODO: is this where we want to handle
-                                    ;; this?
-                                    :same-country-attacking})
-(s/def ::conflict-pattern
-  (s/or :attack-pattern-tag ::attack-conflict-pattern
-        :support-pattern-tag ::support-conflict-pattern))
-
-
 ;; The case that there is no conflict (a possibility not covered by
 ;; `::dt/judgment`).
-(s/def ::no-conflict (s/tuple ::conflict-pattern
+(s/def ::no-conflict (s/tuple ::dt/conflict-rule
                               (partial = :no-conflict)))
 (s/def ::resolved-conflict-state (s/or :judgment-tag ::dt/judgment
                                        :no-conflict-tag ::no-conflict))
-(s/def ::pending-conflict-state ::conflict-pattern)
+(s/def ::pending-conflict-state ::dt/conflict-rule)
 (s/def ::conflict-state (s/or :resolved-tag ::resolved-conflict-state
                               :pending-tag ::pending-conflict-state))
 ;; Whether an order is known to succeed, known to fail (due to being interefered
@@ -132,7 +118,8 @@
   "Removes the conflict in `conflict-state-update` from `conflict-queue`."
   [conflict-queue conflict-state-update]
   ;; Not necessary, but useful to check this invariant while we have it.
-  (assert (s/valid? ::resolved-conflict-state (nth conflict-state-update 2)))
+  (assert (s/valid? ::resolved-conflict-state (nth conflict-state-update 2))
+          (str conflict-state-update))
   (->> conflict-queue
        (filter (fn [queue-item]
                  (not= (take 2 queue-item)
@@ -231,7 +218,8 @@
     (s/valid? ::dt/judgment rcs) (:interfered? rcs)
     (s/valid? ::no-conflict rcs) false
     :else (assert false
-                  "interfering-state? passed invalid resolved-conflict-state")))
+                  (str "interfering-state? passed invalid resolved-conflict-state: "
+                       rcs))))
 
 (defn-spec pending-conflict-state? [::conflict-state] boolean?)
 (defn pending-conflict-state?
@@ -269,108 +257,88 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec supporting-order-statuses [::resolution-state ::dt/order]
-  (s/coll-of ::order-status))
+  (s/map-of ::order-status integer?))
 (defn supporting-order-statuses
   [{:keys [support-map] :as resolution-state} order]
-  (let [supporting-orders (get support-map order [])]
-    (map (partial order-status resolution-state) supporting-orders)))
+  (let [supporting-orders (get support-map order [])
+        support-counts (->> supporting-orders
+                            (map (partial order-status resolution-state))
+                            (frequencies))]
+    (merge {:succeeded 0 :pending 0 :failed 0}
+           support-counts)))
 
-(defn-spec surely-bounced-by-strength?-helper
-  [(s/coll-of ::order-status) (s/coll-of ::order-status)] boolean?)
-(defn surely-bounced-by-strength?-helper
-  ;; TODO: make this handle all the extra cases
-  ;; `bounced-by-strength-in-situation` does in
-  ;; `diplomacy.resolution-core-logic`.
-  "Whether `bouncer` is *sure* to have enough support to bounce `attack`, where
-  they each have the corresponding support statuses."
-  [attack-support-statuses bouncer-support-statuses]
-  (let [attack-support-counts (frequencies attack-support-statuses)
-        bouncer-support-counts (frequencies bouncer-support-statuses)
-        max-possible-attack-support
-        (+ (get attack-support-counts :succeeded 0)
-           (get attack-support-counts :pending 0))
-        guaranteed-bouncer-support
-        (get bouncer-support-counts :succeeded 0)]
-    (<= max-possible-attack-support guaranteed-bouncer-support)))
+(defn-spec max-possible-support [::resolution-state ::dt/order] integer?)
+(defn max-possible-support
+  [resolution-state order]
+  (let [support-counts (supporting-order-statuses resolution-state order)]
+    (+ (:succeeded support-counts)
+       (:pending support-counts))))
 
-(defn-spec surely-bounced-by-strength?
-  [::resolution-state ::dt/order ::dt/order] boolean?)
-(defn surely-bounced-by-strength?
-  [resolution-state attack bouncer]
-  (surely-bounced-by-strength?-helper
-   (supporting-order-statuses resolution-state attack)
-   (supporting-order-statuses resolution-state bouncer)))
+(defn-spec guaranteed-support [::resolution-state ::dt/order] integer?)
+(defn guaranteed-support
+  [resolution-state order]
+  (let [support-counts (supporting-order-statuses resolution-state order)]
+    (:succeeded support-counts)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                        Resolving Conflicts ;;
+;;                                                          Resolving Attacks ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec evaluate-occupying-destination
-  [::resolution-state ::dt/attack-order ::dt/order]
+(defn-spec evaluate-attack-conflict
+  [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::conflict-state-updates)
-(defn evaluate-occupying-destination
-  ""
-  [resolution-state attack remain]
-  [[attack remain
-    (j/create-attack-judgment :interferer remain
-                              :attack-rule :destination-occupied
-                              :interfered? true)]])
+(defn evaluate-attack-conflict
+  [rs attack bouncer rule]
+  (cond
+    (> (guaranteed-support rs attack)
+       (max-possible-support rs bouncer))
+    [[attack bouncer (j/create-attack-judgment :interferer bouncer
+                                              :attack-rule rule
+                                              :interfered? false)]]
+    (>= (guaranteed-support rs bouncer)
+        (max-possible-support rs attack))
+    [[attack bouncer (j/create-attack-judgment :interferer bouncer
+                                              :attack-rule rule
+                                              :interfered? true)]]
+    ;; If we're not sure, don't make any conflict state updates.
+    :else
+    []))
 
-(defn-spec evaluate-attacking-same-destination
-  [::resolution-state ::dt/attack-order ::dt/attack-order]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                         Resolving Supports ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec evaluate-support-conflict
+  [::resolution-state ::dt/support-order ::dt/attack-order
+   ::dt/support-conflict-rule]
   ::conflict-state-updates)
-(defn evaluate-attacking-same-destination
-  ""
-  [resolution-state attack-a attack-b]
-  [[attack-a attack-b
-    (j/create-attack-judgment :interferer attack-b
-                              :attack-rule :attacked-same-destination
-                              :interfered? true)]
-   [attack-b attack-a
-    (j/create-attack-judgment :interferer attack-a
-                              :attack-rule :attacked-same-destination
-                              :interfered? true)]])
+(defn evaluate-support-conflict
+  [resolution-state support attacker rule]
+  ;; TODO: handle cutting support
+  [[support attacker
+    (j/create-support-judgment :interferer attacker
+                               :support-rule rule
+                               :interfered? true)]])
 
-(defn-spec evaluate-swapping-places
-  [::resolution-state ::dt/attack-order ::dt/attack-order]
-  ::conflict-state-updates)
-(defn evaluate-swapping-places
-  ""
-  [resolution-state attack-a attack-b]
-  [[attack-a attack-b
-    (j/create-attack-judgment :interferer attack-b
-                              :attack-rule :swapped-places-without-convoy
-                              :interfered? true)]
-   [attack-b attack-a
-    (j/create-attack-judgment :interferer attack-a
-                              :attack-rule :swapped-places-without-convoy
-                              :interfered? true)]])
-
-(defn-spec evaluate-leaving-destination
-  [::resolution-state ::dt/attack-order ::dt/attack-order]
-  ::conflict-state-updates)
-(defn evaluate-leaving-destination
-  ""
-  [resolution-state attack-a attack-b]
-  )
-
-(def conflict-pattern-to-eval-func
-  {:occupying-destination      evaluate-occupying-destination
-   :attacking-same-destination evaluate-attacking-same-destination
-   :swapping-places            evaluate-swapping-places
-   :leaving-destination        evaluate-leaving-destination})
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                           Resolution Utils ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec evaluate-conflict [::resolution-state ::pending-conflict]
   ::conflict-state-updates)
 (defn evaluate-conflict
   [{:keys [conflict-map] :as resolution-state}
-   [order-a order-b conflict-pattern]]
-  (assert (= conflict-pattern
-             (get-in conflict-map [order-a order-b]))
-          (str "(= " conflict-pattern " "
-                     (get-in conflict-map [order-a order-b]) ")"))
-  (let [eval-func (get conflict-pattern-to-eval-func conflict-pattern)]
-    (eval-func resolution-state order-a order-b)))
+   [order-a order-b rule]]
+  (assert (= rule (get-in conflict-map [order-a order-b]))
+          (str "(= " rule " "
+               (get-in conflict-map [order-a order-b]) ")"))
+  (cond
+    (orders/attack? order-a)
+    (evaluate-attack-conflict resolution-state order-a order-b rule)
+    (orders/support? order-a)
+    (evaluate-support-conflict resolution-state order-a order-b rule)
+    :else
+    (assert false (str "Non-attack non-support conflict: " order-a))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
@@ -387,20 +355,22 @@
     :attack
     (let [destination (:destination order)]
       (concat
-       (map #(-> [order % :occupying-destination])
+       (map #(-> [order % :destination-occupied])
             (remains-at dmap location-to-order-map destination))
        (->> (attacks-to dmap location-to-order-map destination)
             (filter #(not= order %))
-            (map #(-> [order % :attacking-same-destination])))
-       (map #(-> [order % :swapping-places])
+            (map #(-> [order % :attacked-same-destination])))
+       (map #(-> [order % :swapped-places-without-convoy])
             (attacks-from-to dmap location-to-order-map destination location))
        (->> (attacks-from dmap location-to-order-map destination)
-            ;; Exclude `:swapping-places` conflicts
+            ;; Exclude `:swapped-places-without-convoy` conflicts
             (filter #(not (maps/locations-colocated?
                            dmap (:destination %) location)))
-            (map #(-> [order % :leaving-destination])))))
-    ;; TODO: support logic
-    :support []))
+            (map #(-> [order % :failed-to-leave-destination])))))
+    :support
+    ;; TODO: other support conflict rules
+    (map #(-> [order % :attacked])
+         (attacks-to dmap location-to-order-map location))))
 
 (defn-spec supported-order-matches? [::dt/order ::dt/order] boolean?)
 (defn supported-order-matches?
