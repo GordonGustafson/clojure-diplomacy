@@ -50,7 +50,7 @@
        [:russia :army :war :hold] #{}
        [:russia :army :boh :attack :sil] #{[true [:germany :army :sil :support :germany :army :pru :attack :war] :destination-occupied]}}
    16 {[:germany :army :pru :attack :war] #{[false [:russia :army :war :attack :sil] :failed-to-leave-destination]}
-       [:germany :army :sil :support :germany :army :pru :attack :war] #{[false [:russia :army :war :attack :sil] :attacked-from-supported-location-but-not-dislodged]}
+       [:germany :army :sil :support :germany :army :pru :attack :war] #{[false [:russia :army :war :attack :sil] :attacked-from-supported-location]}
        [:russia :army :war :attack :sil] #{[true [:germany :army :sil :support :germany :army :pru :attack :war] :destination-occupied]}}
    17 {[:germany :fleet :ber :attack :pru] #{[true [:russia :fleet :bal :attack :pru] :attacked-same-destination]}
        [:germany :army :sil :support :germany :army :ber :attack :pru] #{[true [:russia :army :pru :attack :sil] :dislodged]}

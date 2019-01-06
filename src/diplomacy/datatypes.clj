@@ -142,7 +142,7 @@
 
 (s/def ::support-conflict-rule
   #{:attacked
-    :attacked-from-supported-location-but-not-dislodged
+    :attacked-from-supported-location  ; but not dislodged
     :dislodged
     :attacked-by-same-country})
 (s/def ::support-conflict-situation ::support-conflict-rule)

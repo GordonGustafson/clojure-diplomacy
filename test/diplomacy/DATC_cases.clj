@@ -395,7 +395,7 @@
    "D15"
    {:long-name "6.D.15. DEFENDER CAN NOT CUT SUPPORT FOR ATTACK ON ITSELF"
     :summary "A unit that is attacked by a supported unit can not prevent dislodgement by guessing which of the units will do the support."
-    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location-but-not-dislodged]}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location]}
                               [:russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:turkey :fleet :ank :attack :con] #{[true [:russia :fleet :con :support :russia :fleet :bla :attack :ank] :destination-occupied]}}
     :explanation "The support of Constantinople is not cut and the fleet in Ankara is dislodged by the fleet in the Black Sea."}
@@ -419,7 +419,7 @@
    "D18"
    {:long-name "6.D.18. A SURVIVING UNIT WILL SUSTAIN SUPPORT"
     :summary "Idem. But now with an additional hold that prevents dislodgement."
-    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location-but-not-dislodged]}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location]}
                               [:russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]
                                                                    [false [:turkey :army :arm :attack :ank] :attacked-same-destination]}
                               [:russia :army :bul :support :russia :fleet :con :hold] #{}
@@ -431,7 +431,7 @@
    "D19"
    {:long-name "6.D.19. EVEN WHEN SURVIVING IS IN ALTERNATIVE WAY"
     :summary "Now, the dislodgement is prevented because the supports comes from a Russian army:"
-    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location-but-not-dislodged]}
+    :resolution-results-abbr {[:russia :fleet :con :support :russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :attacked-from-supported-location]}
                               [:russia :fleet :bla :attack :ank] #{[false [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:russia :army :smy :support :turkey :fleet :ank :attack :con] #{}
                               [:turkey :fleet :ank :attack :con] #{[true [:russia :fleet :con :support :russia :fleet :bla :attack :ank] :destination-occupied]}}
@@ -726,7 +726,7 @@
                                                                  [true [:austria :army :bud :attack :rum] :failed-to-leave-destination]}
                               [:russia :army :gal :attack :bud] #{[true [:italy :army :vie :attack :bud] :attacked-same-destination]
                                                                   [false [:austria :army :bud :attack :rum] :failed-to-leave-destination]}
-                              [:russia :army :rum :support :russia :army :gal :attack :bud] #{[false [:austria :army :bud :attack :rum] :attacked-from-supported-location-but-not-dislodged]}}
+                              [:russia :army :rum :support :russia :army :gal :attack :bud] #{[false [:austria :army :bud :attack :rum] :attacked-from-supported-location]}}
     :explanation "The support of Serbia on the Italian army prevents that the Russian army in Galicia will advance. No army will move."}
    "E13"
    {:long-name "6.E.13. THREE WAY BELEAGUERED GARRISON"

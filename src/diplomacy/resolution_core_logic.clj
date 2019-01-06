@@ -288,7 +288,7 @@
         (== situation :dislodged)
         (== support-cut? true)]
 
-       [(== situation :attacked-from-supported-location-but-not-dislodged)
+       [(== situation :attacked-from-supported-location)
         (== support-cut? false)])])))
 
 ;; Convenience wrapper around `support-judgmento`.

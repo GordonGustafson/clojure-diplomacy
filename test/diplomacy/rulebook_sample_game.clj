@@ -111,7 +111,7 @@
     [:france :fleet :mar :support :france :army :spa :hold] #{[true [:italy :army :pie :attack :mar] :attacked]}
     [:germany :army :ruh :attack :bur] #{[false [:france :army :bur :attack :bel] :failed-to-leave-destination]}
     [:germany :army :mun :support :germany :army :ruh :attack :bur] #{}
-    [:germany :army :bel :support :germany :army :ruh :attack :bur] #{[false [:france :army :bur :attack :bel] :attacked-from-supported-location-but-not-dislodged]}
+    [:germany :army :bel :support :germany :army :ruh :attack :bur] #{[false [:france :army :bur :attack :bel] :attacked-from-supported-location]}
     [:germany :fleet :den :attack :swe] #{[true [:russia :fleet :swe :support :russia :army :stp :attack :nwy] :destination-occupied]}
     [:germany :fleet :hol :support :germany :army :bel :hold] #{}
     ;; backed up
