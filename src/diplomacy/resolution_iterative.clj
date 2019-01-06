@@ -284,10 +284,10 @@
 ;;                                                          Resolving Attacks ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec evaluate-attack-conflict
+(defn-spec evaluate-attack-battle
   [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::conflict-state-updates)
-(defn evaluate-attack-conflict
+(defn evaluate-attack-battle
   [rs attack bouncer rule]
   (cond
     (> (guaranteed-support rs attack)
@@ -303,6 +303,26 @@
     ;; If we're not sure, don't make any conflict state updates.
     :else
     []))
+
+(defn-spec evaluate-attack-failed-to-leave
+  [::resolution-state ::dt/attack-order ::dt/attack-order]
+  ::conflict-state-updates)
+(defn evaluate-attack-failed-to-leave
+  [rs attack bouncer]
+  (case (order-status rs bouncer)
+    :succeeded [attack bouncer [:failed-to-leave-destination :no-conflict]]
+    :pending []
+    :failed
+    (cond
+      (pos? (guaranteed-support rs attack))
+      [[attack bouncer (j/create-attack-judgment :interferer bouncer
+                                                 :attack-rule :failed-to-leave-destination
+                                                 :interfered? false)]]
+      (zero? (max-possible-support rs attack))
+      [[attack bouncer (j/create-attack-judgment :interferer bouncer
+                                                 :attack-rule :failed-to-leave-destination
+                                                 :interfered? true)]]
+      :else [])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         Resolving Supports ;;
@@ -334,7 +354,9 @@
                (get-in conflict-map [order-a order-b]) ")"))
   (cond
     (orders/attack? order-a)
-    (evaluate-attack-conflict resolution-state order-a order-b rule)
+    (if (= rule :failed-to-leave-destination)
+      (evaluate-attack-failed-to-leave resolution-state order-a order-b)
+      (evaluate-attack-battle resolution-state order-a order-b rule))
     (orders/support? order-a)
     (evaluate-support-conflict resolution-state order-a order-b rule)
     :else

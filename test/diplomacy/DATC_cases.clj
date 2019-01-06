@@ -220,7 +220,9 @@
     ;; The first order doesn't have a :failed-to-leave-destination failure reason
     ;; because it's failure was what caused the other unit to fail to leave it's
     ;; destination.
-    :resolution-results-abbr {[:turkey :fleet :ank :attack :con] #{[true [:turkey :army :bul :attack :con] :attacked-same-destination]}
+    :resolution-results-abbr {[:turkey :fleet :ank :attack :con] #{[true [:turkey :army :bul :attack :con] :attacked-same-destination]
+                                                                   ;; We should remove this result if possible (but it's not critical).
+                                                                   [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}
                               [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
                               [:turkey :army :smy :attack :ank] #{[true [:turkey :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:turkey :army :bul :attack :con] #{[true [:turkey :fleet :ank :attack :con] :attacked-same-destination]
@@ -1355,6 +1357,8 @@
     "B11"
     "B12"
     "B13"
+
+    "C3"
 
     "D1"
     "D2"
