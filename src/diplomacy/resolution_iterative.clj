@@ -293,13 +293,13 @@
     (> (guaranteed-support rs attack)
        (max-possible-support rs bouncer))
     [[attack bouncer (j/create-attack-judgment :interferer bouncer
-                                              :attack-rule rule
-                                              :interfered? false)]]
+                                               :attack-rule rule
+                                               :interfered? false)]]
     (>= (guaranteed-support rs bouncer)
         (max-possible-support rs attack))
     [[attack bouncer (j/create-attack-judgment :interferer bouncer
-                                              :attack-rule rule
-                                              :interfered? true)]]
+                                               :attack-rule rule
+                                               :interfered? true)]]
     ;; If we're not sure, don't make any conflict state updates.
     :else
     []))
