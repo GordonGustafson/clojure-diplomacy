@@ -241,16 +241,23 @@
     :succeeded
     :else (assert false "This code is unreachable")))
 
+(defn-spec conflict-states [::resolution-state ::dt/order]
+  (s/coll-of ::conflict-state))
+(defn conflict-states
+  [{:keys [conflict-map]} order]
+  (-> order
+      conflict-map
+      vals))
+
 (defn-spec order-status [::resolution-state ::dt/order]
   ::order-status)
 (defn order-status
   "Whether `order` is known to succeed, known to fail, or doesn't have a known
   outcome in `resolution-state`."
-  [{:keys [conflict-map]} order]
-  (let [conflict-states (-> order
-                            conflict-map
-                            vals)]
-    (conflict-states-to-order-status conflict-states)))
+  [resolution-state order]
+  (->> order
+       (conflict-states resolution-state)
+       conflict-states-to-order-status))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Determining Support ;;
