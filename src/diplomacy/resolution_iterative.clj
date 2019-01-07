@@ -392,10 +392,18 @@
 (defn evaluate-support-conflict
   [resolution-state support attacker rule]
   ;; TODO: handle cutting support
-  [[support attacker
-    (j/create-support-judgment :interferer attacker
-                               :support-rule rule
-                               :interfered? true)]])
+  (case rule
+    :attacked
+    [[support attacker
+      (j/create-support-judgment :interferer attacker
+                                 :support-rule rule
+                                 :interfered? true)]]
+    :attacked-from-supported-location
+    [[support attacker
+      (j/create-support-judgment :interferer attacker
+                                 :support-rule rule
+                                 :interfered? false)]]
+    (assert false (str "unknown support conflict rule: " rule))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                           Resolution Utils ;;
@@ -447,8 +455,13 @@
                            dmap (:destination %) location)))
             (map #(-> [order % :failed-to-leave-destination])))))
     :support
-    ;; TODO: other support conflict rules
-    (map #(-> [order % :attacked])
+    (map (fn [interferer]
+           (let [assisted-order (:assisted-order order)]
+             (if (and (orders/attack? assisted-order)
+                      (= (:destination assisted-order)
+                         (:location interferer)))
+               [order interferer :attacked-from-supported-location]
+               [order interferer :attacked])))
          (attacks-to dmap location-to-order-map location))))
 
 (defn-spec supported-order-matches? [::dt/order ::dt/order] boolean?)
