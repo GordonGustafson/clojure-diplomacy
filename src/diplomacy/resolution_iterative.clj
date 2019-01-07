@@ -312,7 +312,8 @@
     []))
 
 (defn-spec find-failed-to-leave-cycle-helper
-  [::resolution-state (s/coll-of ::attack-order)] (s/coll-of ::attack-order)
+  [::resolution-state (s/coll-of ::dt/attack-order)]
+  (s/coll-of ::dt/attack-order)
   #(or (empty? (:ret %)) (> (count (:ret %)) 2)))
 (defn find-failed-to-leave-cycle-helper
   [{:keys [location-to-order-map] :as rs} attack-orders]
@@ -335,7 +336,7 @@
       [])))
 
 (defn-spec find-failed-to-leave-cycle
-  [::resolution-state ::dt/attack-order] (s/coll-of ::attack-order)
+  [::resolution-state ::dt/attack-order] (s/coll-of ::dt/attack-order)
   #(or (empty? (:ret %)) (> (count (:ret %)) 2)))
 (defn find-failed-to-leave-cycle
   "The set of orders containing `attack-order` (as a vector), such that they:
