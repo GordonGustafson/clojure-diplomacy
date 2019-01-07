@@ -311,6 +311,43 @@
     :else
     []))
 
+(defn-spec find-failed-to-leave-cycle-helper
+  [::resolution-state (s/coll-of ::attack-order)] (s/coll-of ::attack-order)
+  #(or (empty? (:ret %)) (> (count (:ret %)) 2)))
+(defn find-failed-to-leave-cycle-helper
+  [{:keys [location-to-order-map] :as rs} attack-orders]
+  (let [last-attack (last attack-orders)
+        next-attack (location-to-order-map (:destination last-attack))]
+    (if (and (not (nil? next-attack))
+             (orders/attack? next-attack)
+             (= (order-status rs next-attack) :pending)
+             (->> next-attack
+                  (conflict-states rs)
+                  (filter (partial s/valid? ::pending-conflict-state))
+                  (vec)
+                  (= [:failed-to-leave-destination])))
+      ;; Make sure the required conditions match apply to the first attack in
+      ;; `attack-orders` as well.
+      (if (= next-attack
+             (first attack-orders))
+        attack-orders
+        (recur rs (conj attack-orders next-attack)))
+      [])))
+
+(defn-spec find-failed-to-leave-cycle
+  [::resolution-state ::dt/attack-order] (s/coll-of ::attack-order)
+  #(or (empty? (:ret %)) (> (count (:ret %)) 2)))
+(defn find-failed-to-leave-cycle
+  "The set of orders containing `attack-order` (as a vector), such that they:
+  1. all move in a circle
+  2. all are in :pending state
+  3. all have a :failed-to-leave-destination conflict with the next order in the
+     result as their *only* pending conflict.
+  Returns an empty vector if no set of orders meets the requirements at this
+  time."
+  [resolution-state attack-order]
+  (find-failed-to-leave-cycle-helper resolution-state [attack-order]))
+
 (defn-spec evaluate-attack-failed-to-leave
   [::resolution-state ::dt/attack-order ::dt/attack-order]
   ::conflict-state-updates)
@@ -318,7 +355,17 @@
   [rs attack bouncer]
   (case (order-status rs bouncer)
     :succeeded [attack bouncer [:failed-to-leave-destination :no-conflict]]
-    :pending []
+    ;; TODO(optimization): should we take steps to avoid looking for a cycle
+    ;; unless absolutely necessary?
+    :pending (let [failed-to-leave-cycle (find-failed-to-leave-cycle rs attack)]
+               (if (empty? failed-to-leave-cycle)
+                 []
+                 ;; Resolve the *entire* cycle
+                 (->> (conj failed-to-leave-cycle (first failed-to-leave-cycle))
+                      (partition 2 1)
+                      (map (fn [[o1 o2]]
+                             [o1 o2
+                              [:failed-to-leave-destination :no-conflict]])))))
     :failed
     (cond
       (pos? (guaranteed-support rs attack))
@@ -487,5 +534,7 @@
      ;; those judgments already contain the conflicting order.
      (->> final-conflict-map
           (map (fn [[order conflicting-orders-map]]
-                 [order (vals conflicting-orders-map)]))
+                 (let [judgments (filter #(not (s/valid? ::no-conflict %))
+                                         (vals conflicting-orders-map))]
+                   [order judgments])))
           (into {})))))
