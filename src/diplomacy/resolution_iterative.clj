@@ -245,9 +245,11 @@
   (s/coll-of ::conflict-state))
 (defn get-conflict-states
   [{:keys [conflict-map]} order]
-  (-> order
-      conflict-map
-      vals))
+  (let [order-conflict-map (get conflict-map order {})]
+    ;; Workaround for the fact that `(vals {})` is `nil`
+    (if (empty? order-conflict-map)
+      []
+      (vals order-conflict-map))))
 
 (defn-spec order-status [::resolution-state ::dt/order]
   ::order-status)
@@ -355,7 +357,7 @@
 (defn evaluate-attack-failed-to-leave
   [rs attack bouncer]
   (case (order-status rs bouncer)
-    :succeeded [attack bouncer [:failed-to-leave-destination :no-conflict]]
+    :succeeded [[attack bouncer [:failed-to-leave-destination :no-conflict]]]
     ;; TODO(optimization): should we take steps to avoid looking for a cycle
     ;; unless absolutely necessary?
     :pending (let [failed-to-leave-cycle (find-failed-to-leave-cycle rs attack)]
