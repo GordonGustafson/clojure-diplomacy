@@ -241,9 +241,9 @@
     :succeeded
     :else (assert false "This code is unreachable")))
 
-(defn-spec conflict-states [::resolution-state ::dt/order]
+(defn-spec get-conflict-states [::resolution-state ::dt/order]
   (s/coll-of ::conflict-state))
-(defn conflict-states
+(defn get-conflict-states
   [{:keys [conflict-map]} order]
   (-> order
       conflict-map
@@ -256,7 +256,7 @@
   outcome in `resolution-state`."
   [resolution-state order]
   (->> order
-       (conflict-states resolution-state)
+       (get-conflict-states resolution-state)
        conflict-states-to-order-status))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -322,7 +322,7 @@
              (orders/attack? next-attack)
              (= (order-status rs next-attack) :pending)
              (->> next-attack
-                  (conflict-states rs)
+                  (get-conflict-states rs)
                   (filter (partial s/valid? ::pending-conflict-state))
                   (vec)
                   (= [:failed-to-leave-destination])))
