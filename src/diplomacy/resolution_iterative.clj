@@ -391,7 +391,6 @@
   ::conflict-state-updates)
 (defn evaluate-support-conflict
   [resolution-state support attacker rule]
-  ;; TODO: handle cutting support
   (case rule
     :attacked
     [[support attacker
@@ -399,10 +398,20 @@
                                  :support-rule rule
                                  :interfered? true)]]
     :attacked-from-supported-location
-    [[support attacker
-      (j/create-support-judgment :interferer attacker
-                                 :support-rule rule
-                                 :interfered? false)]]
+    (case (order-status resolution-state attacker)
+      :succeeded
+      [[support attacker
+        (j/create-support-judgment :interferer attacker
+                                   :support-rule :dislodged
+                                   :interfered? true)]]
+      ;; TODO: will this prevent progress?
+      :pending
+      []
+      :failed
+      [[support attacker
+        (j/create-support-judgment :interferer attacker
+                                   :support-rule :attacked-from-supported-location
+                                   :interfered? false)]])
     (assert false (str "unknown support conflict rule: " rule))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
