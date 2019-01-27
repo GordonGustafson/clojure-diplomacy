@@ -393,10 +393,15 @@
   [resolution-state support attacker rule]
   (case rule
     :attacked
-    [[support attacker
-      (j/create-support-judgment :interferer attacker
-                                 :support-rule rule
-                                 :interfered? true)]]
+    (if (= (:country support) (:country attacker))
+      [[support attacker
+        (j/create-support-judgment :interferer attacker
+                                   :support-rule :attacked-by-same-country
+                                   :interfered? false)]]
+      [[support attacker
+        (j/create-support-judgment :interferer attacker
+                                   :support-rule :attacked
+                                   :interfered? true)]])
     :attacked-from-supported-location
     (case (order-status resolution-state attacker)
       :succeeded
