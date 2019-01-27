@@ -381,6 +381,15 @@
                                                  :interfered? true)]]
       :else [])))
 
+(defn-spec evaluate-attack-conflict
+  [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
+  ::conflict-state-updates)
+(defn evaluate-attack-conflict
+  [resolution-state attack bouncer rule]
+  (if (= rule :failed-to-leave-destination)
+    (evaluate-attack-failed-to-leave resolution-state attack bouncer)
+    (evaluate-attack-battle resolution-state attack bouncer rule)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         Resolving Supports ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -433,9 +442,7 @@
                (get-in conflict-map [order-a order-b]) ")"))
   (cond
     (orders/attack? order-a)
-    (if (= rule :failed-to-leave-destination)
-      (evaluate-attack-failed-to-leave resolution-state order-a order-b)
-      (evaluate-attack-battle resolution-state order-a order-b rule))
+    (evaluate-attack-conflict resolution-state order-a order-b rule)
     (orders/support? order-a)
     (evaluate-support-conflict resolution-state order-a order-b rule)
     :else
