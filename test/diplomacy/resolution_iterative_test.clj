@@ -217,3 +217,53 @@
                                 (map (partial apply te/expand-order) vs)]))
                         (into {})))))
           cases))))
+
+(def italy-ven-tyr (te/expand-order :italy :army :ven :attack :tyr))
+
+(def italy-tyr-hold (te/expand-order :italy :army :tyr :hold))
+(def russia-tyr-hold (te/expand-order :russia :army :tyr :hold))
+
+(def italy-tyr-ven (te/expand-order :italy :army :tyr :attack :ven))
+(def austria-tyr-ven (te/expand-order :austria :army :tyr :attack :ven))
+
+(def italy-tyr-boh (te/expand-order :italy :army :tyr :attack :boh))
+(def turkey-tyr-boh (te/expand-order :turkey :army :tyr :attack :boh))
+
+(def italy-mun-tyr (te/expand-order :italy :army :mun :attack :tyr))
+(def germany-mun-tyr (te/expand-order :germany :army :mun :attack :tyr))
+
+(deftest test-forbid-self-dislodgment
+  (let [self-dislodgment-cases [
+                                [italy-ven-tyr italy-tyr-hold :destination-occupied]
+                                [italy-ven-tyr italy-tyr-ven :swapped-places-without-convoy]
+                                [italy-ven-tyr italy-tyr-boh :failed-to-leave-destination]
+                                ]
+        no-self-dislodgment-cases [
+                                   [italy-ven-tyr russia-tyr-hold :destination-occupied]
+                                   [italy-ven-tyr austria-tyr-ven :swapped-places-without-convoy]
+                                   [italy-ven-tyr turkey-tyr-boh :failed-to-leave-destination]
+                                   [italy-ven-tyr italy-mun-tyr :attacked-same-destination]
+                                   [italy-ven-tyr germany-mun-tyr :attacked-same-destination]
+                                   ]]
+    (doall
+     (map (fn [[order interferer attack-rule]]
+            (let [judgment (j/create-attack-judgment :interferer interferer
+                                                     :attack-rule attack-rule
+                                                     :interfered? false)
+                  conflict-state-update [order interferer judgment]]
+              (is (= (forbid-self-dislodgment conflict-state-update)
+                     (update conflict-state-update 2
+                             #(assoc %
+                                     :interfered? true
+                                     :would-dislodge-own-unit? true))))))
+          self-dislodgment-cases))
+    (doall
+     (map (fn [[order interferer attack-rule]]
+            (let [judgment (j/create-attack-judgment :interferer interferer
+                                                     :attack-rule attack-rule
+                                                     :interfered? false)
+                  conflict-state-update [order interferer judgment]]
+              (is (= (forbid-self-dislodgment conflict-state-update)
+                     conflict-state-update))))
+          no-self-dislodgment-cases))))
+

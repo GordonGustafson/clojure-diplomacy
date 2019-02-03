@@ -356,7 +356,7 @@
     :resolution-results-abbr {[:germany :army :ber :hold] #{}
                               ;; This does NOT have `would-dislodge-own-unit?` set to `true` because the support is unwilling
                               ;; to dislodge the friendly unit, so it's bounced by strength, not by the *attacker's* unwillingness
-                              ;; to dislodge. We can consider changing this to maek it less confusing.
+                              ;; to dislodge. We can consider changing this to make it less confusing.
                               [:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :hold] :destination-occupied]}
                               [:germany :army :mun :support :germany :fleet :kie :attack :ber] #{}}
     :explanation "Move to Berlin fails."}
@@ -1383,6 +1383,9 @@
     "D29"
     "D30"
 
+
+    "Z2"
+    "Z9"
     "Z11"
     "Z12"
     })

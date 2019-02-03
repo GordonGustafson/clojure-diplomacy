@@ -297,6 +297,7 @@
   [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::conflict-state-updates)
 (defn evaluate-attack-battle
+  "Does not account for dislodging a unit from the same country."
   [rs attack bouncer rule]
   (cond
     (> (guaranteed-support rs attack)
@@ -355,6 +356,7 @@
   [::resolution-state ::dt/attack-order ::dt/attack-order]
   ::conflict-state-updates)
 (defn evaluate-attack-failed-to-leave
+  "Does not account for dislodging a unit from the same country."
   [rs attack bouncer]
   (case (order-status rs bouncer)
     :succeeded [[attack bouncer [:failed-to-leave-destination :no-conflict]]]
@@ -381,14 +383,35 @@
                                                  :interfered? true)]]
       :else [])))
 
+(defn-spec forbid-self-dislodgment [::conflict-state-update]
+  ::conflict-state-update)
+(defn forbid-self-dislodgment
+  "If `order` dislodges `interferer` and they're from the same country, mark
+  `order` as failed."
+  [[order interferer conflict-state :as original-update]]
+  (if (and (= (:country order) (:country interferer))
+           (s/valid? ::dt/judgment conflict-state)
+           (contains? #{:destination-occupied
+                        :swapped-places-without-convoy
+                        :failed-to-leave-destination}
+                      ;; Don't forget the structure of conflict situations!
+                      (get-in conflict-state [:conflict-situation :attack-conflict-rule]))
+           (not (:interfered? conflict-state)))
+    [order interferer (assoc conflict-state
+                             :interfered? true
+                             :would-dislodge-own-unit? true)]
+    original-update))
+
 (defn-spec evaluate-attack-conflict
   [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::conflict-state-updates)
 (defn evaluate-attack-conflict
   [resolution-state attack bouncer rule]
-  (if (= rule :failed-to-leave-destination)
-    (evaluate-attack-failed-to-leave resolution-state attack bouncer)
-    (evaluate-attack-battle resolution-state attack bouncer rule)))
+  (let [base-updates
+        (if (= rule :failed-to-leave-destination)
+          (evaluate-attack-failed-to-leave resolution-state attack bouncer)
+          (evaluate-attack-battle resolution-state attack bouncer rule))]
+    (map forbid-self-dislodgment base-updates)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         Resolving Supports ;;
