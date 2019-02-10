@@ -266,30 +266,46 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (s/def ::support-type #{:offense :defense})
+(s/def ::willingness-to-support #{:yes :no :pending})
 
-(defn-spec willing-to-support?
-  [::dt/support-order ::dt/order ::dt/order ::dt/conflict-rule ::support-type] boolean?)
-(defn willing-to-support?
-  [supporting-order supported-order combatant rule support-type]
-  ;; TODO: beleaguered-garrison stuff
-  (or (= support-type :defense)
-      (not= (:country supporting-order) (:country combatant))
-      (= rule :attacked-same-destination)))
+(defn-spec willingness-to-support
+  [::resolution-state ::dt/support-order ::dt/order ::dt/order ::dt/conflict-rule ::support-type] ::willingness-to-support)
+(defn willingness-to-support
+  [{:keys [location-to-order-map] :as rs}
+   supporting-order supported-order combatant rule support-type]
+  (if (= support-type :defense)
+    :yes
+    (let [attempting-to-dislodge-combatant? (not= rule :attacked-same-destination)
+          combatant-friendly? (= (:country supporting-order) (:country combatant))]
+      (if attempting-to-dislodge-combatant?
+        (if combatant-friendly? :no :yes)
+        ;; The `:attacked-same-destination` case
+        (let [beleaguered-garrison (location-to-order-map (:destination supported-order))
+              beleaguered-garrison-friendly? (= (:country supporting-order)
+                                                (:country beleaguered-garrison))]
+          (if (not beleaguered-garrison-friendly?)
+            :yes
+            (if (orders/attack? beleaguered-garrison)
+              (case (order-status rs beleaguered-garrison)
+                :succeeded :yes
+                :pending :pending
+                :failed :no)
+              :no)))))))
 
 (defn-spec supporting-order-statuses [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
   (s/map-of (s/or ::order-status #{:unwilling}) integer?))
 (defn supporting-order-statuses
-  [{:keys [support-map] :as resolution-state} supported-order combatant rule support-type]
+  [{:keys [support-map] :as rs} supported-order combatant rule support-type]
   (let [supporting-orders (get support-map supported-order [])
-        willing-supports
-        (filter #(willing-to-support? % supported-order combatant rule support-type)
-                supporting-orders)
-        support-counts (->> willing-supports
-                            (map (partial order-status resolution-state))
-                            (frequencies))]
-    (merge {:succeeded 0 :pending 0 :failed 0
-            :unwilling (- (count supporting-orders)
-                          (count willing-supports))}
+        support-statuses
+        (map (fn [supporting-order]
+               (case (willingness-to-support rs supporting-order supported-order combatant rule support-type)
+                 :yes (order-status rs supporting-order)
+                 :pending :pending
+                 :no :unwilling))
+             supporting-orders)
+        support-counts (frequencies support-statuses)]
+    (merge {:succeeded 0 :pending 0 :failed 0 :unwilling 0}
            support-counts)))
 
 (defn-spec max-possible-support [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
