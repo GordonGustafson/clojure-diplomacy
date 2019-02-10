@@ -667,7 +667,7 @@
                               [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]
                                                                     [false [:england :fleet :nth :hold] :destination-occupied]}
                               [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
-                              [:russia :fleet :nwy :attack :nth] #{[true [:germany :fleet :hel :attack :nth] [:attacked-same-destination [:england :fleet :nth :hold]]]
+                              [:russia :fleet :nwy :attack :nth] #{[true [:germany :fleet :hel :attack :nth] :attacked-same-destination]
                                                                    [false [:england :fleet :nth :hold] :destination-occupied]}}
     :explanation "Although the Russians beat the German attack (with the support of Yorkshire) and the two Russian fleets are enough to dislodge the fleet in the North Sea, the fleet in the North Sea is not dislodged, since it would not be dislodged if the English fleet in Yorkshire would not give support. According to the DPTG the fleet in the North Sea would be dislodged. The DPTG is incorrect in this case."}
    "E8"
@@ -680,8 +680,7 @@
                                                                     [false [:england :fleet :nth :attack :nwy] :failed-to-leave-destination]}
                               [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
                               [:russia :fleet :nwy :attack :nth] #{[false [:england :fleet :nth :attack :nwy] :swapped-places-without-convoy]
-                                                                   [true [:germany :fleet :hel :attack :nth] [:attacked-same-destination
-                                                                                                              [:england :fleet :nth :attack :nwy]]]}}
+                                                                   [true [:germany :fleet :hel :attack :nth] :attacked-same-destination]}}
     :explanation "Again, none of the fleets move."}
    "E9"
    {:long-name "6.E.9. ALMOST SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
@@ -702,8 +701,7 @@
                               [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]}
                               [:germany :fleet :den :attack :hel] #{[true [:germany :fleet :hel :attack :nth] :failed-to-leave-destination]}
                               [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
-                              [:russia :fleet :nwy :attack :nth] #{[true [:germany :fleet :hel :attack :nth] [:attacked-same-destination
-                                                                                                              [:england :fleet :nth :attack :den]]]
+                              [:russia :fleet :nwy :attack :nth] #{[true [:germany :fleet :hel :attack :nth] :attacked-same-destination]
                                                                    [false [:england :fleet :nth :attack :den] :failed-to-leave-destination]}}
     :explanation "There is no movement of fleets."}
    "E11"
@@ -1227,8 +1225,7 @@
    "Z5"
    {:long-name "Z5. Changing black sea fleet to Turkish"
     :summary ""
-    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[true [:italy :army :bul :attack :con] [:attacked-same-destination
-                                                                                                           [:turkey :army :con :attack :smy]]]
+    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[true [:italy :army :bul :attack :con] :attacked-same-destination]
                                                                    [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}
                               [:russia :army :arm :attack :ank] #{[true [:turkey :army :smy :attack :ank] :attacked-same-destination]
                                                                   [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
@@ -1258,12 +1255,10 @@
    "Z7"
    {:long-name "Z7. Z5 plus ?"
     :summary ""
-    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[true [:italy :fleet :aeg :attack :con] [:attacked-same-destination
-                                                                                                            [:turkey :army :con :attack :smy]]]
+    :resolution-results-abbr {[:russia :fleet :ank :attack :con] #{[true [:italy :fleet :aeg :attack :con] :attacked-same-destination]
                                                                    [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}
                               [:russia :fleet :bla :support :germany :army :arm :attack :ank] #{}
-                              [:germany :army :arm :attack :ank] #{[true [:turkey :army :smy :attack :ank] [:attacked-same-destination
-                                                                                                             [:russia :fleet :ank :attack :con]]]
+                              [:germany :army :arm :attack :ank] #{[true [:turkey :army :smy :attack :ank] :attacked-same-destination]
                                                                    ;; TODO: :arm -> :ank was what caused :ank to leave.
                                                                    ;; We should remove this result if possible (but it's not critical).
                                                                    [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
