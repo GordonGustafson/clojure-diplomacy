@@ -127,14 +127,19 @@
 ;; to dislodge the beleaguered garrison (since they're from the same country).
 (s/def ::attack-supporters (s/coll-of ::support-order))
 (s/def ::bouncer-supporters (s/coll-of ::support-order))
+;; HISTORICAL NOTE: this was originally nilable because it's difficult to work
+;; with optional keys in core.logic, so we made the key mandatory, but allowed
+;; it to have a value of `nil`.
 (s/def ::beleaguered-garrison-changing-outcome (s/nilable ::order))
 (s/def ::attack-conflict-situation
   (s/and
    (s/keys :req-un [::attack-conflict-rule
                     ::beleaguered-garrison-changing-outcome]
-           ;; These are used by the resolution phase, but not checked in the
-           ;; tests because they would make the tests quite verbose.
-           :opt-un [::attack-supporters
+           ;; Things not checked in the tests because they would make the tests
+           ;; quite verbose.
+           :opt-un [;; These are used by the `resolution-core-logic`
+                    ;; implementation
+                    ::attack-supporters
                     ::bouncer-supporters])
    #(if (nil? (:beleaguered-garrison-changing-outcome %))
       true
