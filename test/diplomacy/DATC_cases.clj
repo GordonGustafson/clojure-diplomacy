@@ -585,7 +585,7 @@
    {:long-name "6.E.1. DISLODGED UNIT HAS NO EFFECT ON ATTACKERS AREA"
     :summary "An army can follow."
     :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[false [:russia :army :pru :attack :ber] :swapped-places-without-convoy]}
-                              [:germany :fleet :kie :attack :ber] #{[false [:russia :army :pru :attack :ber] :no-effect-on-dislodgers-province]}
+                              [:germany :fleet :kie :attack :ber] #{[false [:russia :army :pru :attack :ber] :attacked-same-destination]}
                               [:germany :army :sil :support :germany :army :ber :attack :pru] #{}
                               [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :attack :pru] :swapped-places-without-convoy]
                                                                   [true [:germany :fleet :kie :attack :ber] :attacked-same-destination]}}
@@ -1391,6 +1391,7 @@
     "D33"
     "D34"
 
+    "E1"
     "E2"
     "E3"
     "E12"

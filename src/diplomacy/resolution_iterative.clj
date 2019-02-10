@@ -418,6 +418,36 @@
                              :would-dislodge-own-unit? true)]
     original-update))
 
+(defn-spec forbid-effect-on-dislodgers-province
+  [::resolution-state ::conflict-state-update] (s/nilable ::conflict-state-update))
+(defn forbid-effect-on-dislodgers-province
+  "Mark `interferer` as not interfering if `interferer` should have no effect on
+  `order` by the `no-effect-on-dislodgers-province` rule. If we don't have
+  enough information to tell yet, return `nil`."
+  [{:keys [location-to-order-map] :as resolution-state}
+   [order interferer conflict-state :as original-update]]
+  (assert (s/valid? ::dt/attack-order order))
+  (let [potential-dislodger (location-to-order-map (:destination order))]
+    (if (and (some? potential-dislodger)
+             (s/valid? ::dt/judgment conflict-state)
+             (= (get-in conflict-state
+                        [:conflict-situation :attack-conflict-rule])
+                :attacked-same-destination)
+             (:interfered? conflict-state)
+             (orders/attack? potential-dislodger)
+             (= (:destination potential-dislodger) (:location interferer)))
+      (case (order-status resolution-state potential-dislodger)
+        :succeeded
+        ;; I decided not to add any indication that the
+        ;; `:no-effect-on-dislodgers-province` rule is being used in order to
+        ;; proceed more quickly.
+        (assoc-in original-update [2 :interfered?] false)
+        :failed
+        original-update
+        :pending
+        nil)
+      original-update)))
+
 (defn-spec evaluate-attack-conflict
   [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::conflict-state-updates)
@@ -427,7 +457,10 @@
         (if (= rule :failed-to-leave-destination)
           (evaluate-attack-failed-to-leave resolution-state attack bouncer)
           (evaluate-attack-battle resolution-state attack bouncer rule))]
-    (map forbid-self-dislodgment base-updates)))
+    (->> base-updates
+         (map forbid-self-dislodgment)
+         (map (partial forbid-effect-on-dislodgers-province resolution-state))
+         (filter some?))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         Resolving Supports ;;
