@@ -265,22 +265,24 @@
 ;;                                                        Determining Support ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(s/def ::support-type #{:offense :defense})
+
 (defn-spec willing-to-support?
-  [::dt/support-order ::dt/order ::dt/order ::dt/conflict-rule] boolean?)
+  [::dt/support-order ::dt/order ::dt/order ::dt/conflict-rule ::support-type] boolean?)
 (defn willing-to-support?
-  [supporting-order supported-order combatant rule]
+  [supporting-order supported-order combatant rule support-type]
   ;; TODO: beleaguered-garrison stuff
-  (or (not= (:country supporting-order) (:country combatant))
-      (orders/hold? supported-order)
+  (or (= support-type :defense)
+      (not= (:country supporting-order) (:country combatant))
       (= rule :attacked-same-destination)))
 
-(defn-spec supporting-order-statuses [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule]
+(defn-spec supporting-order-statuses [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
   (s/map-of (s/or ::order-status #{:unwilling}) integer?))
 (defn supporting-order-statuses
-  [{:keys [support-map] :as resolution-state} supported-order combatant rule]
+  [{:keys [support-map] :as resolution-state} supported-order combatant rule support-type]
   (let [supporting-orders (get support-map supported-order [])
         willing-supports
-        (filter #(willing-to-support? % supported-order combatant rule)
+        (filter #(willing-to-support? % supported-order combatant rule support-type)
                 supporting-orders)
         support-counts (->> willing-supports
                             (map (partial order-status resolution-state))
@@ -290,19 +292,19 @@
                           (count willing-supports))}
            support-counts)))
 
-(defn-spec max-possible-support [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule]
+(defn-spec max-possible-support [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
   integer?)
 (defn max-possible-support
-  [resolution-state order interferer rule]
-  (let [support-counts (supporting-order-statuses resolution-state order interferer rule)]
+  [resolution-state order interferer rule support-type]
+  (let [support-counts (supporting-order-statuses resolution-state order interferer rule support-type)]
     (+ (:succeeded support-counts)
        (:pending support-counts))))
 
-(defn-spec guaranteed-support [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule]
+(defn-spec guaranteed-support [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
   integer?)
 (defn guaranteed-support
-  [resolution-state order interferer rule]
-  (let [support-counts (supporting-order-statuses resolution-state order interferer rule)]
+  [resolution-state order interferer rule support-type]
+  (let [support-counts (supporting-order-statuses resolution-state order interferer rule support-type)]
     (:succeeded support-counts)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -316,13 +318,13 @@
   "Does not account for dislodging a unit from the same country."
   [rs attack bouncer rule]
   (cond
-    (> (guaranteed-support rs attack bouncer rule)
-       (max-possible-support rs bouncer attack rule))
+    (> (guaranteed-support rs attack bouncer rule :offense)
+       (max-possible-support rs bouncer attack rule :defense))
     [[attack bouncer (j/create-attack-judgment :interferer bouncer
                                                :attack-rule rule
                                                :interfered? false)]]
-    (>= (guaranteed-support rs bouncer attack rule)
-        (max-possible-support rs attack bouncer rule))
+    (>= (guaranteed-support rs bouncer attack rule :defense)
+        (max-possible-support rs attack bouncer rule :offense))
     [[attack bouncer (j/create-attack-judgment :interferer bouncer
                                                :attack-rule rule
                                                :interfered? true)]]
@@ -389,11 +391,11 @@
                               [:failed-to-leave-destination :no-conflict]])))))
     :failed
     (cond
-      (pos? (guaranteed-support rs attack bouncer :failed-to-leave-destination))
+      (pos? (guaranteed-support rs attack bouncer :failed-to-leave-destination :offense))
       [[attack bouncer (j/create-attack-judgment :interferer bouncer
                                                  :attack-rule :failed-to-leave-destination
                                                  :interfered? false)]]
-      (zero? (max-possible-support rs attack bouncer :failed-to-leave-destination))
+      (zero? (max-possible-support rs attack bouncer :failed-to-leave-destination :offense))
       [[attack bouncer (j/create-attack-judgment :interferer bouncer
                                                  :attack-rule :failed-to-leave-destination
                                                  :interfered? true)]]
