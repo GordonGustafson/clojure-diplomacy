@@ -5,6 +5,7 @@
             [diplomacy.test-expansion :as te]
             [diplomacy.datatypes :as dt]
             [diplomacy.map-data]
+            [diplomacy.settings]
             [diplomacy.DATC-cases]
             [diplomacy.rulebook-sample-game]
             [diplomacy.rulebook-diagrams]
@@ -77,6 +78,8 @@
 
 (test/deftest test-DATC
   (doseq [[short-name test] diplomacy.DATC-cases/finished-DATC-cases]
+    (when diplomacy.settings/debug
+      (println (str "Running test: " short-name)))
     (run-test-case diplomacy.map-data/classic-map test (:long-name test))))
 
 #_(test/deftest test-rulebook-sample-game

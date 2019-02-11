@@ -2,10 +2,10 @@
   (:require [diplomacy.judgments :as j]
             [diplomacy.orders :as orders]
             [diplomacy.map-functions :as maps]
+            [diplomacy.settings]
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]
             [clojure.spec.alpha :as s]))
-(def debug false)
 (require 'clojure.pprint)
 
 (defn queue?
@@ -81,7 +81,7 @@
   [{:keys [conflict-map conflict-queue
            location-to-order-map dmap]
     :as resolution-state}]
-  (when debug
+  (when diplomacy.settings/debug
     (print "conflict-queue: ")
     (clojure.pprint/pprint conflict-queue)
     (print "conflict-map: ")
@@ -90,7 +90,7 @@
   (let [pending-conflict (peek conflict-queue)
         conflict-state-updates (evaluate-conflict resolution-state
                                                   pending-conflict)]
-    (when debug
+    (when diplomacy.settings/debug
       (print "conflict-state-updates: ")
       (clojure.pprint/pprint conflict-state-updates))
     (-> resolution-state
