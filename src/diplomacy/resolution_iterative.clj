@@ -265,8 +265,12 @@
 ;;                                                        Determining Support ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::support-type #{:offense :defense})
-(s/def ::willingness-to-support #{:yes :no :pending})
+(s/def ::support-type #{:offense
+                        :defense
+                        :offense-assume-beleaguered-garrison-leaves})
+(s/def ::willingness-to-support #{:yes
+                                  :no
+                                  :pending-beleaguered-garrison-leaving})
 
 (defn-spec willingness-to-support
   [::resolution-state ::dt/support-order ::dt/order ::dt/order ::dt/conflict-rule ::support-type] ::willingness-to-support)
@@ -283,13 +287,18 @@
         (let [beleaguered-garrison (location-to-order-map (:destination supported-order))
               beleaguered-garrison-friendly? (= (:country supporting-order)
                                                 (:country beleaguered-garrison))]
-          (if (not beleaguered-garrison-friendly?)
+          (if (or (nil? beleaguered-garrison)
+                  (not beleaguered-garrison-friendly?))
             :yes
+            ;; The friendly beleaguered garrison case
             (if (orders/attack? beleaguered-garrison)
               (case (order-status rs beleaguered-garrison)
                 :succeeded :yes
-                :pending :pending
-                :failed :no)
+                :failed :no
+                :pending
+                (if (= support-type :offense-assume-beleaguered-garrison-leaves)
+                  :yes
+                  :pending-beleaguered-garrison-leaving))
               :no)))))))
 
 (defn-spec supporting-order-statuses [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
@@ -301,7 +310,7 @@
         (map (fn [supporting-order]
                (case (willingness-to-support rs supporting-order supported-order combatant rule support-type)
                  :yes (order-status rs supporting-order)
-                 :pending :pending
+                 :pending-beleaguered-garrison-leaving :pending
                  :no :unwilling))
              supporting-orders)
         support-counts (frequencies support-statuses)]
@@ -327,45 +336,71 @@
 ;;                                                          Resolving Attacks ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(s/def ::assume-beleaguered-garrison-leaves boolean?)
+(s/def ::battle-settings (s/keys :req-un [::assume-beleaguered-garrison-leaves]))
+
 (defn-spec evaluate-attack-battle
-  [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
+  [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule
+   ::battle-settings]
   ::conflict-state-updates)
 (defn evaluate-attack-battle
   "Does not account for dislodging a unit from the same country."
-  [rs attack bouncer rule]
+  [rs attack bouncer rule {:keys [assume-beleaguered-garrison-leaves]}]
+  (let [offensive-support-type (if assume-beleaguered-garrison-leaves
+                                 :offense-assume-beleaguered-garrison-leaves
+                                 :offense)]
   (cond
-    (> (guaranteed-support rs attack bouncer rule :offense)
+    (> (guaranteed-support rs attack bouncer rule offensive-support-type)
        (max-possible-support rs bouncer attack rule :defense))
     [[attack bouncer (j/create-attack-judgment :interferer bouncer
                                                :attack-rule rule
                                                :interfered? false)]]
     (>= (guaranteed-support rs bouncer attack rule :defense)
-        (max-possible-support rs attack bouncer rule :offense))
+        (max-possible-support rs attack bouncer rule offensive-support-type))
     [[attack bouncer (j/create-attack-judgment :interferer bouncer
                                                :attack-rule rule
                                                :interfered? true)]]
     ;; If we're not sure, don't make any conflict state updates.
     :else
-    []))
+    [])))
 
 (defn-spec find-failed-to-leave-cycle-helper
   [::resolution-state (s/coll-of ::dt/attack-order)]
   (s/coll-of ::dt/attack-order)
   #(or (empty? (:ret %)) (> (count (:ret %)) 2)))
 (defn find-failed-to-leave-cycle-helper
-  [{:keys [location-to-order-map] :as rs} attack-orders]
+  [{:keys [location-to-order-map conflict-map] :as rs} attack-orders]
   (let [last-attack (last attack-orders)
+        conflicts (get conflict-map last-attack)
         conflict-states (get-conflict-states rs last-attack)]
     (if (and (orders/attack? last-attack)
              (= (order-status rs last-attack) :pending)
              (some (partial = :failed-to-leave-destination)
                    conflict-states)
-             (every? (fn [conflict-state]
-                       (or (= conflict-state :failed-to-leave-destination)
-                           (and
-                            (s/valid? ::resolved-conflict-state conflict-state)
-                            (not (:interfered? conflict-state)))))
-                     conflict-states))
+             (every?
+              (fn [[interferer conflict-state]]
+                (or (= conflict-state :failed-to-leave-destination)
+                    (and
+                     (s/valid? ::resolved-conflict-state conflict-state)
+                     (not (:interfered? conflict-state)))
+                    ;; Make sure resolution doesn't get into an infinite loop
+                    ;; where this function is waiting on an attack that may
+                    ;; break the cycle to resolve, but resolving that attack is
+                    ;; waiting on whether an order in the cycle fails to move
+                    ;; and becomes a beleaguered garrison. See case Z3 in
+                    ;; `datc_cases.clj`.
+                    (and
+                     (= conflict-state :attacked-same-destination)
+                     (let [hypothetical-updates
+                           (evaluate-attack-battle rs last-attack interferer :attacked-same-destination
+                                                   {:assume-beleaguered-garrison-leaves true})]
+                       (some (fn [[o1 o2 hypothetical-conflict-state]]
+                               (and (= o1 last-attack)
+                                    (= o2 interferer)
+                                    (s/valid? ::resolved-conflict-state hypothetical-conflict-state)
+                                    (not (:interfered? hypothetical-conflict-state))))
+                             hypothetical-updates)))))
+                    conflicts))
       (if (and (>= (count attack-orders) 3)
                (= last-attack
                   (first attack-orders)))
@@ -476,7 +511,8 @@
   (let [base-updates
         (if (= rule :failed-to-leave-destination)
           (evaluate-attack-failed-to-leave resolution-state attack bouncer)
-          (evaluate-attack-battle resolution-state attack bouncer rule))]
+          (evaluate-attack-battle resolution-state attack bouncer rule
+                                  {:assume-beleaguered-garrison-leaves false}))]
     (->> base-updates
          (map forbid-self-dislodgment)
          (map (partial forbid-effect-on-dislodgers-province resolution-state))
