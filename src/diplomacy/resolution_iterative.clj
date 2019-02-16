@@ -355,21 +355,23 @@
 (defn find-failed-to-leave-cycle-helper
   [{:keys [location-to-order-map] :as rs} attack-orders]
   (let [last-attack (last attack-orders)
-        next-attack (location-to-order-map (:destination last-attack))]
-    (if (and (not (nil? next-attack))
-             (orders/attack? next-attack)
-             (= (order-status rs next-attack) :pending)
-             (->> next-attack
-                  (get-conflict-states rs)
-                  (filter (partial s/valid? ::pending-conflict-state))
-                  (vec)
-                  (= [:failed-to-leave-destination])))
-      ;; Make sure the required conditions match apply to the first attack in
-      ;; `attack-orders` as well.
-      (if (= next-attack
-             (first attack-orders))
+        conflict-states (get-conflict-states rs last-attack)]
+    (if (and (orders/attack? last-attack)
+             (= (order-status rs last-attack) :pending)
+             (some (partial = :failed-to-leave-destination)
+                   conflict-states)
+             (every? (fn [conflict-state]
+                       (or (= conflict-state :failed-to-leave-destination)
+                           (and
+                            (s/valid? ::resolved-conflict-state conflict-state)
+                            (not (:interfered? conflict-state)))))
+                     conflict-states))
+      (if (and (>= (count attack-orders) 3)
+               (= last-attack
+                  (first attack-orders)))
         attack-orders
-        (recur rs (conj attack-orders next-attack)))
+        (let [next-attack (location-to-order-map (:destination last-attack))]
+          (recur rs (conj attack-orders next-attack))))
       [])))
 
 (defn-spec find-failed-to-leave-cycle
