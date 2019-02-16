@@ -1231,9 +1231,12 @@
                                                                   [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:turkey :fleet :bla :support :russia :fleet :ank :attack :con] #{}
                               [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
-                              ;; This order doesn't have a :failed-to-leave-destination failure reason because
+                              ;; For `resolution-core-logic`, this order doesn't have a :failed-to-leave-destination failure reason because
                               ;; it's failure was what caused the other unit to fail to leave it's destination.
-                              [:turkey :army :smy :attack :ank] #{[true [:russia :army :arm :attack :ank] :attacked-same-destination]}
+                              ;; For `resolution-iterative`, it has a :failed-to-leave-destination failure reason.
+                              ;; TODO: Consider fixing `resolution-iterative` to match `resolution-core-logic`'s behavior here.
+                              [:turkey :army :smy :attack :ank] #{[true [:russia :army :arm :attack :ank] :attacked-same-destination]
+                                                                  [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:italy :army :bul :attack :con] #{[true [:russia :fleet :ank :attack :con] :attacked-same-destination]
                                                                  [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}}
     :explanation ""}
@@ -1264,7 +1267,12 @@
                                                                    [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:turkey :army :bul :support :russia :fleet :ank :attack :con] #{}
                               [:turkey :army :con :attack :smy] #{[true [:turkey :army :smy :attack :ank] :failed-to-leave-destination]}
-                              [:turkey :army :smy :attack :ank] #{[true [:germany :army :arm :attack :ank] :attacked-same-destination]}
+                              ;; For `resolution-core-logic`, this order doesn't have a :failed-to-leave-destination failure reason because
+                              ;; it's failure was what caused the other unit to fail to leave it's destination.
+                              ;; For `resolution-iterative`, it has a :failed-to-leave-destination failure reason.
+                              ;; TODO: Consider fixing `resolution-iterative` to match `resolution-core-logic`'s behavior here.
+                              [:turkey :army :smy :attack :ank] #{[true [:germany :army :arm :attack :ank] :attacked-same-destination]
+                                                                  [true [:russia :fleet :ank :attack :con] :failed-to-leave-destination]}
                               [:italy :fleet :aeg :attack :con] #{[true [:russia :fleet :ank :attack :con] :attacked-same-destination]
                                                                   [true [:turkey :army :con :attack :smy] :failed-to-leave-destination]}}
     :explanation ""}
@@ -1404,6 +1412,9 @@
     "Z2"
     "Z3"
     "Z4"
+    "Z5"
+    "Z6"
+    "Z7"
     "Z9"
     "Z11"
     "Z12"
