@@ -401,7 +401,9 @@
                                     (not (:interfered? hypothetical-conflict-state))))
                              hypothetical-updates)))))
                     conflicts))
-      (if (and (>= (count attack-orders) 3)
+      ;; Smallest possible cycle involves 3 distinct orders, and the return
+      ;; value must **start and end** with the same order.
+      (if (and (>= (count attack-orders) 4)
                (= last-attack
                   (first attack-orders)))
         attack-orders
@@ -410,16 +412,15 @@
       [])))
 
 (defn-spec find-failed-to-leave-cycle
-  [::resolution-state ::dt/attack-order] (s/coll-of ::dt/attack-order)
-  #(or (empty? (:ret %)) (> (count (:ret %)) 2)))
+  [::resolution-state ::dt/attack-order]
+  (s/and (s/coll-of ::dt/attack-order)
+         #(or (empty? %)
+              (and (>= (count %) 4)
+                   (= (first %) (last %))))))
 (defn find-failed-to-leave-cycle
-  "The set of orders containing `attack-order` (as a vector), such that they:
-  1. all move in a circle
-  2. all are in :pending state
-  3. all have a :failed-to-leave-destination conflict with the next order in the
-     result as their *only* pending conflict.
-  Returns an empty vector if no set of orders meets the requirements at this
-  time."
+  "The sequence of orders **start and ending** with `attack-order` such that
+  they all successfully move in a circle. Returns an empty sequence if no such
+  sequence is known at this time."
   [resolution-state attack-order]
   (find-failed-to-leave-cycle-helper resolution-state [attack-order]))
 
@@ -437,7 +438,7 @@
                (if (empty? failed-to-leave-cycle)
                  []
                  ;; Resolve the *entire* cycle
-                 (->> (conj failed-to-leave-cycle (first failed-to-leave-cycle))
+                 (->> failed-to-leave-cycle
                       (partition 2 1)
                       (map (fn [[o1 o2]]
                              [o1 o2
