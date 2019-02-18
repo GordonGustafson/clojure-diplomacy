@@ -429,7 +429,7 @@
   ::conflict-state-updates)
 (defn evaluate-attack-failed-to-leave
   "Does not account for dislodging a unit from the same country."
-  [rs attack bouncer]
+  [{:keys [conflict-map] :as rs} attack bouncer]
   (case (order-status rs bouncer)
     :succeeded [[attack bouncer [:failed-to-leave-destination :no-conflict]]]
     ;; TODO(optimization): should we take steps to avoid looking for a cycle
@@ -437,12 +437,25 @@
     :pending (let [failed-to-leave-cycle (find-failed-to-leave-cycle rs attack)]
                (if (empty? failed-to-leave-cycle)
                  []
-                 ;; Resolve the *entire* cycle
-                 (->> failed-to-leave-cycle
-                      (partition 2 1)
-                      (map (fn [[o1 o2]]
-                             [o1 o2
-                              [:failed-to-leave-destination :no-conflict]])))))
+                 ;; Indicate that the cycle moves successfully. Much of this is
+                 ;; necessary due to test case Z13.
+                 (let [failed-to-leave-cycle-set (set failed-to-leave-cycle)]
+                   (apply concat
+                          (for [[order conflicting-orders-map] conflict-map
+                                [conflicting-order conflict-state] conflicting-orders-map
+                                :when (and (contains? failed-to-leave-cycle-set conflicting-order)
+                                           (contains? #{:failed-to-leave-destination :attacked-same-destination}
+                                                      conflict-state))]
+                            (case conflict-state
+                              :failed-to-leave-destination
+                              [[order conflicting-order [:failed-to-leave-destination :no-conflict]]]
+                              :attacked-same-destination
+                              [[order conflicting-order (j/create-attack-judgment :interferer conflicting-order
+                                                                                  :attack-rule :attacked-same-destination
+                                                                                  :interfered? true)]
+                               [conflicting-order order (j/create-attack-judgment :interferer order
+                                                                                  :attack-rule :attacked-same-destination
+                                                                                  :interfered? false)]]))))))
     :failed
     (cond
       (pos? (guaranteed-support rs attack bouncer :failed-to-leave-destination :offense))

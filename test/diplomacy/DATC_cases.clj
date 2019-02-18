@@ -1329,6 +1329,24 @@
                               [:germany :army :pru :support :germany :army :sil :attack :war] #{}
                               [:russia :army :war :hold] #{}}
     :explanation ""}
+   "Z13"
+   {:long-name "Z13. Z8 variant"
+    :summary ""
+    :resolution-results-abbr {[:germany :army :boh :attack :gal] #{[false [:england :army :rum :attack :gal] :attacked-same-destination]}
+                              [:turkey :army :gal :attack :sil] #{[false [:england :army :pru :attack :sil] :attacked-same-destination]}
+                              [:russia :army :sil :attack :boh] #{[false [:england :army :tyr :attack :boh] :attacked-same-destination]}
+
+                              [:england :army :tyr :attack :boh] #{[true [:russia :army :sil :attack :boh] :attacked-same-destination]}
+                              [:england :army :rum :attack :gal] #{[true [:germany :army :boh :attack :gal] :attacked-same-destination]}
+                              [:england :army :pru :attack :sil] #{[true [:turkey :army :gal :attack :sil] :attacked-same-destination]}
+
+                              ;; Every attack is supported once by the country that's leaving the attack's destination.
+                              [:germany :army :mun :support :russia :army :sil :attack :boh] #{}
+
+                              [:turkey :army :bud :support :germany :army :boh :attack :gal] #{}
+
+                              [:russia :army :war :support :turkey :army :gal :attack :sil] #{}}
+    :explanation ""}
    })
 
 ;; This whitelist was originally added to allow running
@@ -1419,6 +1437,7 @@
     "Z9"
     "Z11"
     "Z12"
+    "Z13"
     })
 
 (defn test-complete?
