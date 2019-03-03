@@ -265,6 +265,56 @@
        conflict-states-to-order-status))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                 Determining Convoy Arrival ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec convoy-path-exists?-helper [::dt/dmap ::dt/location ::dt/location
+                                       (s/and (s/coll-of ::dt/location) set?)
+                                       boolean?]
+  boolean?)
+(defn convoy-path-exists?-helper
+  [dmap start-loc end-loc convoy-locations path-length-so-far-is-zero?]
+  (cond
+    (and (maps/edge-accessible-to? dmap start-loc end-loc :fleet)
+         (not path-length-so-far-is-zero?))
+    true
+    (empty? convoy-locations)
+    false
+    :else
+    (some? (fn [next-location]
+             (convoy-path-exists?-helper
+              dmap
+              next-location
+              end-loc
+              (disj convoy-locations next-location)
+              false))
+           (maps/get-adjacent-locations dmap start-loc))))
+
+(defn-spec convoy-path-exists? [::dt/dmap ::dt/location ::dt/location
+                                (s/and (s/coll-of ::dt/location) set?)]
+  boolean?)
+(defn convoy-path-exists?
+  [dmap start-loc end-loc convoy-locations]
+  (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true))
+
+(defn-spec arrival-status [::resolution-state ::dt/attack-order] ::order-status)
+(defn arrival-status
+  [{:keys [dmap convoy-map] :as resolution-state}
+   {:keys [location destination] :as attack-order}]
+  (let [attempted-convoys (get convoy-map attack-order [])
+        known-successful-convoys
+        (filter #(= :succeeded (order-status %)) attempted-convoys)
+        non-failed-convoys
+        (filter #(not= :failed (order-status %)) attempted-convoys)]
+    (cond
+      (convoy-path-exists? dmap location destination known-successful-convoys)
+      :succeeded
+      (convoy-path-exists? dmap location destination non-failed-convoys)
+      :pending
+      :else
+      :failed)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Determining Support ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -575,6 +625,33 @@
     (assert false (str "unknown support conflict rule: " rule))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                          Resolving Convoys ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec evaluate-convoy-conflict
+  [::resolution-state ::dt/convoy-order ::dt/attack-order
+   ::dt/convoy-conflict-rule]
+  ::conflict-state-updates)
+(defn evaluate-convoy-conflict
+  [resolution-state convoy attacker rule]
+  (case rule
+    :attacked
+    (case (order-status resolution-state attacker)
+      :succeeded
+      [[convoy attacker
+        (j/create-convoy-judgment :interferer attacker
+                                  :convoy-rule :attacked
+                                  :interfered? true)]]
+      :pending
+      []
+      :failed
+      [[convoy attacker
+        (j/create-convoy-judgment :interferer attacker
+                                  :convoy-rule :attacked
+                                  :interfered? false)]])
+    (assert false (str "unknown convoy conflict rule: " rule))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                           Resolution Utils ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -591,8 +668,11 @@
     (evaluate-attack-conflict resolution-state order-a order-b rule)
     (orders/support? order-a)
     (evaluate-support-conflict resolution-state order-a order-b rule)
+    (orders/convoy? order-a)
+    (evaluate-convoy-conflict resolution-state order-a order-b rule)
     :else
-    (assert false (str "Non-attack non-support conflict: " order-a))))
+    (assert false (str "Non-attack non-support non-convoy conflict: "
+                       order-a))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
@@ -605,7 +685,9 @@
   [dmap location-to-order-map {:keys [location order-type] :as order}]
   (case order-type
     :hold []
-    :convoy []
+    :convoy
+    (map (fn [interferer] [order interferer :attacked])
+         (attacks-to dmap location-to-order-map location))
     :attack
     (let [destination (:destination order)]
       (concat

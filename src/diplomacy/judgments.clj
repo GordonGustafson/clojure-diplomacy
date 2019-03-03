@@ -10,6 +10,7 @@
 ;; work.
 (s/def ::attack-rule ::dt/attack-conflict-rule)
 (s/def ::support-rule ::dt/support-conflict-rule)
+(s/def ::convoy-rule ::dt/convoy-conflict-rule)
 
 (defn-spec create-attack-judgment
   (s/keys* :req-un [::dt/interferer ::attack-rule ::dt/interfered?]
@@ -40,3 +41,14 @@
    :interferer interferer
    :conflict-situation support-rule})
 
+;; This function is unnecessary, but provided for symmetry with
+;; `create-attack-judgment`.
+(defn-spec create-convoy-judgment
+  (s/keys* :req-un [::dt/interferer ::convoy-rule
+                    ::dt/interfered?])
+  ::dt/conflict-judgment)
+(defn create-convoy-judgment
+  [& {:keys [interfered? interferer convoy-rule]}]
+  {:interfered? interfered?
+   :interferer interferer
+   :conflict-situation convoy-rule})

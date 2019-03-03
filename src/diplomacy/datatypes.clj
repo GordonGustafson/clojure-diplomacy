@@ -152,12 +152,18 @@
     :attacked-by-same-country})
 (s/def ::support-conflict-situation ::support-conflict-rule)
 
+;; Used by `resolution-iterative` to record conflicts with convoys.
+;; *Not* used in `resolution-core-logic` (never really got that far).
+(s/def ::convoy-conflict-rule #{:attacked})
+(s/def ::convoy-conflict-situation ::convoy-conflict-rule)
+
 (s/def ::conflict-rule
   (s/or :attack-rule-tag ::attack-conflict-rule
         :support-rule-tag ::support-conflict-rule))
 (s/def ::conflict-situation
   (s/or :attack-sit ::attack-conflict-situation
-        :support-sit ::support-conflict-situation))
+        :support-sit ::support-conflict-situation
+        :convoy-sit ::convoy-conflict-situation))
 
 ;; Whether the fact that the attack would have dislodge a unit of its own
 ;; country caused the it to fail when it would have otherwise succeeded.
