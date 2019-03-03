@@ -21,6 +21,14 @@
   (let [edge-accessibility (get-in diplomacy-map [:edge-accessibility from to])]
     (contains? edge-accessibility unit-type)))
 
+(defn-spec get-adjacent-locations
+  [::dt/dmap ::dt/location] (s/and (s/coll-of ::dt/location) set?))
+(defn get-adjacent-locations
+  [diplomacy-map location]
+  (->> (get-in diplomacy-map [:edge-accessibility location])
+       keys
+       set))
+
 (defn-spec get-adjacent-accessible-locations
   [::dt/dmap ::dt/location ::dt/unit-type] (s/coll-of ::dt/location))
 (defn get-adjacent-accessible-locations

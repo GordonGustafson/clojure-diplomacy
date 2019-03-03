@@ -26,6 +26,11 @@
   (is (not (edge-accessible-to? classic-map :foo :ank :fleet)))
   (is (not (edge-accessible-to? classic-map :par :foo :army))))
 
+(deftest test-get-adjacent-locations
+  (is (= (get-adjacent-locations classic-map :adr) #{:ven :tri :alb :ion :apu}))
+  (is (= (get-adjacent-locations classic-map :lon) #{:wal :yor :nth :eng}))
+  (is (= (get-adjacent-locations classic-map :spa-nc) #{:por :mid :gas})))
+
 (deftest test-locations-colocated?
   (is (locations-colocated? classic-map :spa    :spa-nc))
   (is (locations-colocated? classic-map :spa    :spa-sc))
