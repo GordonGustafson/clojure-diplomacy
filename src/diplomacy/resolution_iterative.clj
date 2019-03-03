@@ -482,7 +482,8 @@
            (contains? #{:destination-occupied
                         :swapped-places-without-convoy
                         :failed-to-leave-destination}
-                      ;; Don't forget the structure of conflict situations!
+                      ;; Don't forget the structure of
+                      ;; `::dt/attack-conflict-situation`!!
                       (get-in conflict-state [:conflict-situation :attack-conflict-rule]))
            (not (:interfered? conflict-state)))
     [order interferer (assoc conflict-state
