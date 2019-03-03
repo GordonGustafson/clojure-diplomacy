@@ -218,6 +218,68 @@
                         (into {})))))
           cases))))
 
+(deftest test-make-convoy-map
+  (let [cases {
+               [] {}
+               [[:austria :army :vie :hold]]
+               {}
+
+               [[:austria :army :vie :hold]
+                [:austria :army :boh :support :austria :army :gal :hold]]
+               {}
+
+               [[:england :army :lon :attack :pic]
+                [:england :fleet :eng :convoy :england :army :lon :attack :pic]]
+               {[:england :army :lon :attack :pic]
+                [[:england :fleet :eng :convoy :england :army :lon :attack :pic]]}
+
+               ;; Require destination matches
+               [[:england :army :lon :attack :pic]
+                [:england :fleet :eng :convoy :england :army :lon :attack :bre]]
+               {}
+
+               ;; Require nationalities match.
+               [[:england :army :lon :attack :pic]
+                [:england :fleet :eng :convoy :france :army :lon :attack :pic]]
+               {}
+
+               [[:england :army :lon :attack :spa]
+                [:england :fleet :eng :convoy :england :army :lon :attack :spa]
+                [:france :fleet :mid :convoy :england :army :lon :attack :spa]]
+               {[:england :army :lon :attack :spa]
+                [[:england :fleet :eng :convoy :england :army :lon :attack :spa]
+                 [:france :fleet :mid :convoy :england :army :lon :attack :spa]]}
+
+               [[:italy :army :spa :attack :nap]
+                [:italy :fleet :gol :convoy :italy :army :spa :attack :nap]
+                [:italy :fleet :wes :convoy :italy :army :spa :attack :nap]
+                [:italy :fleet :tyn :convoy :italy :army :spa :attack :nap]
+
+                [:england :army :edi :attack :nwy]
+                [:england :fleet :bla :convoy :england :army :edi :attack :nwy]]
+               {
+                [:italy :army :spa :attack :nap]
+                [[:italy :fleet :gol :convoy :italy :army :spa :attack :nap]
+                 [:italy :fleet :wes :convoy :italy :army :spa :attack :nap]
+                 [:italy :fleet :tyn :convoy :italy :army :spa :attack :nap]]
+
+                [:england :army :edi :attack :nwy]
+                [[:england :fleet :bla :convoy :england :army :edi :attack :nwy]]}
+               }
+        ]
+    (doall
+     (map (fn [[input expected-output]]
+            (is (= (->> input
+                        (map (partial apply te/expand-order))
+                        (make-location-to-order-map)
+                        (make-convoy-map))
+                   (->> expected-output
+                        (map (fn [[k vs]]
+                               [(apply te/expand-order k)
+                                (map (partial apply te/expand-order) vs)]))
+                        (into {})))))
+          cases))))
+
 (def italy-ven-tyr (te/expand-order :italy :army :ven :attack :tyr))
 
 (def italy-tyr-hold (te/expand-order :italy :army :tyr :hold))

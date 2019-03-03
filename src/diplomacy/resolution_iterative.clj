@@ -44,6 +44,8 @@
 (s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) #_queue?))
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
+;; Map from orders to the orders attempting to convoy them.
+(s/def ::convoy-map (s/map-of ::dt/order ::dt/orders))
 
 (s/def ::location-to-order-map (s/map-of ::dt/location ::dt/order))
 (s/def ::resolution-state
@@ -51,6 +53,7 @@
                    ::conflict-queue
                    ;; Fields that never change during resolution
                    ::support-map
+                   ::convoy-map
                    ::location-to-order-map
                    ::dt/dmap]))
 
@@ -666,6 +669,30 @@
                 (assoc support-map supported-order [supporting-order])))
             {}
             support-pairs)))
+
+;; TODO: reduce duplication between `make-support-map` and `make-convoy-map`
+;; if desired.
+(defn-spec make-convoy-map [::location-to-order-map] ::convoy-map)
+(defn make-convoy-map
+  [location-to-order-map]
+  (let [orders (vals location-to-order-map)
+        convoy-orders (filter orders/convoy? orders)
+        convoy-pairs
+        (mapcat
+         (fn [{:keys [assisted-order] :as convoy-order}]
+           (let [order-at-assisted-location (location-to-order-map
+                                             (:location assisted-order))]
+             (if (and (not (nil? order-at-assisted-location))
+                      (= assisted-order order-at-assisted-location))
+               [[order-at-assisted-location convoy-order]]
+               [])))
+         convoy-orders)]
+    (reduce (fn [convoy-map [convoyed-order convoying-order]]
+              (if (contains? convoy-map convoyed-order)
+                (update convoy-map convoyed-order #(conj % convoying-order))
+                (assoc convoy-map convoyed-order [convoying-order])))
+            {}
+            convoy-pairs)))
 
 (defn-spec make-location-to-order-map [::dt/orders] ::location-to-order-map)
 (defn make-location-to-order-map
