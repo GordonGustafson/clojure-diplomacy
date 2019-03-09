@@ -265,6 +265,59 @@
        conflict-states-to-order-status))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                 Determining Convoy Arrival ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec convoy-path-exists?-helper [::dt/dmap ::dt/location ::dt/location
+                                       (s/and (s/coll-of ::dt/location) set?)
+                                       boolean?]
+  boolean?)
+(defn convoy-path-exists?-helper
+  [dmap start-loc end-loc convoy-locations path-length-so-far-is-zero?]
+  (cond
+    (and (maps/edge-accessible-to? dmap start-loc end-loc :fleet)
+         (not path-length-so-far-is-zero?))
+    true
+    (empty? convoy-locations)
+    false
+    :else
+    ;; TODO this is very inefficient on large inputs
+    (->> convoy-locations
+         (filter #(maps/edge-accessible-to? dmap start-loc (:location %) :fleet))
+         (some? (fn [next-convoy]
+                  (convoy-path-exists?-helper
+                   dmap
+                   next-convoy
+                   end-loc
+                   (disj convoy-locations next-convoy)
+                   false))))))
+
+(defn-spec convoy-path-exists? [::dt/dmap ::dt/location ::dt/location
+                                (s/and (s/coll-of ::dt/location) set?)]
+  boolean?)
+(defn convoy-path-exists?
+  [dmap start-loc end-loc convoy-locations]
+  (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true))
+
+(defn-spec arrival-by-convoy-status [::resolution-state ::dt/attack-order]
+  ::order-status)
+(defn arrival-by-convoy-status
+  [{:keys [dmap convoy-map] :as resolution-state}
+   {:keys [location destination] :as attack-order}]
+  (let [attempted-convoys (get convoy-map attack-order [])
+        known-successful-convoys
+        (filter #(= :succeeded (order-status %)) attempted-convoys)
+        non-failed-convoys
+        (filter #(not= :failed (order-status %)) attempted-convoys)]
+    (cond
+      (convoy-path-exists? dmap location destination known-successful-convoys)
+      :succeeded
+      (convoy-path-exists? dmap location destination non-failed-convoys)
+      :pending
+      :else
+      :failed)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Determining Support ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
