@@ -39,9 +39,17 @@
 ;; TBD: make this only contain resolved conflicts?
 (s/def ::conflict-map (s/map-of ::dt/order
                                 (s/map-of ::dt/order ::conflict-state)))
+(s/def ::conflict-state-update
+  (s/tuple ::dt/order ::dt/order ::conflict-state))
+(s/def ::conflict-state-updates (s/coll-of ::conflict-state-update))
 (s/def ::pending-conflict
   (s/tuple ::dt/order ::dt/order ::pending-conflict-state))
 (s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) #_queue?))
+
+(s/def ::voyage-status #{:succeeded :failed :pending})
+(s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
+(s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
+
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
 ;; Map from orders to the orders attempting to convoy them.
@@ -51,18 +59,16 @@
 (s/def ::resolution-state
   (s/keys :req-un [::conflict-map
                    ::conflict-queue
+                   ::voyage-map
+                   ::voyage-queue
                    ;; Fields that never change during resolution
                    ::support-map
                    ::convoy-map
                    ::location-to-order-map
                    ::dt/dmap]))
 
-(s/def ::conflict-state-update
-  (s/tuple ::dt/order ::dt/order ::conflict-state))
-(s/def ::conflict-state-updates (s/coll-of ::conflict-state-update))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                    Resolution Control Flow ;;
+;;                              Resolution Control Flow - Conflict Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (declare evaluate-conflict apply-conflict-state-updates remove-conflicts)
 
@@ -72,14 +78,17 @@
         (for [[order conflicting-orders-map] conflict-map
               [conflicting-order conflict-state] conflicting-orders-map]
           conflict-state)]
+    ;; This does not check voyages, because if all the orders are resolved we
+    ;; don't care about voyages.
     (every? (partial s/valid? ::resolved-conflict-state)
             all-conflict-states)))
 
-(defn-spec take-resolution-step [::resolution-state] ::resolution-state)
-(defn take-resolution-step
-  "Takes one step of the resolution algorithm.
+(defn-spec take-conflict-resolution-step [::resolution-state] ::resolution-state)
+(defn take-conflict-resolution-step
+  "Tries to resolve the next conflict in the conflict queue.
 
-  PRECONDITION: `(not (resolution-complete? resolution-state))`
+  PRECONDITION: There is an unresolved order, AKA
+    `(not (resolution-complete? resolution-state))`
   "
   [{:keys [conflict-map conflict-queue
            location-to-order-map dmap]
@@ -134,9 +143,42 @@
 (defn remove-conflicts
   "Removes all conflicts in `conflict-state-update` from `conflict-queue`."
   [conflict-queue conflict-state-updates]
-  "Removes all conflicts in `conflict-state-updates` from `conflict-queue`."
   ;; This is inefficient, but we can optimize later
   (reduce remove-conflict conflict-queue conflict-state-updates))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                Resolution Control Flow - Voyage Resolution ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Reducing duplication between this section and the 'Conflict Resolution'
+;; section would be nice, but isn't critical.
+
+(declare voyage-status remove-voyage)
+
+(defn-spec take-voyage-resolution-step [::resolution-state] ::resolution-state)
+(defn take-voyage-resolution-step
+  "Tries to resolve the next voyage in the voyage queue."
+  [{:keys [voyage-map voyage-queue location-to-order-map dmap]
+    :as resolution-state}]
+  (when diplomacy.settings/debug
+    (print "voyage-queue: ")
+    (clojure.pprint/pprint voyage-queue)
+    (print "voyage-map: ")
+    (clojure.pprint/pprint voyage-map))
+
+  (if (empty? voyage-queue)
+    resolution-state
+    (let [pending-voyage (peek voyage-queue)
+          status (voyage-status resolution-state pending-voyage)]
+      (when diplomacy.settings/debug
+        (print "voyage-update: ")
+        (clojure.pprint/pprint [pending-voyage status]))
+        (-> resolution-state
+            (update :voyage-queue
+                    #(cond->> %
+                         true (move-front-to-back)
+                         (not= :pending voyage-status) (remove (partial = pending-voyage))
+                         (not= :pending voyage-status) (into clojure.lang.PersistentQueue/EMPTY)))
+            (update :voyage-map #(assoc % pending-voyage status))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              Map Utilities ;;
@@ -265,59 +307,6 @@
        conflict-states-to-order-status))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                 Determining Convoy Arrival ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn-spec convoy-path-exists?-helper [::dt/dmap ::dt/location ::dt/location
-                                       (s/and (s/coll-of ::dt/location) set?)
-                                       boolean?]
-  boolean?)
-(defn convoy-path-exists?-helper
-  [dmap start-loc end-loc convoy-locations path-length-so-far-is-zero?]
-  (cond
-    (and (maps/edge-accessible-to? dmap start-loc end-loc :fleet)
-         (not path-length-so-far-is-zero?))
-    true
-    (empty? convoy-locations)
-    false
-    :else
-    ;; TODO this is very inefficient on large inputs
-    (->> convoy-locations
-         (filter #(maps/edge-accessible-to? dmap start-loc (:location %) :fleet))
-         (some? (fn [next-convoy]
-                  (convoy-path-exists?-helper
-                   dmap
-                   next-convoy
-                   end-loc
-                   (disj convoy-locations next-convoy)
-                   false))))))
-
-(defn-spec convoy-path-exists? [::dt/dmap ::dt/location ::dt/location
-                                (s/and (s/coll-of ::dt/location) set?)]
-  boolean?)
-(defn convoy-path-exists?
-  [dmap start-loc end-loc convoy-locations]
-  (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true))
-
-(defn-spec arrival-by-convoy-status [::resolution-state ::dt/attack-order]
-  ::order-status)
-(defn arrival-by-convoy-status
-  [{:keys [dmap convoy-map] :as resolution-state}
-   {:keys [location destination] :as attack-order}]
-  (let [attempted-convoys (get convoy-map attack-order [])
-        known-successful-convoys
-        (filter #(= :succeeded (order-status %)) attempted-convoys)
-        non-failed-convoys
-        (filter #(not= :failed (order-status %)) attempted-convoys)]
-    (cond
-      (convoy-path-exists? dmap location destination known-successful-convoys)
-      :succeeded
-      (convoy-path-exists? dmap location destination non-failed-convoys)
-      :pending
-      :else
-      :failed)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Determining Support ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -387,6 +376,12 @@
   [resolution-state order interferer rule support-type]
   (let [support-counts (supporting-order-statuses resolution-state order interferer rule support-type)]
     (:succeeded support-counts)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                        Determining Arrival ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; RESUME HERE
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          Resolving Attacks ;;
@@ -628,6 +623,58 @@
     (assert false (str "unknown support conflict rule: " rule))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                Resolving Voyages (Convoys) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec convoy-path-exists?-helper [::dt/dmap ::dt/location ::dt/location
+                                       (s/and (s/coll-of ::dt/location) set?)
+                                       boolean?]
+  boolean?)
+(defn convoy-path-exists?-helper
+  [dmap start-loc end-loc convoy-locations path-length-so-far-is-zero?]
+  (cond
+    (and (maps/edge-accessible-to? dmap start-loc end-loc :fleet)
+         (not path-length-so-far-is-zero?))
+    true
+    (empty? convoy-locations)
+    false
+    :else
+    ;; TODO this is very inefficient on large inputs
+    (->> convoy-locations
+         (filter #(maps/edge-accessible-to? dmap start-loc (:location %) :fleet))
+         (some? (fn [next-convoy]
+                  (convoy-path-exists?-helper
+                   dmap
+                   next-convoy
+                   end-loc
+                   (disj convoy-locations next-convoy)
+                   false))))))
+
+(defn-spec convoy-path-exists? [::dt/dmap ::dt/location ::dt/location
+                                (s/and (s/coll-of ::dt/location) set?)]
+  boolean?)
+(defn convoy-path-exists?
+  [dmap start-loc end-loc convoy-locations]
+  (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true))
+
+(defn-spec voyage-status [::resolution-state ::dt/attack-order] ::voyage-status)
+(defn voyage-status
+  [{:keys [dmap convoy-map] :as resolution-state}
+   {:keys [location destination] :as attack-order}]
+  (let [attempted-convoys (get convoy-map attack-order [])
+        known-successful-convoys
+        (filter #(= :succeeded (order-status %)) attempted-convoys)
+        non-failed-convoys
+        (filter #(not= :failed (order-status %)) attempted-convoys)]
+    (cond
+      (convoy-path-exists? dmap location destination known-successful-convoys)
+      :succeeded
+      (convoy-path-exists? dmap location destination non-failed-convoys)
+      :pending
+      :else
+      :failed)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                           Resolution Utils ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -748,6 +795,29 @@
             {}
             convoy-pairs)))
 
+(defn-spec make-voyage-map [::dmap ::location-to-order-map ::convoy-map]
+  ::voyage-map)
+(defn make-voyage-map
+  [dmap location-to-order-map convoy-map]
+  (let [orders (vals location-to-order-map)
+        attack-orders (filter orders/attack? orders)]
+    (->> location-to-order-map
+         (vals)
+         (filter orders/attack?)
+         (map
+          (fn [{:keys [location destination unit-type] :as attack-order}]
+            (let [arrives-directly?
+                  (maps/edge-accessible-to? dmap location destination unit-type)
+                  convoy-attempted?
+                  (and (= unit-type :army)
+                       (not (empty? (get convoy-map attack-order []))))
+                  voyage
+                  (cond-> #{}
+                    arrives-directly? (assoc :direct)
+                    convoy-attempted? (assoc :pending-by-convoy))]
+            [attack-order voyage])))
+         (into {}))))
+
 (defn-spec make-location-to-order-map [::dt/orders] ::location-to-order-map)
 (defn make-location-to-order-map
   [orders]
@@ -781,7 +851,9 @@
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
         final-resolution-state
-        (->> (iterate take-resolution-step initial-resolution-state)
+        (->> (iterate (comp take-conflict-resolution-step
+                            take-voyage-resolution-step)
+                      initial-resolution-state)
              (filter #(resolution-complete? (:conflict-map %)))
              (first))
         final-conflict-map (:conflict-map final-resolution-state)]
