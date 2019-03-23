@@ -48,7 +48,6 @@
 
 (s/def ::voyage-status #{:succeeded :failed :pending})
 (s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
-(s/def ::voyage-update (s/tuple ::dt/attack-order ::voyage-status))
 (s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
 
 ;; Map from orders to the orders attempting to support them.
@@ -153,7 +152,7 @@
 ;; Reducing duplication between this section and the 'Conflict Resolution'
 ;; section would be nice, but isn't critical.
 
-(declare evaluate-voyage apply-voyage-update remove-voyage)
+(declare voyage-status remove-voyage)
 
 (defn-spec take-voyage-resolution-step [::resolution-state] ::resolution-state)
 (defn take-voyage-resolution-step
@@ -169,36 +168,17 @@
   (if (empty? voyage-queue)
     resolution-state
     (let [pending-voyage (peek voyage-queue)
-          voyage-update (evaluate-voyage resolution-state pending-voyage)]
+          status (voyage-status resolution-state pending-voyage)]
       (when diplomacy.settings/debug
         (print "voyage-update: ")
-        (clojure.pprint/pprint voyage-update))
-      (if (= voyage-update :pending)
-        resolution-state
+        (clojure.pprint/pprint [pending-voyage status]))
         (-> resolution-state
             (update :voyage-queue
-                    #(-> %
-                         (move-front-to-back)
-                         (remove-voyage voyage-update)))
-            (update :voyage-map #(apply-voyage-update
-                                  % voyage-update)))))))
-
-(defn-spec apply-voyage-update
-  [::voyage-map ::voyage-update] ::voyage-map)
-(defn apply-voyage-update
-  "Applies the updates in `voyage-updates` to `voyage-map`."
-  [voyage-map [attack-order voyage-status]]
-  (assoc voyage-map attack-order voyage-status))
-
-(defn-spec remove-voyage
-  [::voyage-queue ::voyage-update] ::voyage-queue)
-(defn remove-voyage
-  "Removes the voyage in `voyage-update` from `voyage-queue`."
-  [voyage-queue [attack-updated updated-voyage-status]]
-  (assert (not= updated-voyage-status :pending))
-  (->> voyage-queue
-       (remove (partial = attack-updated))
-       (into clojure.lang.PersistentQueue/EMPTY)))
+                    #(cond-> %
+                         true (move-front-to-back)
+                         (not= :pending voyage-status) (remove (partial = pending-voyage))
+                         (not= :pending voyage-status) (into clojure.lang.PersistentQueue/EMPTY)))
+            (update :voyage-map #(assoc % pending-voyage status))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              Map Utilities ;;
@@ -693,12 +673,6 @@
       :pending
       :else
       :failed)))
-
-(defn-spec evaluate-voyage
-  [::resolution-state ::dt/attack-order] ::voyage-update)
-(defn evaluate-voyage
-  [resolution-state attack-order]
-  [attack-order (voyage-status resolution-state attack-order)])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                           Resolution Utils ;;
