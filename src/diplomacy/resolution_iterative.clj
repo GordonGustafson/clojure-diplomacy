@@ -169,17 +169,17 @@
   (if (empty? voyage-queue)
     resolution-state
     (let [pending-voyage (peek voyage-queue)
-        voyage-status (evaluate-voyage resolution-state pending-voyage)]
-    (when diplomacy.settings/debug
+          voyage-status (evaluate-voyage resolution-state pending-voyage)]
+      (when diplomacy.settings/debug
         (print "voyage-update: ")
         (clojure.pprint/pprint [pending-voyage voyage-status]))
-        (-> resolution-state
-            (update :voyage-queue
-                    #(cond->> %
-                         true (move-front-to-back)
-                         (not= :pending voyage-status) (remove (partial = pending-voyage))
-                         (not= :pending voyage-status) (into clojure.lang.PersistentQueue/EMPTY)))
-            (update :voyage-map #(assoc % pending-voyage voyage-status))))))
+      (-> resolution-state
+          (update :voyage-queue
+                  #(cond->> %
+                     true (move-front-to-back)
+                     (not= :pending voyage-status) (remove (partial = pending-voyage))
+                     (not= :pending voyage-status) (into clojure.lang.PersistentQueue/EMPTY)))
+          (update :voyage-map #(assoc % pending-voyage voyage-status))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              Map Utilities ;;
@@ -663,13 +663,13 @@
 (defn-spec evaluate-voyage [::resolution-state ::dt/attack-order]
   ::voyage-status)
 (defn evaluate-voyage
-  [{:keys [dmap convoy-map] :as resolution-state}
+  [{:keys [dmap convoy-map] :as rs}
    {:keys [location destination] :as attack-order}]
   (let [attempted-convoys (get convoy-map attack-order [])
         known-successful-convoys
-        (filter #(= :succeeded (order-status %)) attempted-convoys)
+        (filter #(= :succeeded (order-status rs %)) attempted-convoys)
         non-failed-convoys
-        (filter #(not= :failed (order-status %)) attempted-convoys)]
+        (filter #(not= :failed (order-status rs %)) attempted-convoys)]
     (cond
       (convoy-path-exists? dmap location destination known-successful-convoys)
       :succeeded
@@ -798,29 +798,6 @@
                 (assoc convoy-map convoyed-order [convoying-order])))
             {}
             convoy-pairs)))
-
-(defn-spec make-voyage-map [::dmap ::location-to-order-map ::convoy-map]
-  ::voyage-map)
-(defn make-voyage-map
-  [dmap location-to-order-map convoy-map]
-  (let [orders (vals location-to-order-map)
-        attack-orders (filter orders/attack? orders)]
-    (->> location-to-order-map
-         (vals)
-         (filter orders/attack?)
-         (map
-          (fn [{:keys [location destination unit-type] :as attack-order}]
-            (let [arrives-directly?
-                  (maps/edge-accessible-to? dmap location destination unit-type)
-                  convoy-attempted?
-                  (and (= unit-type :army)
-                       (not (empty? (get convoy-map attack-order []))))
-                  voyage
-                  (cond-> #{}
-                    arrives-directly? (assoc :direct)
-                    convoy-attempted? (assoc :pending-by-convoy))]
-            [attack-order voyage])))
-         (into {}))))
 
 (defn-spec make-direct-arrival-set [::dmap ::dt/orders] ::direct-arrival-set)
 (defn make-direct-arrival-set
