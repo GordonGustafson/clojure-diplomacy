@@ -32,6 +32,7 @@
 ;; Whether an order is known to succeed, known to fail (due to being interefered
 ;; with), or not known yet.
 (s/def ::order-status #{:succeeded :failed :pending})
+(s/def ::arrival-status #{:succeeded :failed :pending})
 ;; At the moment `::judgment` also contains the interfering order, duplicating
 ;; information between the key and value of the nested map. Fixing this isn't
 ;; necessary.
@@ -48,13 +49,16 @@
 
 (s/def ::voyage-status #{:succeeded :failed :pending})
 (s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
-(s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
+(s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) queue?))
 
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
 ;; Map from orders to the orders attempting to convoy them.
 (s/def ::convoy-map (s/map-of ::dt/order ::dt/orders))
 
+;; Set of orders that do not need a convoy because they moving between adjacent
+;; locations (though they may still have a convoy).
+(s/def ::direct-arrival-set (s/and (s/coll-of ::dt/attack-order) set?))
 (s/def ::location-to-order-map (s/map-of ::dt/location ::dt/order))
 (s/def ::resolution-state
   (s/keys :req-un [::conflict-map
@@ -64,6 +68,7 @@
                    ;; Fields that never change during resolution
                    ::support-map
                    ::convoy-map
+                   ::direct-arrival-set
                    ::location-to-order-map
                    ::dt/dmap]))
 
@@ -149,16 +154,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                Resolution Control Flow - Voyage Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Reducing duplication between this section and the 'Conflict Resolution'
-;; section would be nice, but isn't critical.
-
-(declare voyage-status remove-voyage)
+(declare evaluate-voyage)
 
 (defn-spec take-voyage-resolution-step [::resolution-state] ::resolution-state)
 (defn take-voyage-resolution-step
   "Tries to resolve the next voyage in the voyage queue."
-  [{:keys [voyage-map voyage-queue location-to-order-map dmap]
-    :as resolution-state}]
+  [{:keys [voyage-map voyage-queue] :as resolution-state}]
   (when diplomacy.settings/debug
     (print "voyage-queue: ")
     (clojure.pprint/pprint voyage-queue)
@@ -168,17 +169,17 @@
   (if (empty? voyage-queue)
     resolution-state
     (let [pending-voyage (peek voyage-queue)
-          status (voyage-status resolution-state pending-voyage)]
-      (when diplomacy.settings/debug
+        voyage-status (evaluate-voyage resolution-state pending-voyage)]
+    (when diplomacy.settings/debug
         (print "voyage-update: ")
-        (clojure.pprint/pprint [pending-voyage status]))
+        (clojure.pprint/pprint [pending-voyage voyage-status]))
         (-> resolution-state
             (update :voyage-queue
                     #(cond->> %
                          true (move-front-to-back)
                          (not= :pending voyage-status) (remove (partial = pending-voyage))
                          (not= :pending voyage-status) (into clojure.lang.PersistentQueue/EMPTY)))
-            (update :voyage-map #(assoc % pending-voyage status))))))
+            (update :voyage-map #(assoc % pending-voyage voyage-status))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              Map Utilities ;;
@@ -306,6 +307,14 @@
        (get-conflict-states resolution-state)
        conflict-states-to-order-status))
 
+(defn-spec arrival-status [::resolution-state ::dt/attack-order]
+  ::arrival-status)
+(defn arrival-status
+  [{:keys [direct-arrival-set voyage-map]} attack-order]
+  (if (contains? direct-arrival-set attack-order)
+    :succeeded
+    (get voyage-map attack-order :pending)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Determining Support ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -376,12 +385,6 @@
   [resolution-state order interferer rule support-type]
   (let [support-counts (supporting-order-statuses resolution-state order interferer rule support-type)]
     (:succeeded support-counts)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                        Determining Arrival ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; RESUME HERE
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          Resolving Attacks ;;
@@ -657,8 +660,9 @@
   [dmap start-loc end-loc convoy-locations]
   (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true))
 
-(defn-spec voyage-status [::resolution-state ::dt/attack-order] ::voyage-status)
-(defn voyage-status
+(defn-spec evaluate-voyage [::resolution-state ::dt/attack-order]
+  ::voyage-status)
+(defn evaluate-voyage
   [{:keys [dmap convoy-map] :as resolution-state}
    {:keys [location destination] :as attack-order}]
   (let [attempted-convoys (get convoy-map attack-order [])
@@ -818,6 +822,16 @@
             [attack-order voyage])))
          (into {}))))
 
+(defn-spec make-direct-arrival-set [::dmap ::dt/orders] ::direct-arrival-set)
+(defn make-direct-arrival-set
+  [dmap orders]
+  (->> orders
+       (filter orders/attack?)
+       (filter
+        (fn [{:keys [location destination unit-type] :as order}]
+          (maps/edge-accessible-to? dmap location destination unit-type)))
+       (into #{})))
+
 (defn-spec make-location-to-order-map [::dt/orders] ::location-to-order-map)
 (defn make-location-to-order-map
   [orders]
@@ -847,7 +861,13 @@
         initial-resolution-state
         {:conflict-map conflict-map
          :conflict-queue conflict-queue
+         ;; TODO: should we initialize this with something??
+         :voyage-map {}
+         :voyage-queue (into clojure.lang.PersistentQueue/EMPTY
+                             (filter orders/attack? orders))
          :support-map (make-support-map location-to-order-map)
+         :convoy-map (make-convoy-map location-to-order-map)
+         :direct-arrival-set (make-direct-arrival-set diplomacy-map orders)
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
         final-resolution-state
