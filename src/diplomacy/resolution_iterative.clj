@@ -851,7 +851,9 @@
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
         final-resolution-state
-        (->> (iterate take-resolution-step initial-resolution-state)
+        (->> (iterate (comp take-conflict-resolution-step
+                            take-voyage-resolution-step)
+                      initial-resolution-state)
              (filter #(resolution-complete? (:conflict-map %)))
              (first))
         final-conflict-map (:conflict-map final-resolution-state)]
