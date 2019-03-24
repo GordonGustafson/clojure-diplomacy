@@ -54,7 +54,7 @@
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
 ;; Map from orders to the orders attempting to convoy them.
-(s/def ::convoy-map (s/map-of ::dt/order ::dt/orders))
+(s/def ::convoy-map (s/map-of ::dt/attack-order ::dt/orders))
 
 ;; Set of orders that do not need a convoy because they moving between adjacent
 ;; locations (though they may still have a convoy).
@@ -835,15 +835,16 @@
                               orders)
         conflict-queue (into clojure.lang.PersistentQueue/EMPTY all-conflicts)
         conflict-map (apply-conflict-state-updates {} all-conflicts)
+        convoy-map (make-convoy-map location-to-order-map)
         initial-resolution-state
         {:conflict-map conflict-map
          :conflict-queue conflict-queue
          ;; TODO: should we initialize this with something??
          :voyage-map {}
          :voyage-queue (into clojure.lang.PersistentQueue/EMPTY
-                             (filter orders/attack? orders))
+                             (keys convoy-map))
          :support-map (make-support-map location-to-order-map)
-         :convoy-map (make-convoy-map location-to-order-map)
+         :convoy-map convoy-map
          :direct-arrival-set (make-direct-arrival-set diplomacy-map orders)
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
