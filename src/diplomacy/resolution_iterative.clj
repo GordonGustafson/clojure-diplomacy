@@ -77,16 +77,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (declare evaluate-conflict apply-conflict-state-updates remove-conflicts)
 
-(defn-spec resolution-complete? [::conflict-map] boolean?)
-(defn resolution-complete? [conflict-map]
+(defn-spec resolution-complete? [::resolution-state] boolean?)
+(defn resolution-complete? [{:keys [conflict-map voyage-map]}]
   (let [all-conflict-states
         (for [[order conflicting-orders-map] conflict-map
               [conflicting-order conflict-state] conflicting-orders-map]
           conflict-state)]
-    ;; This does not check voyages, because if all the orders are resolved we
-    ;; don't care about voyages.
-    (every? (partial s/valid? ::resolved-conflict-state)
-            all-conflict-states)))
+    (and (every? (partial s/valid? ::resolved-conflict-state)
+                 all-conflict-states)
+         (every? #{:succeeded :failed} (vals voyage-map)))))
 
 (defn-spec take-conflict-resolution-step [::resolution-state] ::resolution-state)
 (defn take-conflict-resolution-step
@@ -313,7 +312,7 @@
   [{:keys [direct-arrival-set voyage-map]} attack-order]
   (if (contains? direct-arrival-set attack-order)
     :succeeded
-    (get voyage-map attack-order :pending)))
+    (get voyage-map attack-order)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Determining Support ;;
@@ -836,23 +835,30 @@
         conflict-queue (into clojure.lang.PersistentQueue/EMPTY all-conflicts)
         conflict-map (apply-conflict-state-updates {} all-conflicts)
         convoy-map (make-convoy-map location-to-order-map)
+        direct-arrival-set (make-direct-arrival-set diplomacy-map orders)
+        voyage-queue (into clojure.lang.PersistentQueue/EMPTY
+                           (concat
+                            (keys convoy-map)
+                            (filter #(and (orders/attack? %)
+                                          (not (contains? direct-arrival-set %)))
+                                    orders)))
         initial-resolution-state
         {:conflict-map conflict-map
          :conflict-queue conflict-queue
-         ;; TODO: should we initialize this with something??
-         :voyage-map {}
-         :voyage-queue (into clojure.lang.PersistentQueue/EMPTY
-                             (keys convoy-map))
+         :voyage-map (->> voyage-queue
+                          (map (fn [convoyed-order] [convoyed-order :pending]))
+                          (into {}))
+         :voyage-queue voyage-queue
          :support-map (make-support-map location-to-order-map)
          :convoy-map convoy-map
-         :direct-arrival-set (make-direct-arrival-set diplomacy-map orders)
+         :direct-arrival-set direct-arrival-set
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
         final-resolution-state
         (->> (iterate (comp take-conflict-resolution-step
                             take-voyage-resolution-step)
                       initial-resolution-state)
-             (filter #(resolution-complete? (:conflict-map %)))
+             (filter resolution-complete?)
              (first))
         final-conflict-map (:conflict-map final-resolution-state)]
     (merge
