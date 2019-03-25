@@ -873,4 +873,10 @@
                  (let [judgments (filter #(not (s/valid? ::no-conflict %))
                                          (vals conflicting-orders-map))]
                    [order judgments])))
+          (into {}))
+     ;; Add failed convoys
+     (->> orders
+          (filter orders/attack?)
+          (filter (fn [attack-order] (= (arrival-status final-resolution-state attack-order) :failed)))
+          (map (fn [attack-order] [attack-order #{:no-successful-convoy}]))
           (into {})))))
