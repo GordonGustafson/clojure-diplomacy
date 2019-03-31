@@ -783,16 +783,16 @@
    {:long-name "6.F.2. AN ARMY BEING CONVOYED CAN BOUNCE AS NORMAL"
     :summary "Armies being convoyed bounce on other units just as armies that are not being convoyed."
     :resolution-results-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bre] #{}
-                              [:england :army :lon :attack :bre] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :par :attack :bre] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :army :lon :attack :bre] #{[true [:france :army :par :attack :bre] :attacked-same-destination]}
+                              [:france :army :par :attack :bre] #{[true [:england :army :lon :attack :bre] :attacked-same-destination]}}
     :explanation "The English army in London bounces on the French army in Paris. Both units do not move."}
    "F3"
    {:long-name "6.F.3. AN ARMY BEING CONVOYED CAN RECEIVE SUPPORT"
     :summary "Armies being convoyed can receive support as in any other move."
     :resolution-results-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bre] #{}
-                              [:england :army :lon :attack :bre] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :mid :support :england :army :lon :attack :bre] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :par :attack :bre] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :army :lon :attack :bre] #{[false [:france :army :par :attack :bre] :attacked-same-destination]}
+                              [:england :fleet :mid :support :england :army :lon :attack :bre] #{}
+                              [:france :army :par :attack :bre] #{[true [:england :army :lon :attack :bre] :attacked-same-destination]}}
     :explanation "The army in London receives support and beats the army in Paris. This means that the army London will end in Brest and the French army in Paris stays in Paris."}
    "F4"
    {:long-name "6.F.4. AN ATTACKED CONVOY IS NOT DISRUPTED"
@@ -1435,6 +1435,8 @@
     "E15"
 
     "F1"
+    "F2"
+    "F3"
 
     "Z1"
     "Z2"
