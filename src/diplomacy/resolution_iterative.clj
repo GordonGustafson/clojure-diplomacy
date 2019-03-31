@@ -583,16 +583,34 @@
   [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::conflict-state-updates)
 (defn evaluate-attack-conflict
-  [resolution-state attack bouncer rule]
-  (let [base-updates
-        (if (= rule :failed-to-leave-destination)
-          (evaluate-attack-failed-to-leave resolution-state attack bouncer)
-          (evaluate-attack-battle resolution-state attack bouncer rule
-                                  {:assume-beleaguered-garrison-leaves false}))]
-    (->> base-updates
-         (map forbid-self-dislodgment)
-         (map (partial forbid-effect-on-dislodgers-province resolution-state))
-         (filter some?))))
+  [rs attack bouncer rule]
+  (case (arrival-status rs attack)
+    :failed [[attack bouncer [rule :no-conflict]]]
+    :pending []
+    :succeeded
+    (cond
+      (= rule :failed-to-leave-destination)
+      (->> (evaluate-attack-failed-to-leave rs attack bouncer)
+           (map forbid-self-dislodgment)
+           (map (partial forbid-effect-on-dislodgers-province rs))
+           (filter some?))
+
+      (or (contains? #{:swapped-places-without-convoy :destination-occupied} rule)
+          (and (= rule :attacked-same-destination)
+               (= (arrival-status rs bouncer) :succeeded)))
+      (->> (evaluate-attack-battle rs attack bouncer rule
+                                   {:assume-beleaguered-garrison-leaves false})
+           (map forbid-self-dislodgment)
+           (map (partial forbid-effect-on-dislodgers-province rs))
+           (filter some?))
+
+      (and (= rule :attacked-same-destination)
+           (= (arrival-status rs bouncer) :failed))
+      [[attack bouncer [rule :no-conflict]]]
+
+      (and (= rule :attacked-same-destination)
+           (= (arrival-status rs bouncer) :pending))
+      [])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         Resolving Supports ;;
