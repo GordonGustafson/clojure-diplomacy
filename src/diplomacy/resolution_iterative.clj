@@ -47,6 +47,7 @@
   (s/tuple ::dt/order ::dt/order ::pending-conflict-state))
 (s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) #_queue?))
 
+(s/def ::dislodgement-status #{:dislodged :not-dislodged :pending})
 (s/def ::voyage-status #{:succeeded :failed :pending})
 (s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
 (s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) queue?))
@@ -662,6 +663,22 @@
                               (into #{}))]
     (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true)))
 
+(defn-spec dislodgment-status [::resolution-state ::dt/convoy-order]
+  ::dislodgement-status)
+(defn dislodgment-status
+  [{:keys [dmap location-to-order-map] :as resolution-state}
+   {:keys [location] :as convoy-order}]
+  (let [attacking-order-statuses
+        (->> (attacks-to dmap location-to-order-map location)
+             (map #(order-status resolution-state %)))]
+    (cond
+      (some #(= :succeeded %) attacking-order-statuses)
+      :dislodged
+      (some #(= :pending %) attacking-order-statuses)
+      :pending
+      (every? #(= :failed %) attacking-order-statuses)
+      :not-dislodged)))
+
 (defn-spec evaluate-voyage [::resolution-state ::dt/attack-order]
   ::voyage-status)
 (defn evaluate-voyage
@@ -669,9 +686,9 @@
    {:keys [location destination] :as attack-order}]
   (let [attempted-convoys (get convoy-map attack-order [])
         known-successful-convoys
-        (filter #(= :succeeded (order-status rs %)) attempted-convoys)
+        (filter #(= :not-dislodged (dislodgment-status rs %)) attempted-convoys)
         non-failed-convoys
-        (filter #(not= :failed (order-status rs %)) attempted-convoys)]
+        (filter #(not= :dislodged (dislodgment-status rs %)) attempted-convoys)]
     (cond
       (convoy-path-exists? dmap location destination known-successful-convoys)
       :succeeded

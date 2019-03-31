@@ -798,18 +798,20 @@
    {:long-name "6.F.4. AN ATTACKED CONVOY IS NOT DISRUPTED"
     :summary "A convoy can only be disrupted by dislodging the fleets. Attacking is not sufficient."
     :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{}
-                              [:england :army :lon :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :army :lon :attack :hol] #{}
+                              [:germany :fleet :ska :attack :nth] #{[true [:england :fleet :nth :convoy :england :army :lon :attack :hol] :destination-occupied]}}
     :explanation "The army in London will successfully convoy and end in Holland."}
    "F5"
    {:long-name "6.F.5. A BELEAGUERED CONVOY IS NOT DISRUPTED"
     :summary "Even when a convoy is in a beleaguered garrison it is not disrupted."
     :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{}
-                              [:england :army :lon :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :eng :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :bel :support :france :fleet :eng :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :den :support :germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :army :lon :attack :hol] #{}
+                              [:france :fleet :eng :attack :nth] #{[true [:germany :fleet :ska :attack :nth] :attacked-same-destination]
+                                                                   [false [:england :fleet :nth :convoy :england :army :lon :attack :hol] :destination-occupied]}
+                              [:france :fleet :bel :support :france :fleet :eng :attack :nth] #{}
+                              [:germany :fleet :ska :attack :nth] #{[true [:france :fleet :eng :attack :nth] :attacked-same-destination]
+                                                                    [false [:england :fleet :nth :convoy :england :army :lon :attack :hol] :destination-occupied]}
+                              [:germany :fleet :den :support :germany :fleet :ska :attack :nth] #{}}
     :explanation "The army in London will successfully convoy and end in Holland."}
    "F6"
    {:long-name "6.F.6. DISLODGED CONVOY DOES NOT CUT SUPPORT"
@@ -1437,6 +1439,8 @@
     "F1"
     "F2"
     "F3"
+    "F4"
+    "F5"
 
     "Z1"
     "Z2"
