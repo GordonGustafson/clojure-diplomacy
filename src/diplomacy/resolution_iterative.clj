@@ -137,7 +137,8 @@
   "Removes the conflict in `conflict-state-update` from `conflict-queue`."
   [conflict-queue conflict-state-update]
   ;; Not necessary, but useful to check this invariant while we have it.
-  (assert (s/valid? ::resolved-conflict-state (nth conflict-state-update 2))
+  (assert (or (s/valid? ::resolved-conflict-state (nth conflict-state-update 2))
+              (s/valid? ::no-conflict (nth conflict-state-update 2)))
           (str conflict-state-update))
   (->> conflict-queue
        (filter (fn [queue-item]
@@ -598,33 +599,38 @@
   ::conflict-state-updates)
 (defn evaluate-support-conflict
   [resolution-state support attacker rule]
-  (case rule
-    :attacked
-    (if (= (:country support) (:country attacker))
+  (let [attack-arrival-status (arrival-status resolution-state attacker)]
+    (cond
+      (= attack-arrival-status :pending)
+      []
+      (= attack-arrival-status :failed)
+      [[support attacker [rule :no-conflict]]]
+
+      (and (= rule :attacked) (= (:country support) (:country attacker)))
       [[support attacker
         (j/create-support-judgment :interferer attacker
                                    :support-rule :attacked-by-same-country
                                    :interfered? false)]]
+      (and (= rule :attacked) (not= (:country support) (:country attacker)))
       [[support attacker
         (j/create-support-judgment :interferer attacker
                                    :support-rule :attacked
-                                   :interfered? true)]])
-    :attacked-from-supported-location
-    (case (order-status resolution-state attacker)
-      :succeeded
-      [[support attacker
-        (j/create-support-judgment :interferer attacker
-                                   :support-rule :dislodged
                                    :interfered? true)]]
-      ;; TODO: will this prevent progress?
-      :pending
-      []
-      :failed
-      [[support attacker
-        (j/create-support-judgment :interferer attacker
-                                   :support-rule :attacked-from-supported-location
-                                   :interfered? false)]])
-    (assert false (str "unknown support conflict rule: " rule))))
+
+      (= rule :attacked-from-supported-location)
+      (case (order-status resolution-state attacker)
+        :succeeded
+        [[support attacker
+          (j/create-support-judgment :interferer attacker
+                                     :support-rule :dislodged
+                                     :interfered? true)]]
+        :pending
+        []
+        :failed
+        [[support attacker
+          (j/create-support-judgment :interferer attacker
+                                     :support-rule :attacked-from-supported-location
+                                     :interfered? false)]]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                Resolving Voyages (Convoys) ;;

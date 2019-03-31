@@ -817,13 +817,13 @@
    {:long-name "6.F.6. DISLODGED CONVOY DOES NOT CUT SUPPORT"
     :summary "When a fleet of a convoy is dislodged, the convoy is completely cancelled. So, no support is cut."
     :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{}
-                              [:england :army :lon :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :hol :support :germany :army :bel :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :bel :support :germany :army :hol :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :support :germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :pic :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bur :support :france :army :pic :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :army :lon :attack :hol] #{:no-successful-convoy}
+                              [:germany :army :hol :support :germany :army :bel :hold] #{} ;; interferer didn't arrive
+                              [:germany :army :bel :support :germany :army :hol :hold] #{[true [:france :army :pic :attack :bel] :attacked]}
+                              [:germany :fleet :hel :support :germany :fleet :ska :attack :nth] #{}
+                              [:germany :fleet :ska :attack :nth] #{[false [:england :fleet :nth :convoy :england :army :lon :attack :hol] :destination-occupied]}
+                              [:france :army :pic :attack :bel] #{[true [:germany :army :bel :support :germany :army :hol :hold] :destination-occupied]}
+                              [:france :army :bur :support :france :army :pic :attack :bel] #{}}
     :explanation "The hold order of Holland on Belgium will sustain and Belgium will not be dislodged by the French in Picardy."}
    "F7"
    {:long-name "6.F.7. DISLODGED CONVOY DOES NOT CAUSE CONTESTED AREA"
@@ -1441,6 +1441,7 @@
     "F3"
     "F4"
     "F5"
+    "F6"
 
     "Z1"
     "Z2"

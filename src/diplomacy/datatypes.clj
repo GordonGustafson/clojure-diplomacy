@@ -149,6 +149,7 @@
   #{:attacked
     :attacked-from-supported-location  ; but not dislodged
     :dislodged
+    :attack-failed-to-arrive
     :attacked-by-same-country})
 (s/def ::support-conflict-situation ::support-conflict-rule)
 
