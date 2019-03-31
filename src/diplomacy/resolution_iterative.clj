@@ -103,19 +103,21 @@
     (print "conflict-map: ")
     (clojure.pprint/pprint conflict-map))
 
-  (let [pending-conflict (peek conflict-queue)
-        conflict-state-updates (evaluate-conflict resolution-state
-                                                  pending-conflict)]
-    (when diplomacy.settings/debug
-      (print "conflict-state-updates: ")
-      (clojure.pprint/pprint conflict-state-updates))
-    (-> resolution-state
-        (update :conflict-queue
-                #(-> %
-                     (move-front-to-back)
-                     (remove-conflicts conflict-state-updates)))
-        (update :conflict-map #(apply-conflict-state-updates
-                                % conflict-state-updates)))))
+  (if (empty? conflict-queue)
+    resolution-state
+    (let [pending-conflict (peek conflict-queue)
+          conflict-state-updates (evaluate-conflict resolution-state
+                                                    pending-conflict)]
+      (when diplomacy.settings/debug
+        (print "conflict-state-updates: ")
+        (clojure.pprint/pprint conflict-state-updates))
+      (-> resolution-state
+          (update :conflict-queue
+                  #(-> %
+                       (move-front-to-back)
+                       (remove-conflicts conflict-state-updates)))
+          (update :conflict-map #(apply-conflict-state-updates
+                                  % conflict-state-updates))))))
 
 (defn-spec apply-conflict-state-updates
   [::conflict-map ::conflict-state-updates] ::conflict-map)
@@ -174,10 +176,9 @@
         (clojure.pprint/pprint [pending-voyage voyage-status]))
       (-> resolution-state
           (update :voyage-queue
-                  #(cond->> %
-                     true (move-front-to-back)
-                     (not= :pending voyage-status) (remove (partial = pending-voyage))
-                     (not= :pending voyage-status) (into clojure.lang.PersistentQueue/EMPTY)))
+                  #(if (= voyage-status :pending)
+                     (move-front-to-back %)
+                     (pop %)))
           (update :voyage-map #(assoc % pending-voyage voyage-status))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -643,21 +644,23 @@
     :else
     ;; TODO this is very inefficient on large inputs
     (->> convoy-locations
-         (filter #(maps/edge-accessible-to? dmap start-loc (:location %) :fleet))
-         (some? (fn [next-convoy]
-                  (convoy-path-exists?-helper
-                   dmap
-                   next-convoy
-                   end-loc
-                   (disj convoy-locations next-convoy)
-                   false))))))
+         (filter #(maps/edge-accessible-to? dmap start-loc % :fleet))
+         (some (fn [next-convoy]
+                 (convoy-path-exists?-helper
+                  dmap
+                  next-convoy
+                  end-loc
+                  (disj convoy-locations next-convoy)
+                  false))))))
 
-(defn-spec convoy-path-exists? [::dt/dmap ::dt/location ::dt/location
-                                (s/and (s/coll-of ::dt/location) set?)]
+(defn-spec convoy-path-exists? [::dt/dmap ::dt/location ::dt/location ::dt/orders]
   boolean?)
 (defn convoy-path-exists?
-  [dmap start-loc end-loc convoy-locations]
-  (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true))
+  [dmap start-loc end-loc convoy-orders]
+  (let [convoy-locations (->> convoy-orders
+                              (map :location)
+                              (into #{}))]
+    (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true)))
 
 (defn-spec evaluate-voyage [::resolution-state ::dt/attack-order]
   ::voyage-status)
@@ -798,7 +801,7 @@
             {}
             convoy-pairs)))
 
-(defn-spec make-direct-arrival-set [::dmap ::dt/orders] ::direct-arrival-set)
+(defn-spec make-direct-arrival-set [::dt/dmap ::dt/orders] ::direct-arrival-set)
 (defn make-direct-arrival-set
   [dmap orders]
   (->> orders
