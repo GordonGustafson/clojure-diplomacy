@@ -299,16 +299,6 @@
       []
       (vals order-conflict-map))))
 
-(defn-spec order-status [::resolution-state ::dt/order]
-  ::order-status)
-(defn order-status
-  "Whether `order` is known to succeed, known to fail, or doesn't have a known
-  outcome in `resolution-state`."
-  [resolution-state order]
-  (->> order
-       (get-conflict-states resolution-state)
-       conflict-states-to-order-status))
-
 (defn-spec arrival-status [::resolution-state ::dt/attack-order]
   ::arrival-status)
 (defn arrival-status
@@ -316,6 +306,21 @@
   (if (contains? direct-arrival-set attack-order)
     :succeeded
     (get voyage-map attack-order)))
+
+(defn-spec order-status [::resolution-state ::dt/order]
+  ::order-status)
+(defn order-status
+  "Whether `order` is known to succeed, known to fail, or doesn't have a known
+  outcome in `resolution-state`."
+  [rs order]
+  (if (or (orders/support? order)
+          (and (orders/attack? order)
+               (= (arrival-status rs order) :succeeded)))
+    (->> order
+         (get-conflict-states rs)
+         conflict-states-to-order-status)
+    ;; :pending or :failed
+    (arrival-status rs order)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Determining Support ;;
