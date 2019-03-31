@@ -772,9 +772,11 @@
    "F1"
    {:long-name "6.F.1. NO CONVOY IN COASTAL AREAS"
     :summary "A fleet in a coastal area may not convoy."
-    :resolution-results-abbr {[:turkey :army :gre :attack :sev] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :validation-results-abbr {[:turkey :fleet :con :convoy :turkey :army :gre :attack :sev] [#{:convoys-from-coast?}
+                                                                                             [:turkey :fleet :con :hold]]}
+    :resolution-results-abbr {[:turkey :army :gre :attack :sev] #{:no-successful-convoy}
                               [:turkey :fleet :aeg :convoy :turkey :army :gre :attack :sev] #{}
-                              [:turkey :fleet :con :convoy :turkey :army :gre :attack :sev] #{}
+                              [:turkey :fleet :con :hold] #{}
                               [:turkey :fleet :bla :convoy :turkey :army :gre :attack :sev] #{}}
     :explanation "The convoy in Constantinople is not possible. So, the army in Greece will not move to Sevastopol."}
    "F2"
@@ -1431,6 +1433,8 @@
     "E13"
     "E14"
     "E15"
+
+    "F1"
 
     "Z1"
     "Z2"

@@ -90,9 +90,10 @@
                                              unit-type)
                    coloc-set))))
 
-;; (defn convoys-from-coast? [diplomacy-map {:keys [location] :as order}]
-;;   (and (ord/convoy? order)
-;;        (map/location-accessible-to? diplomacy-map location :army)))
+(defn convoys-from-coast?
+  [diplomacy-map unit-positions {:keys [location] :as order}]
+  (and (ord/convoy? order)
+       (map/location-accessible-to? diplomacy-map location :army)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      orders invalid in SOME game states (units on the map) ;;
@@ -123,6 +124,7 @@
                           (var attacks-inaccessible-location?)
                           (var fleet-attacks-via-inaccessible-edge?)
                           (var supports-unsupportable-location?)
+                          (var convoys-from-coast?)
                           (var ordered-unit-does-not-exist?)]
         invalidators     (map var-get invalidator-vars)
         failure-keywords (map #(-> % meta :name keyword) invalidator-vars)]
