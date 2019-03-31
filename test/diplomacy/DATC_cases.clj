@@ -1347,6 +1347,12 @@
 
                               [:russia :army :war :support :turkey :army :gal :attack :sil] #{}}
     :explanation ""}
+   "Z14"
+   {:long-name "Z14. UNCONTESTED CONVOY"
+    :summary ""
+    :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :yor :attack :nwy] #{}
+                              [:england :army :yor :attack :nwy] #{}}
+    :explanation ""}
    })
 
 ;; This whitelist was originally added to allow running
@@ -1438,6 +1444,7 @@
     "Z11"
     "Z12"
     "Z13"
+    "Z14"
     })
 
 (defn test-complete?
