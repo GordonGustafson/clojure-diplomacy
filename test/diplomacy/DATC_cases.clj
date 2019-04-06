@@ -837,55 +837,55 @@
    {:long-name "6.F.8. DISLODGED CONVOY DOES NOT CAUSE A BOUNCE"
     :summary "When a fleet of a convoy is dislodged, then there will be no bounce in the landing area."
     :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :hol] #{}
-                              [:england :army :lon :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :support :germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :bel :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :army :lon :attack :hol] #{:no-successful-convoy}
+                              [:germany :fleet :hel :support :germany :fleet :ska :attack :nth] #{}
+                              [:germany :fleet :ska :attack :nth] #{[false [:england :fleet :nth :convoy :england :army :lon :attack :hol] :destination-occupied]}
+                              [:germany :army :bel :attack :hol] #{}}
     :explanation "The army in Belgium will not bounce and move to Holland."}
    "F9"
    {:long-name "6.F.9. DISLODGE OF MULTI-ROUTE CONVOY"
     :summary "When a fleet of a convoy with multiple routes is dislodged, the result depends on the rulebook that is used."
     :resolution-results-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bel] #{}
                               [:england :fleet :nth :convoy :england :army :lon :attack :bel] #{}
-                              [:england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mid :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :army :lon :attack :bel] #{}
+                              [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{}
+                              [:france :fleet :mid :attack :eng] #{[false [:england :fleet :eng :convoy :england :army :lon :attack :bel] :destination-occupied]}}
     :explanation "The French fleet in Mid Atlantic Ocean will dislodge the convoying fleet in the English Channel. If the 1971 rules are used (see issue 4.A.1), this will disrupt the convoy and the army will stay in London. When the 1982 or 2000 rulebook is used (<i>which I prefer</i>) the army can still go via the North Sea and the convoy succeeds and the London army will end in Belgium."}
    "F10"
    {:long-name "6.F.10. DISLODGE OF MULTI-ROUTE CONVOY WITH FOREIGN FLEET"
     :summary "When the 1971 rulebook is used \"unwanted\" multi-route convoys are possible."
     :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{}
-                              [:england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:england :army :lon :attack :bel] #{}
                               [:germany :fleet :eng :convoy :england :army :lon :attack :bel] #{}
-                              [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mid :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{}
+                              [:france :fleet :mid :attack :eng] #{[false [:germany :fleet :eng :convoy :england :army :lon :attack :bel] :destination-occupied]}}
     :explanation "If the 1982 or 2000 rulebook is used (<i>which I prefer</i>), it makes no difference that the convoying fleet in the English Channel is German. It will take the convoy via the North Sea anyway and the army in London will end in Belgium. However, when the 1971 rules are used, the German convoy is \"unwanted\". According to the DPTG the German fleet should be ignored in the English convoy, since there is a convoy path with only English fleets. That means that the convoy is not disrupted and the English army in London will end in Belgium. See also issue 4.A.1."}
    "F11"
    {:long-name "6.F.11. DISLODGE OF MULTI-ROUTE CONVOY WITH ONLY FOREIGN FLEETS"
     :summary "When the 1971 rulebook is used, \"unwanted\" convoys can not be ignored in all cases."
-    :resolution-results-abbr {[:england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :army :lon :attack :bel] #{}
                               [:germany :fleet :eng :convoy :england :army :lon :attack :bel] #{}
                               [:russia :fleet :nth :convoy :england :army :lon :attack :bel] #{}
-                              [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mid :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:france :fleet :bre :support :france :fleet :mid :attack :eng] #{}
+                              [:france :fleet :mid :attack :eng] #{[false [:germany :fleet :eng :convoy :england :army :lon :attack :bel] :destination-occupied]}}
     :explanation "If the 1982 or 2000 rulebook is used (<i>which I prefer</i>), it makes no difference that the convoying fleets are not English. It will take the convoy via the North Sea anyway and the army in London will end in Belgium. However, when the 1971 rules are used, the situation is  different. Since both the fleet in the English Channel as the fleet in North Sea are not English, it can not be concluded that the German fleet is \"unwanted\". Therefore, one of the routes of the convoy is disrupted and that means that the complete convoy is disrupted. The army in London will stay in London. See also issue 4.A.1."}
    "F12"
    {:long-name "6.F.12. DISLODGED CONVOYING FLEET NOT ON ROUTE"
     :summary "When the rule is used that convoys are disrupted when one of the routes is disrupted (see issue 4.A.1), the convoy is not necessarily disrupted when one of the fleets ordered to convoy is dislodged."
     :resolution-results-abbr {[:england :fleet :eng :convoy :england :army :lon :attack :bel] #{}
-                              [:england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:england :army :lon :attack :bel] #{}
                               [:england :fleet :iri :convoy :england :army :lon :attack :bel] #{}
-                              [:france :fleet :nat :support :france :fleet :mid :attack :iri] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mid :attack :iri] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:france :fleet :nat :support :france :fleet :mid :attack :iri] #{}
+                              [:france :fleet :mid :attack :iri] #{[false [:england :fleet :iri :convoy :england :army :lon :attack :bel] :destination-occupied]}}
     :explanation "Even when convoys are disrupted when one of the routes is disrupted (see issue 4.A.1), the convoy from London to Belgium will still succeed, since the dislodged fleet in the Irish Sea is not part of any route, although it can be reached from the starting point London."}
    "F13"
    {:long-name "6.F.13. THE UNWANTED ALTERNATIVE"
     :summary "This situation is not difficult to adjudicate, but it shows that even if someone wants to convoy, the player might not want an alternative route for the convoy."
-    :resolution-results-abbr {[:england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :army :lon :attack :bel] #{}
                               [:england :fleet :nth :convoy :england :army :lon :attack :bel] #{}
                               [:france :fleet :eng :convoy :england :army :lon :attack :bel] #{}
-                              [:germany :fleet :hol :support :germany :fleet :den :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :den :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:germany :fleet :hol :support :germany :fleet :den :attack :nth] #{}
+                              [:germany :fleet :den :attack :nth] #{[false [:england :fleet :nth :convoy :england :army :lon :attack :bel] :destination-occupied]}}
     :explanation "If France and German are allies, England want to keep its army in London, to defend the island. An army in Belgium could easily be destroyed by an alliance of France and Germany. England tries to be friends with Germany, however France and Germany trick England. The convoy of the army in London succeeds and the fleet in Denmark dislodges the fleet in the North Sea."}
    "F14"
    {:long-name "6.F.14. SIMPLE CONVOY PARADOX"
@@ -1442,6 +1442,12 @@
     "F4"
     "F5"
     "F6"
+    "F8"
+    "F9"
+    "F10"
+    "F11"
+    "F12"
+    "F13"
 
     "Z1"
     "Z2"
