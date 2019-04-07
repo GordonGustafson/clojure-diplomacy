@@ -890,9 +890,9 @@
    "F14"
    {:long-name "6.F.14. SIMPLE CONVOY PARADOX"
     :summary "The most common paradox is when the attacked unit supports an attack on one of the convoying fleets."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :wal :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bre :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
+                              [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]}
+                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}}
     :explanation "This situation depends on how paradoxes are handled (see issue (4.A.2). In case of the 'All Hold' rule (fully applied, not just as \"backup\" rule), both the movement of the English fleet in Wales as the France convoy in Brest are part of the paradox and fail. In all other rules of paradoxical convoys (<i>including the Szykman rule which I prefer</i>), the support of London is not cut. That means that the fleet in the English Channel is dislodged."}
    "F15"
@@ -1448,6 +1448,7 @@
     "F11"
     "F12"
     "F13"
+    "F14"
 
     "Z1"
     "Z2"

@@ -615,17 +615,50 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         Resolving Supports ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(declare convoy-path-exists? dislodgment-status)
 
 (defn-spec evaluate-support-conflict
   [::resolution-state ::dt/support-order ::dt/attack-order
    ::dt/support-conflict-rule]
   ::conflict-state-updates)
 (defn evaluate-support-conflict
-  [resolution-state support attacker rule]
-  (let [attack-arrival-status (arrival-status resolution-state attacker)]
+  [{:keys [location-to-order-map dmap convoy-map] :as rs}
+   {:keys [assisted-order] :as support}
+   attacker rule]
+  (let [attack-arrival-status (arrival-status rs attacker)]
     (cond
       (= attack-arrival-status :pending)
-      []
+      ;; Don't resolve anything unless we hit the
+      ;; `:army-cant-cut-support-for-attack-on-its-own-convoy` paradox (see F14).
+      ;; In that paradox, `support` would be supporting an attack on a convoy
+      ;; convoying `attacker`.
+      (if (not (and (orders/attack? assisted-order)
+                    (= assisted-order
+                       (-> assisted-order :location location-to-order-map))))
+        []
+        (let [target-of-assisted-attack
+              (-> assisted-order :destination location-to-order-map)]
+          (if (not (and (some? target-of-assisted-attack)
+                        (orders/convoy? target-of-assisted-attack)
+                        (= (:assisted-order target-of-assisted-attack) attacker)))
+            []
+            ;; We have the orders necessary for the
+            ;; `:army-cant-cut-support-for-attack-on-its-own-convoy` paradox (in
+            ;; F14). First we need to check if there's any convoy route that
+            ;; could let `attacker` successfully arrive, but doesn't use
+            ;; `target-of-assisted-attack` (like in F19).
+            (let [eligible-convoys
+                  (disj (->> (get convoy-map attacker [])
+                             (filter #(not= :dislodged (dislodgment-status rs %)))
+                             (into #{}))
+                        target-of-assisted-attack)]
+              (if (convoy-path-exists? dmap (:location attacker) (:destination attacker) eligible-convoys)
+                ;; Wait and see if the other convoy path leads to `attacker` arriving.
+                []
+                [[support attacker
+                 (j/create-support-judgment :interferer attacker
+                                            :support-rule :army-cant-cut-support-for-attack-on-its-own-convoy
+                                            :interfered? false)]])))))
       (= attack-arrival-status :failed)
       [[support attacker [rule :no-conflict]]]
 
@@ -641,7 +674,7 @@
                                    :interfered? true)]]
 
       (= rule :attacked-from-supported-location)
-      (case (order-status resolution-state attacker)
+      (case (order-status rs attacker)
         :succeeded
         [[support attacker
           (j/create-support-judgment :interferer attacker

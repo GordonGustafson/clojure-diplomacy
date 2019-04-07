@@ -151,7 +151,8 @@
     :attacked-from-supported-location  ; but not dislodged
     :dislodged
     :attack-failed-to-arrive
-    :attacked-by-same-country})
+    :attacked-by-same-country
+    :army-cant-cut-support-for-attack-on-its-own-convoy})
 (s/def ::support-conflict-situation ::support-conflict-rule)
 
 (s/def ::conflict-rule
