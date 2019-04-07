@@ -95,6 +95,7 @@
     :attacks-inaccessible-location?
     :fleet-attacks-via-inaccessible-edge?
     :supports-unsupportable-location?
+    :convoys-from-coast?
     :ordered-unit-does-not-exist?})
 (s/def ::validation-failure-reasons (s/coll-of ::validation-failure-reason))
 (s/def ::order-given ::order)

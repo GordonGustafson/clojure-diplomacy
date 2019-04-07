@@ -50,7 +50,7 @@
 (s/def ::dislodgement-status #{:dislodged :not-dislodged :pending})
 (s/def ::voyage-status #{:succeeded :failed :pending})
 (s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
-(s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) queue?))
+(s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
 
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
@@ -363,7 +363,7 @@
               :no)))))))
 
 (defn-spec supporting-order-statuses [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
-  (s/map-of (s/or ::order-status #{:unwilling}) integer?))
+  (s/map-of (s/or :tag1 ::order-status :tag2 #{:unwilling}) integer?))
 (defn supporting-order-statuses
   [{:keys [support-map] :as rs} supported-order combatant rule support-type]
   (let [supporting-orders (get support-map supported-order [])
@@ -681,7 +681,8 @@
                   next-convoy
                   end-loc
                   (disj convoy-locations next-convoy)
-                  false))))))
+                  false)))
+         boolean)))
 
 (defn-spec convoy-path-exists? [::dt/dmap ::dt/location ::dt/location ::dt/orders]
   boolean?)
