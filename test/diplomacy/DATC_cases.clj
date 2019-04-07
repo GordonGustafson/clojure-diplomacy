@@ -898,13 +898,13 @@
    "F15"
    {:long-name "6.F.15. SIMPLE CONVOY PARADOX WITH ADDITIONAL CONVOY"
     :summary "Paradox rules only apply on the paradox core."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :wal :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bre :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
+                              [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]}
+                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
                               [:italy :fleet :iri :convoy :italy :army :naf :attack :wal] #{}
                               [:italy :fleet :mid :convoy :italy :army :naf :attack :wal] #{}
-                              [:italy :army :naf :attack :wal] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:italy :army :naf :attack :wal] #{}}
     :explanation "The Italian convoy is not part of the paradox core and should  therefore succeed when the move of the fleet in Wales is successful. This is the case except when the 'All Hold' paradox rule is used (fully applied, not just as \"backup\" rule, see issue 4.A.2). <i>I prefer the Szykman rule, so I prefer that both the fleet in Wales as the army in North Africa succeed in moving.</i>"}
    "F16"
    {:long-name "6.F.16. PANDIN'S PARADOX"
@@ -940,33 +940,36 @@
    "F19"
    {:long-name "6.F.19. MULTI-ROUTE CONVOY DISRUPTION PARADOX"
     :summary "The situation becomes more complex when the convoy has alternative routes."
-    :resolution-results-abbr {[:france :army :tun :attack :nap] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:france :army :tun :attack :nap] #{[true [:italy :fleet :nap :support :italy :fleet :rom :attack :tyn] :destination-occupied]}
                               [:france :fleet :tyn :convoy :france :army :tun :attack :nap] #{}
                               [:france :fleet :ion :convoy :france :army :tun :attack :nap] #{}
-                              [:italy :fleet :nap :support :italy :fleet :rom :attack :tyn] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :rom :attack :tyn] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:italy :fleet :nap :support :italy :fleet :rom :attack :tyn] #{[true [:france :army :tun :attack :nap] :attacked]}
+                              [:italy :fleet :rom :attack :tyn] #{[true [:france :fleet :tyn :convoy :france :army :tun :attack :nap] :destination-occupied]}}
     :explanation "Now, two issues play a role. The ruling about disruption of convoys (issue 4.A.1) and the issue how paradoxes are resolved (issue 4.A.2). If the 1971 rule is used about multi-route convoys (when one of the routes is disrupted, the convoy fails), this test case is just a simple paradox. For the 1971, 1982, 2000 and Szykman paradox rule, the support of  the fleet in Naples is not cut and the fleet in Rome dislodges the fleet in the Tyrrhenian Sea. When the 'All Hold' rule is used, both the convoy of the army in Tunis as the move of the fleet in Rome will fail. When the 1982 rule is used about multi-route convoy disruption, then convoys are disrupted when all routes are disrupted (<i>this is the rule I prefer</i>). With this rule, the situation becomes paradoxical. According to the 1971 and 1982 paradox rules, the support given by the fleet in Naples is not cut, that means that the fleet in the Tyrrhenian Sea is dislodged. According to the 2000 ruling the fleet in the Tyrrhenian Sea is not \"necessary\" for the convoy and the support of Naples is cut and the fleet in the Tyrrhenian Sea is not dislodged. If the Szykman rule is used (<i>which I prefer</i>), the 'All Hold' rule or the DPTG, then there is no paradoxical situation. The support of Naples is cut and the fleet in the Tyrrhenian Sea is not dislodged."}
    "F20"
    {:long-name "6.F.20. UNWANTED MULTI-ROUTE CONVOY PARADOX"
     :summary "The 1982 paradox rule allows some creative defense."
-    :resolution-results-abbr {[:france :army :tun :attack :nap] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:france :army :tun :attack :nap] #{[true [:italy :fleet :nap :support :italy :fleet :ion :hold] :destination-occupied]}
                               [:france :fleet :tyn :convoy :france :army :tun :attack :nap] #{}
-                              [:italy :fleet :nap :support :italy :fleet :ion :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:italy :fleet :nap :support :italy :fleet :ion :hold] #{[true [:france :army :tun :attack :nap] :attacked]}
                               [:italy :fleet :ion :convoy :france :army :tun :attack :nap] #{}
-                              [:turkey :fleet :aeg :support :turkey :fleet :eas :attack :ion] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :eas :attack :ion] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:turkey :fleet :aeg :support :turkey :fleet :eas :attack :ion] #{}
+                              [:turkey :fleet :eas :attack :ion] #{[false [:italy :fleet :ion :convoy :france :army :tun :attack :nap] :destination-occupied]}}
     :explanation "Again, two issues play a role. The ruling about disruption of multi-route convoys (issue 4.A.1) and the issue how paradoxes are resolved (issue 4.A.2). If the 1971 rule is used about multi-route convoys (when one of the routes is disrupted, the convoy fails), the Italian convoy order in the Ionian Sea is not part of the convoy, because it is a foreign unit (according to the DPTG). That means that the fleet in the Ionian Sea is not a 'convoying' fleet. In all rulings the support of Naples on the Ionian Sea is cut and the fleet in the Ionian Sea is dislodged by the Turkish fleet in the Eastern Mediterranean. When the 1982 rule is used about multi-route convoy disruption, then convoys are disrupted when all routes are disrupted (<i>this is the rule I prefer</i>). With this rule, the situation becomes paradoxical. According to the 1971 and 1982 paradox rules, the support given by the fleet in Naples is not cut, that means that the fleet in the Ionian Sea is not dislodged. According to the 2000 ruling the fleet in the Ionian Sea is not \"necessary\" and the support of Naples is cut and the fleet in the Ionian Sea is dislodged by the Turkish fleet in the Eastern Mediterranean. If the Szykman rule, the 'All Hold' rule or DPTG is used, then there is no paradoxical situation. The support of Naples is cut and the fleet in the Ionian Sea is dislodged by the Turkish fleet in the Eastern Mediterranean. <i>As you can see, the 1982 rules allows the Italian player to save its fleet in the Ionian Sea with a trick. I do not consider this trick as normal tactical play. I prefer the Szykman rule as one of the rules that does not allow this trick. According to this rule the fleet in the Ionian Sea is dislodged.</i>"}
    "F21"
    {:long-name "6.F.21. DAD'S ARMY CONVOY"
     :summary "The 1982 paradox rule has as side effect that convoying armies do not cut support in some situations that are not paradoxical."
-    :resolution-results-abbr {[:russia :army :edi :support :russia :army :nwy :attack :cly] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:russia :army :edi :support :russia :army :nwy :attack :cly] #{}
                               [:russia :fleet :nrg :convoy :russia :army :nwy :attack :cly] #{}
-                              [:russia :army :nwy :attack :cly] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :iri :support :france :fleet :mid :attack :nat] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :mid :attack :nat] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :army :lvp :attack :cly] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:russia :army :nwy :attack :cly] #{[false [:england :fleet :cly :support :england :fleet :nat :hold] :destination-occupied]
+                                                                  [false [:england :army :lvp :attack :cly] :attacked-same-destination]}
+                              [:france :fleet :iri :support :france :fleet :mid :attack :nat] #{}
+                              [:france :fleet :mid :attack :nat] #{[false [:england :fleet :nat :convoy :england :army :lvp :attack :cly] :destination-occupied]}
+                              [:england :army :lvp :attack :cly] #{[true [:england :fleet :cly :support :england :fleet :nat :hold] :destination-occupied]
+                                                                   [true [:russia :army :nwy :attack :cly] :attacked-same-destination]}
                               [:england :fleet :nat :convoy :england :army :lvp :attack :cly] #{}
-                              [:england :fleet :cly :support :england :fleet :nat :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :fleet :cly :support :england :fleet :nat :hold] #{[true [:russia :army :nwy :attack :cly] :attacked]
+                                                                                           [false [:england :army :lvp :attack :cly] :attacked-by-same-country]}}
     :explanation "In all rulings, except the 1982 paradox ruling, the support of the fleet in Clyde on the North Atlantic Ocean is cut and the French fleet in the Mid-Atlantic Ocean will dislodge the fleet in the North Atlantic Ocean. This is the preferred way. However, in the 1982 paradox rule (see issue 4.A.2), the support of the fleet in Clyde is not cut. That means that the English fleet in the North Atlantic Ocean is not dislodged. <i>As you can see, the 1982 rule allows England to save its fleet in the North Atlantic Ocean in a very strange way. Just the support of Clyde is insufficient (if there is no convoy, the support is cut). Only the convoy to the area occupied by own unit, can do the trick in this situation. The embarking of troops in the fleet deceives the enemy so much that it works as a magic cloak. The enemy is not able to dislodge the fleet in the North Atlantic Ocean any more. Of course, this will only work in comedies. I prefer the Szykman rule as one of the rules that does not allow this trick.  According to this rule (and all other paradox rules), the fleet in the North Atlantic is just dislodged.</i>"}
    "F22"
    {:long-name "6.F.22. SECOND ORDER PARADOX WITH TWO RESOLUTIONS"
@@ -1449,6 +1452,10 @@
     "F12"
     "F13"
     "F14"
+    "F15"
+    "F19"
+    "F20"
+    "F21"
 
     "Z1"
     "Z2"
