@@ -78,8 +78,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (declare evaluate-conflict apply-conflict-state-updates remove-conflicts)
 
-(defn-spec resolution-complete? [::resolution-state] boolean?)
-(defn resolution-complete? [{:keys [conflict-map voyage-map]}]
+(defn-spec all-orders-resolved? [::resolution-state] boolean?)
+(defn all-orders-resolved? [{:keys [conflict-map voyage-map]}]
   (let [all-conflict-states
         (for [[order conflicting-orders-map] conflict-map
               [conflicting-order conflict-state] conflicting-orders-map]
@@ -90,11 +90,7 @@
 
 (defn-spec take-conflict-resolution-step [::resolution-state] ::resolution-state)
 (defn take-conflict-resolution-step
-  "Tries to resolve the next conflict in the conflict queue.
-
-  PRECONDITION: There is an unresolved order, AKA
-    `(not (resolution-complete? resolution-state))`
-  "
+  "Tries to resolve the next conflict in the conflict queue, if there is one."
   [{:keys [conflict-map conflict-queue
            location-to-order-map dmap]
     :as resolution-state}]
@@ -941,7 +937,7 @@
         (->> (iterate (comp take-conflict-resolution-step
                             take-voyage-resolution-step)
                       initial-resolution-state)
-             (filter resolution-complete?)
+             (filter all-orders-resolved?)
              (first))
         final-conflict-map (:conflict-map final-resolution-state)]
     (merge
