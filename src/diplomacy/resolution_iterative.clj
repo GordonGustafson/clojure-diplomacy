@@ -52,6 +52,9 @@
 (s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
 (s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
 
+(s/def ::evaluate-voyage-result
+  (s/keys :req-un [::voyage-status]))
+
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
 ;; Map from orders to the orders attempting to convoy them.
@@ -155,6 +158,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (declare evaluate-voyage)
 
+;; NOTE: signature is very different from `apply-conflict-state-updates`
+(defn-spec apply-voyage-state-update
+  [::resolution-state ::dt/attack-order ::evaluate-voyage-result] ::resolution-state)
+(defn apply-voyage-state-update
+  [resolution-state pending-voyage {:keys [voyage-status]}]
+  (-> resolution-state
+      (update :voyage-queue
+              #(if (= voyage-status :pending)
+                 (move-front-to-back %)
+                 (pop %)))
+      (update :voyage-map #(assoc % pending-voyage voyage-status))))
+
 (defn-spec take-voyage-resolution-step [::resolution-state] ::resolution-state)
 (defn take-voyage-resolution-step
   "Tries to resolve the next voyage in the voyage queue."
@@ -168,16 +183,12 @@
   (if (empty? voyage-queue)
     resolution-state
     (let [pending-voyage (peek voyage-queue)
-          voyage-status (evaluate-voyage resolution-state pending-voyage)]
+          voyage-status-update (evaluate-voyage resolution-state pending-voyage)]
       (when diplomacy.settings/debug
         (print "voyage-update: ")
-        (clojure.pprint/pprint [pending-voyage voyage-status]))
-      (-> resolution-state
-          (update :voyage-queue
-                  #(if (= voyage-status :pending)
-                     (move-front-to-back %)
-                     (pop %)))
-          (update :voyage-map #(assoc % pending-voyage voyage-status))))))
+        (clojure.pprint/pprint [pending-voyage voyage-status-update]))
+      (apply-voyage-state-update
+       resolution-state pending-voyage voyage-status-update))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              Map Utilities ;;
@@ -739,7 +750,7 @@
       :not-dislodged)))
 
 (defn-spec evaluate-voyage [::resolution-state ::dt/attack-order]
-  ::voyage-status)
+  ::evaluate-voyage-result)
 (defn evaluate-voyage
   [{:keys [dmap convoy-map] :as rs}
    {:keys [location destination] :as attack-order}]
@@ -750,11 +761,11 @@
         (filter #(not= :dislodged (dislodgment-status rs %)) attempted-convoys)]
     (cond
       (convoy-path-exists? dmap location destination known-successful-convoys)
-      :succeeded
+      {:voyage-status :succeeded}
       (convoy-path-exists? dmap location destination non-failed-convoys)
-      :pending
+      {:voyage-status :pending}
       :else
-      :failed)))
+      {:voyage-status :failed})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                           Resolution Utils ;;
