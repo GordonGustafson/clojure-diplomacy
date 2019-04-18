@@ -696,6 +696,26 @@
                                      :interfered? false)]]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                     Resolving any conflict ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn-spec evaluate-conflict [::resolution-state ::pending-conflict]
+  ::conflict-state-updates)
+(defn evaluate-conflict
+  [{:keys [conflict-map] :as resolution-state}
+   [order-a order-b rule]]
+  (assert (= rule (get-in conflict-map [order-a order-b]))
+          (str "(= " rule " "
+               (get-in conflict-map [order-a order-b]) ")"))
+  (cond
+    (orders/attack? order-a)
+    (evaluate-attack-conflict resolution-state order-a order-b rule)
+    (orders/support? order-a)
+    (evaluate-support-conflict resolution-state order-a order-b rule)
+    :else
+    (assert false (str "Non-attack non-support conflict: " order-a))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                Resolving Voyages (Convoys) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -766,26 +786,6 @@
       {:voyage-status :pending}
       :else
       {:voyage-status :failed})))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                           Resolution Utils ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn-spec evaluate-conflict [::resolution-state ::pending-conflict]
-  ::conflict-state-updates)
-(defn evaluate-conflict
-  [{:keys [conflict-map] :as resolution-state}
-   [order-a order-b rule]]
-  (assert (= rule (get-in conflict-map [order-a order-b]))
-          (str "(= " rule " "
-               (get-in conflict-map [order-a order-b]) ")"))
-  (cond
-    (orders/attack? order-a)
-    (evaluate-attack-conflict resolution-state order-a order-b rule)
-    (orders/support? order-a)
-    (evaluate-support-conflict resolution-state order-a order-b rule)
-    :else
-    (assert false (str "Non-attack non-support conflict: " order-a))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
