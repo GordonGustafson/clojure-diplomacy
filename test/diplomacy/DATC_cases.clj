@@ -909,12 +909,14 @@
    "F16"
    {:long-name "6.F.16. PANDIN'S PARADOX"
     :summary "In Pandin's paradox, the attacked unit protects the convoying fleet by a beleaguered garrison."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :wal :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bre :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
+                              [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
+                                                                    [true [:germany :fleet :bel :attack :eng] :attacked-same-destination]}
+                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
-                              [:germany :fleet :nth :support :germany :fleet :bel :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :bel :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:germany :fleet :nth :support :germany :fleet :bel :attack :eng] #{}
+                              [:germany :fleet :bel :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
+                                                                    [true [:england :fleet :wal :attack :eng] :attacked-same-destination]}}
     :explanation "In all the different rules for resolving convoy disruption paradoxes (see issue 4.A.2), the support of London is not cut. That means that the fleet in the English Channel is not dislodged and none of the units succeed to move."}
    "F17"
    {:long-name "6.F.17. PANDIN'S EXTENDED PARADOX"

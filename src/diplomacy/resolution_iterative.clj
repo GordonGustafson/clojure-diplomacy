@@ -52,8 +52,18 @@
 (s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
 (s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
 
+;; Things used for convoy paradox resolution
+(s/def ::assumption-predicate (s/fspec :args (s/tuple ::resolution-state)
+                                       :ret boolean?))
+;
+(s/def ::resume-state-if-predicate-failed
+  (s/and ::resolution-state))  ; s/and lets this reference a spec that's not defined yet
+(s/def ::backtracking-point
+  (s/keys :req-un [::assumption-predicate
+                   ::resume-state-if-predicate-failed]))
+(s/def ::backtracking-points (s/coll-of ::backtracking-point))
 (s/def ::evaluate-voyage-result
-  (s/keys :req-un [::voyage-status]))
+  (s/keys :req-un [::voyage-status ::backtracking-point]))
 
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
@@ -69,6 +79,7 @@
                    ::conflict-queue
                    ::voyage-map
                    ::voyage-queue
+                   ::backtracking-points
                    ;; Fields that never change during resolution
                    ::support-map
                    ::convoy-map
@@ -635,10 +646,11 @@
   (let [attack-arrival-status (arrival-status rs attacker)]
     (cond
       (= attack-arrival-status :pending)
-      ;; Don't resolve anything unless we hit the
-      ;; `:army-cant-cut-support-for-attack-on-its-own-convoy` paradox (see F14).
-      ;; In that paradox, `support` would be supporting an attack on a convoy
-      ;; convoying `attacker`.
+      ;; Most of the time we'll just return no resolutions in this case.
+      ;; However, if we're in the
+      ;; `:army-cant-cut-support-for-attack-on-its-own-convoy` paradox, we
+      ;; decide that the support is cut (see F14). In that paradox, `support`
+      ;; would be supporting an attack on a convoy convoying `attacker`.
       (if (not (and (orders/attack? assisted-order)
                     (= assisted-order
                        (-> assisted-order :location location-to-order-map))))
@@ -794,6 +806,49 @@
       {:voyage-status :pending}
       :else
       {:voyage-status :failed})))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                                                 Evaluating Convoy Paradoxes ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; READING-ADVICE: if this is your first time reading this code, skip this
+;; section.
+
+(defn-spec paradox-enabled-evaluate-voyage [::resolution-state ::dt/attack-order]
+  ::voyage-status)
+(defn paradox-enabled-evaluate-voyage
+  [{:keys [dmap convoy-map] :as rs}
+   {:keys [location destination] :as attack-order}]
+  (let [attempted-convoys (get convoy-map attack-order [])
+        known-successful-convoys
+        (filter #(= :not-dislodged (dislodgment-status rs %)) attempted-convoys)
+        non-failed-convoys
+        (filter #(not= :dislodged (dislodgment-status rs %)) attempted-convoys)
+        pending-convoys
+        (filter #(= :pending (dislodgment-status rs %)) attempted-convoys)]
+    (cond
+      (convoy-path-exists? dmap location destination known-successful-convoys)
+      {:voyage-status :succeeded}
+      (convoy-path-exists? dmap location destination non-failed-convoys)
+      (if (> (count pending-convoys) 1)
+        {:voyage-status :pending}
+        {:voyage-status :succeeded
+         :backtracking-point
+         {:assumption-predicate
+          #(->>
+            (convoying-order-statuses % attack-order)
+            :not-dislodged
+            (convoy-path-exists? dmap location destination))
+          :resume-state-if-predicate-failed
+          (apply-voyage-state-update rs attack-order {:voyage-status :failed})}})
+      :else
+      {:voyage-status :failed})))
+
+(defn-spec resolution-complete? [::resolution-state] boolean?)
+(defn resolution-complete? [{:keys [backtracking-points] :as resolution-state}]
+  (and (all-orders-resolved? resolution-state)
+       (every? (fn [{:keys [assumption-predicate]}]
+                 (assumption-predicate resolution-state))
+               backtracking-points)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
@@ -956,7 +1011,7 @@
         (->> (iterate (comp take-conflict-resolution-step
                             take-voyage-resolution-step)
                       initial-resolution-state)
-             (filter all-orders-resolved?)
+             (filter resolution-complete?)
              (first))
         final-conflict-map (:conflict-map final-resolution-state)]
     (merge
