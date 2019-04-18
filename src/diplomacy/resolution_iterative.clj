@@ -47,7 +47,7 @@
   (s/tuple ::dt/order ::dt/order ::pending-conflict-state))
 (s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) #_queue?))
 
-(s/def ::dislodgement-status #{:dislodged :not-dislodged :pending})
+(s/def ::dislodgment-status #{:dislodged :not-dislodged :pending})
 (s/def ::voyage-status #{:succeeded :failed :pending})
 (s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
 (s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
@@ -754,7 +754,7 @@
     (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true)))
 
 (defn-spec dislodgment-status [::resolution-state ::dt/convoy-order]
-  ::dislodgement-status)
+  ::dislodgment-status)
 (defn dislodgment-status
   [{:keys [dmap location-to-order-map] :as resolution-state}
    {:keys [location] :as convoy-order}]
@@ -769,20 +769,28 @@
       (every? #(= :failed %) attacking-order-statuses)
       :not-dislodged)))
 
+(defn-spec convoying-order-statuses [::resolution-state ::dt/attack-order]
+  (s/map-of ::dislodgment-status (s/coll-of ::dt/convoy-order)))
+(defn convoying-order-statuses
+  [{:keys [convoy-map] :as rs}
+   attack-order]
+  (let [attempted-convoys (get convoy-map attack-order [])]
+    (group-by #(dislodgment-status rs %) attempted-convoys)))
+
 (defn-spec evaluate-voyage [::resolution-state ::dt/attack-order]
   ::evaluate-voyage-result)
 (defn evaluate-voyage
   [{:keys [dmap convoy-map] :as rs}
    {:keys [location destination] :as attack-order}]
   (let [attempted-convoys (get convoy-map attack-order [])
-        known-successful-convoys
-        (filter #(= :not-dislodged (dislodgment-status rs %)) attempted-convoys)
-        non-failed-convoys
-        (filter #(not= :dislodged (dislodgment-status rs %)) attempted-convoys)]
+        convoys-by-status (convoying-order-statuses rs attack-order)
+        successful-convoys (get convoys-by-status :not-dislodged [])
+        pending-convoys (get convoys-by-status :pending [])]
     (cond
-      (convoy-path-exists? dmap location destination known-successful-convoys)
+      (convoy-path-exists? dmap location destination successful-convoys)
       {:voyage-status :succeeded}
-      (convoy-path-exists? dmap location destination non-failed-convoys)
+      (convoy-path-exists? dmap location destination
+                           (concat successful-convoys pending-convoys))
       {:voyage-status :pending}
       :else
       {:voyage-status :failed})))
