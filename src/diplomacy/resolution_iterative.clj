@@ -172,13 +172,16 @@
 (defn-spec apply-voyage-state-update
   [::resolution-state ::dt/attack-order ::evaluate-voyage-result] ::resolution-state)
 (defn apply-voyage-state-update
-  [resolution-state pending-voyage {:keys [voyage-status]}]
+  [resolution-state pending-voyage {:keys [voyage-status backtracking-point]}]
   (-> resolution-state
       (update :voyage-queue
               #(if (= voyage-status :pending)
                  (move-front-to-back %)
                  (pop %)))
-      (update :voyage-map #(assoc % pending-voyage voyage-status))))
+      (update :voyage-map #(assoc % pending-voyage voyage-status))
+      (update :backtracking-points #(if (nil? backtracking-point)
+                                      %
+                                      (conj % backtracking-point)))))
 
 (defn-spec take-voyage-resolution-step [::resolution-state] ::resolution-state)
 (defn take-voyage-resolution-step
@@ -1001,6 +1004,7 @@
                           (map (fn [convoyed-order] [convoyed-order :pending]))
                           (into {}))
          :voyage-queue voyage-queue
+         :backtracking-points []
          :support-map (make-support-map location-to-order-map)
          :convoy-map convoy-map
          :direct-arrival-set direct-arrival-set
