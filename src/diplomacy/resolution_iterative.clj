@@ -876,6 +876,49 @@
       (:resume-state-if-predicate-failed first-failing-point))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                          Getting to final resolution state ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn fixpoint
+  "Apply `f` to `initial`, then apply `f` again to the result, repeating until
+  applying `f` yields a result equal to the input to `f`. Return that
+  result (which is a fixpoint of `f`)."
+  [f initial]
+  (let [f-results (iterate f initial)]
+    (reduce #(if (= %1 %2) (reduced %2) %2) f-results)))
+
+(defn-spec try-resolve-every-voyage [::resolution-state] ::resolution-state)
+(defn try-resolve-every-voyage
+  [{:keys [voyage-queue] :as rs}]
+  (nth (iterate (partial take-voyage-resolution-step evaluate-voyage) rs)
+       (count voyage-queue)))
+
+(defn-spec try-resolve-every-conflict [::resolution-state] ::resolution-state)
+(defn try-resolve-every-conflict
+  [{:keys [conflict-queue] :as rs}]
+  (nth (iterate take-conflict-resolution-step rs)
+       (count conflict-queue)))
+
+(defn-spec get-final-resolution-state [::resolution-state] ::resolution-state)
+(defn get-final-resolution-state
+  [resolution-state]
+  ;; Get as far as we can with `evaluate-voyage`, then switch to
+  ;; `paradox-enabled-evaluate-voyage` and `take-backtracking-check-step`. This
+  ;; ensures that F14 and F15 are handled with `evaluate-voyage`, since
+  ;; `paradox-enabled-evaluate-voyage` handles them incorrectly (by assuming the
+  ;; attack arrives).
+  (let [pre-backtracking-phase-result
+        (fixpoint (comp try-resolve-every-conflict
+                        try-resolve-every-voyage)
+                  resolution-state)]
+    (->> (iterate (comp take-backtracking-check-step
+                        take-conflict-resolution-step
+                        (partial take-voyage-resolution-step paradox-enabled-evaluate-voyage))
+                  pre-backtracking-phase-result)
+         (filter resolution-complete?)
+         (first))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1034,11 +1077,7 @@
          :location-to-order-map location-to-order-map
          :dmap diplomacy-map}
         final-resolution-state
-        (->> (iterate (comp take-conflict-resolution-step
-                            (partial take-voyage-resolution-step evaluate-voyage))
-                      initial-resolution-state)
-             (filter resolution-complete?)
-             (first))
+        (get-final-resolution-state initial-resolution-state)
         final-conflict-map (:conflict-map final-resolution-state)]
     (merge
      ;; Assume everything is uncontested, then add the results of the conflicts.
