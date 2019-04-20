@@ -63,6 +63,9 @@
 (s/def ::backtracking-points (s/coll-of ::backtracking-point))
 (s/def ::evaluate-voyage-result
   (s/keys :req-un [::voyage-status ::backtracking-point]))
+(s/def ::evaluate-voyage-func
+  (s/fspec :args (s/tuple ::resolution-state ::dt/attack-order)
+           :ret ::evaluate-voyage-result))
 
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
@@ -183,10 +186,12 @@
                                       %
                                       (conj % backtracking-point)))))
 
-(defn-spec take-voyage-resolution-step [::resolution-state] ::resolution-state)
+(defn-spec take-voyage-resolution-step
+  [::evaluate-voyage-func ::resolution-state] ::resolution-state)
 (defn take-voyage-resolution-step
   "Tries to resolve the next voyage in the voyage queue."
-  [{:keys [voyage-map voyage-queue] :as resolution-state}]
+  [evaluate-voyage-func
+   {:keys [voyage-map voyage-queue] :as resolution-state}]
   (when diplomacy.settings/debug
     (print "voyage-queue: ")
     (clojure.pprint/pprint voyage-queue)
@@ -196,7 +201,8 @@
   (if (empty? voyage-queue)
     resolution-state
     (let [pending-voyage (peek voyage-queue)
-          voyage-status-update (evaluate-voyage resolution-state pending-voyage)]
+          voyage-status-update
+          (evaluate-voyage-func resolution-state pending-voyage)]
       (when diplomacy.settings/debug
         (print "voyage-update: ")
         (clojure.pprint/pprint [pending-voyage voyage-status-update]))
@@ -1012,7 +1018,7 @@
          :dmap diplomacy-map}
         final-resolution-state
         (->> (iterate (comp take-conflict-resolution-step
-                            take-voyage-resolution-step)
+                            (partial take-voyage-resolution-step evaluate-voyage))
                       initial-resolution-state)
              (filter resolution-complete?)
              (first))
