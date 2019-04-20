@@ -863,6 +863,18 @@
                  (assumption-predicate resolution-state))
                backtracking-points)))
 
+(defn-spec take-backtracking-check-step [::resolution-state] ::resolution-state)
+(defn take-backtracking-check-step
+  "Checks `:backtracking-points` and backtracks if necessary."
+  [{:keys [backtracking-points] :as rs}]
+  (let [first-failing-point
+        (first (filter (fn [{:keys [assumption-predicate]}]
+                         (not (assumption-predicate rs)))
+                       backtracking-points))]
+    (if (nil? first-failing-point)
+      rs
+      (:resume-state-if-predicate-failed first-failing-point))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                             Utilities for Public Interface ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
