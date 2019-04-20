@@ -912,7 +912,7 @@
     :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
                               [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
                                                                     [true [:germany :fleet :bel :attack :eng] :attacked-same-destination]}
-                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
+                              [:france :army :bre :attack :lon] #{[true [:england :fleet :lon :support :england :fleet :wal :attack :eng] :destination-occupied]}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
                               [:germany :fleet :nth :support :germany :fleet :bel :attack :eng] #{}
                               [:germany :fleet :bel :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
@@ -921,13 +921,15 @@
    "F17"
    {:long-name "6.F.17. PANDIN'S EXTENDED PARADOX"
     :summary "In Pandin's extended paradox, the attacked unit protects the convoying fleet by a beleaguered garrison and the attacked unit can dislodge the unit that gives the protection."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :wal :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bre :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
+                              [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
+                                                                    [true [:germany :fleet :bel :attack :eng] :attacked-same-destination]}
+                              [:france :army :bre :attack :lon] #{[true [:england :fleet :lon :support :england :fleet :wal :attack :eng] :destination-occupied]}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
-                              [:france :fleet :yor :support :france :army :bre :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :nth :support :germany :fleet :bel :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :bel :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:france :fleet :yor :support :france :army :bre :attack :lon] #{}
+                              [:germany :fleet :nth :support :germany :fleet :bel :attack :eng] #{}
+                              [:germany :fleet :bel :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
+                                                                    [true [:england :fleet :wal :attack :eng] :attacked-same-destination]}}
     :explanation "When the 1971, 1982 or 2000 rule is used (see issue 4.A.2), the support of London is not cut. That means that the fleet in the English Channel is not dislodged. The convoy will succeed and dislodge the fleet in London. You may argue that this violates the dislodge rule, but the common interpretation is that the paradox convoy rules take precedence over the dislodge rule. If the Simon Szykman alternative is used (<i>which I prefer</i>), the convoy fails and the fleet in London and the English Channel are not dislodged. When the 'All Hold' (fully applied, not just as \"backup\" rule) or the DPTG rule is used, the result is the same as the Simon Szykman alternative. The involved moves (the move of the German fleet in Belgium and the convoying army in Brest) fail."}
    "F18"
    {:long-name "6.F.18. BETRAYAL PARADOX"
@@ -1455,6 +1457,8 @@
     "F13"
     "F14"
     "F15"
+    "F16"
+    "F17"
     "F19"
     "F20"
     "F21"

@@ -685,7 +685,12 @@
                 [[support attacker
                  (j/create-support-judgment :interferer attacker
                                             :support-rule :army-cant-cut-support-for-attack-on-its-own-convoy
-                                            :interfered? false)]])))))
+                                            :interfered? false)]
+                 ;; Ensure the attacks fails to handle F17.
+                 [attacker support
+                  (j/create-attack-judgment :interferer support
+                                            :attack-rule :destination-occupied
+                                            :interfered? true)]])))))
       (= attack-arrival-status :failed)
       [[support attacker [rule :no-conflict]]]
 
