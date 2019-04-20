@@ -833,7 +833,7 @@
                          (concat successful-convoys pending-convoys))))
 
 (defn-spec paradox-enabled-evaluate-voyage [::resolution-state ::dt/attack-order]
-::evaluate-voyage-result)
+  ::evaluate-voyage-result)
 (defn paradox-enabled-evaluate-voyage
   [{:keys [dmap convoy-map] :as rs}
    {:keys [location destination] :as attack-order}]
