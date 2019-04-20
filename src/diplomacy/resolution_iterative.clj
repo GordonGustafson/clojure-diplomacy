@@ -55,7 +55,6 @@
 ;; Things used for convoy paradox resolution
 (s/def ::assumption-predicate (s/fspec :args (s/tuple ::resolution-state)
                                        :ret boolean?))
-;
 (s/def ::resume-state-if-predicate-failed
   (s/and ::resolution-state))  ; s/and lets this reference a spec that's not defined yet
 (s/def ::backtracking-point
@@ -814,7 +813,7 @@
 ;; section.
 
 (defn-spec paradox-enabled-evaluate-voyage [::resolution-state ::dt/attack-order]
-  ::voyage-status)
+::evaluate-voyage-result)
 (defn paradox-enabled-evaluate-voyage
   [{:keys [dmap convoy-map] :as rs}
    {:keys [location destination] :as attack-order}]
