@@ -825,17 +825,15 @@
 ;; READING-ADVICE: if this is your first time reading this code, skip this
 ;; section.
 
-(defn-spec voyage-does-not-fail? [::resolution-state ::dt/attack-order]
+(defn-spec voyage-not-guaranteed-success? [::resolution-state ::dt/attack-order]
   boolean?)
-(defn voyage-does-not-fail?
-  "Whether the voyage is not guaranteed to fail."
+(defn voyage-not-guaranteed-success?
+  "Whether the voyage is guaranteed to fail."
   [{:keys [dmap convoy-map] :as rs}
    {:keys [location destination] :as attack-order}]
   (let [convoys-by-status (convoying-order-statuses rs attack-order)
-        successful-convoys (get convoys-by-status :not-dislodged [])
-        pending-convoys (get convoys-by-status :pending [])]
-    (convoy-path-exists? dmap location destination
-                         (concat successful-convoys pending-convoys))))
+        successful-convoys (get convoys-by-status :not-dislodged [])]
+    (not (convoy-path-exists? dmap location destination successful-convoys))))
 
 (defn-spec paradox-enabled-evaluate-voyage [::resolution-state ::dt/attack-order]
   ::evaluate-voyage-result)
@@ -852,12 +850,12 @@
                            (concat successful-convoys pending-convoys))
       (if (> (count pending-convoys) 1)
         {:voyage-status :pending}
-        {:voyage-status :succeeded
+        {:voyage-status :failed
          :backtracking-point
          {:assumption-predicate
-          #(voyage-does-not-fail? % attack-order)
+          #(voyage-not-guaranteed-success? % attack-order)
           :resume-state-if-predicate-failed
-          (apply-voyage-state-update rs attack-order {:voyage-status :failed})}})
+          (apply-voyage-state-update rs attack-order {:voyage-status :succeeded})}})
       :else
       {:voyage-status :failed})))
 
