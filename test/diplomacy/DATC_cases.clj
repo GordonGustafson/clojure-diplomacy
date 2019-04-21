@@ -935,11 +935,11 @@
    {:long-name "6.F.18. BETRAYAL PARADOX"
     :summary "The betrayal paradox is comparable to Pandin's paradox, but now the attacked unit direct supports the convoying fleet. Of course, this will only happen when the player of the attacked unit is betrayed."
     :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{}
-                              [:england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :eng :support :england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :bel :support :england :fleet :nth :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :hel :support :germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :ska :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :army :lon :attack :bel] #{:no-successful-convoy}
+                              [:england :fleet :eng :support :england :army :lon :attack :bel] #{}
+                              [:france :fleet :bel :support :england :fleet :nth :hold] #{}
+                              [:germany :fleet :hel :support :germany :fleet :ska :attack :nth] #{}
+                              [:germany :fleet :ska :attack :nth] #{[true [:england :fleet :nth :convoy :england :army :lon :attack :bel] :destination-occupied]}}
     :explanation "If the English convoy from London to Belgium is successful, then it cuts the France support necessary to hold the fleet in the North Sea (see issue 4.A.2). The 1971 and 2000 ruling do not give an answer on this. According to the 1982 ruling the French support on the North Sea will not be cut. So, the fleet in the North Sea will not be dislodged by the Germans and the army in London will dislodge the French army in Belgium. If the Szykman rule is followed (<i>which I prefer</i>), the move of the army in London will fail and will not cut support. That means that the fleet in the North Sea will not be dislodged. The 'All Hold' rule has the same result as the Szykman rule, but with a different reason. The move of the army in London and the move of the German fleet in Skagerrak will fail. Since a failing convoy does not result in a consistent  resolution, the DPTG gives the same result as the 'All Hold' rule."}
    "F19"
    {:long-name "6.F.19. MULTI-ROUTE CONVOY DISRUPTION PARADOX"
@@ -1459,6 +1459,7 @@
     "F15"
     "F16"
     "F17"
+    "F18"
     "F19"
     "F20"
     "F21"
