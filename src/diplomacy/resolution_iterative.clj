@@ -52,21 +52,6 @@
 (s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
 (s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
 
-;; Things used for convoy paradox resolution
-(s/def ::assumption-predicate (s/fspec :args (s/tuple ::resolution-state)
-                                       :ret boolean?))
-(s/def ::resume-state-if-predicate-failed
-  (s/and ::resolution-state))  ; s/and lets this reference a spec that's not defined yet
-(s/def ::backtracking-point
-  (s/keys :req-un [::assumption-predicate
-                   ::resume-state-if-predicate-failed]))
-(s/def ::backtracking-points (s/coll-of ::backtracking-point))
-(s/def ::evaluate-voyage-result
-  (s/keys :req-un [::voyage-status ::backtracking-point]))
-(s/def ::evaluate-voyage-func
-  (s/fspec :args (s/tuple ::resolution-state ::dt/attack-order)
-           :ret ::evaluate-voyage-result))
-
 ;; Map from orders to the orders attempting to support them.
 (s/def ::support-map (s/map-of ::dt/order ::dt/orders))
 ;; Map from orders to the orders attempting to convoy them.
@@ -81,7 +66,6 @@
                    ::conflict-queue
                    ::voyage-map
                    ::voyage-queue
-                   ::backtracking-points
                    ;; Fields that never change during resolution
                    ::support-map
                    ::convoy-map
@@ -173,25 +157,21 @@
 
 ;; NOTE: signature is very different from `apply-conflict-state-updates`
 (defn-spec apply-voyage-state-update
-  [::resolution-state ::dt/attack-order ::evaluate-voyage-result] ::resolution-state)
+  [::resolution-state ::dt/attack-order ::voyage-status] ::resolution-state)
 (defn apply-voyage-state-update
-  [resolution-state pending-voyage {:keys [voyage-status backtracking-point]}]
+  [resolution-state pending-voyage voyage-status]
   (-> resolution-state
       (update :voyage-queue
               #(if (= voyage-status :pending)
                  (move-front-to-back %)
                  (pop %)))
-      (update :voyage-map #(assoc % pending-voyage voyage-status))
-      (update :backtracking-points #(if (nil? backtracking-point)
-                                      %
-                                      (conj % backtracking-point)))))
+      (update :voyage-map #(assoc % pending-voyage voyage-status))))
 
 (defn-spec take-voyage-resolution-step
-  [::evaluate-voyage-func ::resolution-state] ::resolution-state)
+  [::resolution-state] ::resolution-state)
 (defn take-voyage-resolution-step
   "Tries to resolve the next voyage in the voyage queue."
-  [evaluate-voyage-func
-   {:keys [voyage-map voyage-queue] :as resolution-state}]
+  [{:keys [voyage-map voyage-queue] :as resolution-state}]
   (when diplomacy.settings/debug
     (print "voyage-queue: ")
     (clojure.pprint/pprint voyage-queue)
@@ -202,7 +182,7 @@
     resolution-state
     (let [pending-voyage (peek voyage-queue)
           voyage-status-update
-          (evaluate-voyage-func resolution-state pending-voyage)]
+          (evaluate-voyage resolution-state pending-voyage)]
       (when diplomacy.settings/debug
         (print "voyage-update: ")
         (clojure.pprint/pprint [pending-voyage voyage-status-update]))
@@ -803,7 +783,7 @@
     (group-by #(dislodgment-status rs %) attempted-convoys)))
 
 (defn-spec evaluate-voyage [::resolution-state ::dt/attack-order]
-  ::evaluate-voyage-result)
+  ::voyage-status)
 (defn evaluate-voyage
   [{:keys [dmap convoy-map] :as rs}
    {:keys [location destination] :as attack-order}]
@@ -812,71 +792,12 @@
         pending-convoys (get convoys-by-status :pending [])]
     (cond
       (convoy-path-exists? dmap location destination successful-convoys)
-      {:voyage-status :succeeded}
+      :succeeded
       (convoy-path-exists? dmap location destination
                            (concat successful-convoys pending-convoys))
-      {:voyage-status :pending}
+      :pending
       :else
-      {:voyage-status :failed})))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;                                                 Evaluating Convoy Paradoxes ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; READING-ADVICE: if this is your first time reading this code, skip this
-;; section.
-
-(defn-spec voyage-not-guaranteed-success? [::resolution-state ::dt/attack-order]
-  boolean?)
-(defn voyage-not-guaranteed-success?
-  "Whether the voyage is guaranteed to fail."
-  [{:keys [dmap convoy-map] :as rs}
-   {:keys [location destination] :as attack-order}]
-  (let [convoys-by-status (convoying-order-statuses rs attack-order)
-        successful-convoys (get convoys-by-status :not-dislodged [])]
-    (not (convoy-path-exists? dmap location destination successful-convoys))))
-
-(defn-spec paradox-enabled-evaluate-voyage [::resolution-state ::dt/attack-order]
-  ::evaluate-voyage-result)
-(defn paradox-enabled-evaluate-voyage
-  [{:keys [dmap convoy-map] :as rs}
-   {:keys [location destination] :as attack-order}]
-  (let [convoys-by-status (convoying-order-statuses rs attack-order)
-        successful-convoys (get convoys-by-status :not-dislodged [])
-        pending-convoys (get convoys-by-status :pending [])]
-    (cond
-      (convoy-path-exists? dmap location destination successful-convoys)
-      {:voyage-status :succeeded}
-      (convoy-path-exists? dmap location destination
-                           (concat successful-convoys pending-convoys))
-      (if (> (count pending-convoys) 1)
-        {:voyage-status :pending}
-        {:voyage-status :failed
-         :backtracking-point
-         {:assumption-predicate
-          #(voyage-not-guaranteed-success? % attack-order)
-          :resume-state-if-predicate-failed
-          (apply-voyage-state-update rs attack-order {:voyage-status :succeeded})}})
-      :else
-      {:voyage-status :failed})))
-
-(defn-spec resolution-complete? [::resolution-state] boolean?)
-(defn resolution-complete? [{:keys [backtracking-points] :as resolution-state}]
-  (and (all-orders-resolved? resolution-state)
-       (every? (fn [{:keys [assumption-predicate]}]
-                 (assumption-predicate resolution-state))
-               backtracking-points)))
-
-(defn-spec take-backtracking-check-step [::resolution-state] ::resolution-state)
-(defn take-backtracking-check-step
-  "Checks `:backtracking-points` and backtracks if necessary."
-  [{:keys [backtracking-points] :as rs}]
-  (let [first-failing-point
-        (first (filter (fn [{:keys [assumption-predicate]}]
-                         (not (assumption-predicate rs)))
-                       backtracking-points))]
-    (if (nil? first-failing-point)
-      rs
-      (:resume-state-if-predicate-failed first-failing-point))))
+      :failed)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                          Getting to final resolution state ;;
@@ -893,7 +814,7 @@
 (defn-spec try-resolve-every-voyage [::resolution-state] ::resolution-state)
 (defn try-resolve-every-voyage
   [{:keys [voyage-queue] :as rs}]
-  (nth (iterate (partial take-voyage-resolution-step evaluate-voyage) rs)
+  (nth (iterate take-voyage-resolution-step rs)
        (count voyage-queue)))
 
 (defn-spec try-resolve-every-conflict [::resolution-state] ::resolution-state)
@@ -905,20 +826,19 @@
 (defn-spec get-final-resolution-state [::resolution-state] ::resolution-state)
 (defn get-final-resolution-state
   [resolution-state]
-  ;; Get as far as we can with `evaluate-voyage`, then switch to
-  ;; `paradox-enabled-evaluate-voyage` and `take-backtracking-check-step`. This
-  ;; ensures that F14 and F15 are handled with `evaluate-voyage`, since
-  ;; `paradox-enabled-evaluate-voyage` handles them incorrectly (by assuming the
-  ;; attack arrives).
-  (let [pre-backtracking-phase-result
+  (let [stable-rs
         (fixpoint (comp try-resolve-every-conflict
                         try-resolve-every-voyage)
-                  resolution-state)]
-    (->> (iterate (comp take-backtracking-check-step
-                        take-conflict-resolution-step
-                        (partial take-voyage-resolution-step paradox-enabled-evaluate-voyage))
-                  pre-backtracking-phase-result)
-         (filter resolution-complete?)
+                  resolution-state)
+        stable-rs-with-failed-voyages
+        (-> stable-rs
+            (update :voyage-map
+                    #(into {} (map (fn [[attack-order voyage-status]]
+                                     [attack-order (if (= voyage-status :pending) :failed voyage-status)])
+                                   %)))
+            (assoc :voyage-queue clojure.lang.PersistentQueue/EMPTY))]
+    (->> (iterate take-conflict-resolution-step stable-rs-with-failed-voyages)
+         (filter all-orders-resolved?)
          (first))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1073,7 +993,6 @@
                           (map (fn [convoyed-order] [convoyed-order :pending]))
                           (into {}))
          :voyage-queue voyage-queue
-         :backtracking-points []
          :support-map (make-support-map location-to-order-map)
          :convoy-map convoy-map
          :direct-arrival-set direct-arrival-set

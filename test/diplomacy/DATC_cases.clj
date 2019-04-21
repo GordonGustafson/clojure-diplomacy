@@ -978,40 +978,40 @@
    "F22"
    {:long-name "6.F.22. SECOND ORDER PARADOX WITH TWO RESOLUTIONS"
     :summary "Two convoys are involved in a second order paradox."
-    :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :lon :support :england :fleet :edi :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bre :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[false [:russia :fleet :nth :convoy :russia :army :nwy :attack :bel] :destination-occupied]}
+                              [:england :fleet :lon :support :england :fleet :edi :attack :nth] #{}
+                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
-                              [:germany :fleet :bel :support :germany :fleet :pic :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :pic :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :nwy :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:germany :fleet :bel :support :germany :fleet :pic :attack :eng] #{}
+                              [:germany :fleet :pic :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]}
+                              [:russia :army :nwy :attack :bel] #{:no-successful-convoy}
                               [:russia :fleet :nth :convoy :russia :army :nwy :attack :bel] #{}}
     :explanation "Without any paradox rule, there are two consistent resolutions. The supports of the English fleet in London and the German fleet in Picardy are not cut. That means that the French fleet in the English Channel and the Russian fleet in the North Sea are  dislodged, which makes it impossible to cut the support. The other resolution is that the supports of the English fleet in London the German fleet in Picardy are cut. In that case the French fleet in the English Channel and the Russian fleet in the North Sea will survive and will not be dislodged. This gives the possibility to cut the support. The 1971 paradox rule and the 2000 rule (see issue 4.A.2) do not have an answer on this. According to the 1982 rule, the supports are not cut which means that the French fleet in the English Channel and the Russian fleet in the North Sea are dislodged. The Szykman (<i>which I prefer</i>), has the same result as the 1982 rule. The supports are not cut, the convoying armies fail to move, the fleet in Picardy dislodges the fleet in English Channel and the fleet in Edinburgh dislodges the fleet in the North Sea. The DPTG rule has in this case the same result as the Szykman rule, because the failing of all convoys is a consistent resolution. So, the armies in Brest and Norway fail to move, while the fleets in Edinburgh and Picardy succeed to move. When the 'All Hold' rule is used, the movement of the armies in  Brest and Norway as the fleets in Edinburgh and Picardy will fail."}
    "F23"
    {:long-name "6.F.23. SECOND ORDER PARADOX WITH TWO EXCLUSIVE CONVOYS"
     :summary "In this paradox there are two consistent resolutions, but where the two convoys do not fail or succeed at the same time. This fact is important for the DPTG resolution."
-    :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :yor :support :england :fleet :edi :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bre :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[true [:russia :fleet :nth :convoy :russia :army :nwy :attack :bel] :destination-occupied]}
+                              [:england :fleet :yor :support :england :fleet :edi :attack :nth] #{}
+                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
-                              [:germany :fleet :bel :support :france :fleet :eng :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :fleet :lon :support :russia :fleet :nth :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :mid :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:italy :fleet :iri :support :italy :fleet :mid :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :nwy :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:germany :fleet :bel :support :france :fleet :eng :hold] #{}
+                              [:germany :fleet :lon :support :russia :fleet :nth :hold] #{}
+                              [:italy :fleet :mid :attack :eng] #{[true [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]}
+                              [:italy :fleet :iri :support :italy :fleet :mid :attack :eng] #{}
+                              [:russia :army :nwy :attack :bel] #{:no-successful-convoy}
                               [:russia :fleet :nth :convoy :russia :army :nwy :attack :bel] #{}}
     :explanation "Without any paradox rule, there are two consistent resolutions. In one resolution, the convoy in the English Channel is dislodged by the fleet in the Mid-Atlantic Ocean, while the convoy in the North Sea succeeds. In the other resolution, it is the other way around. The convoy in the North Sea is dislodged by the fleet in  Edinburgh, while the convoy in the English Channel succeeds. The 1971 paradox rule and the 2000 rule (see issue 4.A.2) do not have an answer on this. According to the 1982 rule, the supports are not cut which means that the none of the units move. The Szykman (<i>which I prefer</i>), has the same result as the 1982 rule. The convoying armies fail to move and the supports are not cut. Because of the failure to cut the support, no fleet succeeds to move. When the 'All Hold' rule is used, the movement of the armies and the fleets all fail. Since there is no consistent resolution where all convoys fail, the DPTG rule has the same result as the 'All Hold' rule. That means the movement of all units fail."}
    "F24"
    {:long-name "6.F.24. SECOND ORDER PARADOX WITH NO RESOLUTION"
     :summary "As first order paradoxes, second order paradoxes come in two flavors, with two resolutions or no resolution."
-    :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :lon :support :england :fleet :edi :attack :nth] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :iri :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :mid :support :england :fleet :iri :attack :eng] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bre :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :edi :attack :nth] #{[false [:russia :fleet :nth :convoy :russia :army :nwy :attack :bel] :destination-occupied]}
+                              [:england :fleet :lon :support :england :fleet :edi :attack :nth] #{}
+                              [:england :fleet :iri :attack :eng] #{[true [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]}
+                              [:england :fleet :mid :support :england :fleet :iri :attack :eng] #{}
+                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
-                              [:france :fleet :bel :support :france :fleet :eng :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :nwy :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:france :fleet :bel :support :france :fleet :eng :hold] #{}
+                              [:russia :army :nwy :attack :bel] #{:no-successful-convoy}
                               [:russia :fleet :nth :convoy :russia :army :nwy :attack :bel] #{}}
     :explanation "When no paradox rule is used, there is no consistent resolution. If the French support in Belgium is cut, the French fleet in the English Channel will be dislodged. That means that the support of London will not be cut and the fleet in Edinburgh will dislodge the Russian fleet in the North Sea. In this way the support in Belgium is not cut! But if the support in Belgium is not cut, the Russian fleet in the North Sea will not be dislodged and the army in Norway can cut the support in Belgium. The 1971 paradox rule and the 2000 rule (see issue 4.A.2) do not have an answer on this. According to the 1982 rule, the supports are not cut which means that the French fleet in the English Channel will survive and but the Russian fleet in the North Sea is dislodged. If the Szykman alternative is used (<i>which I prefer</i>), the supports are not cut and the convoying armies fail to move, which has the same result as the 1982 rule in this case. When the 'All Hold' rule is used, the movement of the armies in  Brest and Norway as the fleets in Edinburgh and the Irish Sea will fail. Since there is no consistent resolution where all convoys fail, the DPTG has in this case the same result as the 'All Hold' rule."}
    "G1"
@@ -1462,6 +1462,9 @@
     "F19"
     "F20"
     "F21"
+    "F22"
+    "F23"
+    "F24"
 
     "Z1"
     "Z2"
