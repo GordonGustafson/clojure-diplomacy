@@ -890,7 +890,7 @@
    "F14"
    {:long-name "6.F.14. SIMPLE CONVOY PARADOX"
     :summary "The most common paradox is when the attacked unit supports an attack on one of the convoying fleets."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{}
                               [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]}
                               [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}}
@@ -898,7 +898,7 @@
    "F15"
    {:long-name "6.F.15. SIMPLE CONVOY PARADOX WITH ADDITIONAL CONVOY"
     :summary "Paradox rules only apply on the paradox core."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{}
                               [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]}
                               [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
@@ -909,10 +909,10 @@
    "F16"
    {:long-name "6.F.16. PANDIN'S PARADOX"
     :summary "In Pandin's paradox, the attacked unit protects the convoying fleet by a beleaguered garrison."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{}
                               [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
                                                                     [true [:germany :fleet :bel :attack :eng] :attacked-same-destination]}
-                              [:france :army :bre :attack :lon] #{[true [:england :fleet :lon :support :england :fleet :wal :attack :eng] :destination-occupied]}
+                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
                               [:germany :fleet :nth :support :germany :fleet :bel :attack :eng] #{}
                               [:germany :fleet :bel :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
@@ -921,10 +921,10 @@
    "F17"
    {:long-name "6.F.17. PANDIN'S EXTENDED PARADOX"
     :summary "In Pandin's extended paradox, the attacked unit protects the convoying fleet by a beleaguered garrison and the attacked unit can dislodge the unit that gives the protection."
-    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{[false [:france :army :bre :attack :lon] :army-cant-cut-support-for-attack-on-its-own-convoy]}
+    :resolution-results-abbr {[:england :fleet :lon :support :england :fleet :wal :attack :eng] #{}
                               [:england :fleet :wal :attack :eng] #{[false [:france :fleet :eng :convoy :france :army :bre :attack :lon] :destination-occupied]
                                                                     [true [:germany :fleet :bel :attack :eng] :attacked-same-destination]}
-                              [:france :army :bre :attack :lon] #{[true [:england :fleet :lon :support :england :fleet :wal :attack :eng] :destination-occupied]}
+                              [:france :army :bre :attack :lon] #{:no-successful-convoy}
                               [:france :fleet :eng :convoy :france :army :bre :attack :lon] #{}
                               [:france :fleet :yor :support :france :army :bre :attack :lon] #{}
                               [:germany :fleet :nth :support :germany :fleet :bel :attack :eng] #{}

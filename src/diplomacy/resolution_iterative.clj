@@ -634,43 +634,7 @@
   (let [attack-arrival-status (arrival-status rs attacker)]
     (cond
       (= attack-arrival-status :pending)
-      ;; Most of the time we'll just return no resolutions in this case.
-      ;; However, if we're in the
-      ;; `:army-cant-cut-support-for-attack-on-its-own-convoy` paradox, we
-      ;; decide that the support is cut (see F14). In that paradox, `support`
-      ;; would be supporting an attack on a convoy convoying `attacker`.
-      (if (not (and (orders/attack? assisted-order)
-                    (= assisted-order
-                       (-> assisted-order :location location-to-order-map))))
-        []
-        (let [target-of-assisted-attack
-              (-> assisted-order :destination location-to-order-map)]
-          (if (not (and (some? target-of-assisted-attack)
-                        (orders/convoy? target-of-assisted-attack)
-                        (= (:assisted-order target-of-assisted-attack) attacker)))
-            []
-            ;; We have the orders necessary for the
-            ;; `:army-cant-cut-support-for-attack-on-its-own-convoy` paradox (in
-            ;; F14). First we need to check if there's any convoy route that
-            ;; could let `attacker` successfully arrive, but doesn't use
-            ;; `target-of-assisted-attack` (like in F19).
-            (let [eligible-convoys
-                  (disj (->> (get convoy-map attacker [])
-                             (filter #(not= :dislodged (dislodgment-status rs %)))
-                             (into #{}))
-                        target-of-assisted-attack)]
-              (if (convoy-path-exists? dmap (:location attacker) (:destination attacker) eligible-convoys)
-                ;; Wait and see if the other convoy path leads to `attacker` arriving.
-                []
-                [[support attacker
-                 (j/create-support-judgment :interferer attacker
-                                            :support-rule :army-cant-cut-support-for-attack-on-its-own-convoy
-                                            :interfered? false)]
-                 ;; Ensure the attacks fails to handle F17.
-                 [attacker support
-                  (j/create-attack-judgment :interferer support
-                                            :attack-rule :destination-occupied
-                                            :interfered? true)]])))))
+      []
       (= attack-arrival-status :failed)
       [[support attacker [rule :no-conflict]]]
 
@@ -831,6 +795,11 @@
                         try-resolve-every-voyage)
                   resolution-state)
         stable-rs-with-failed-voyages
+        ;; TODO: report 'this voyage failed because a paradox was found' in the
+        ;; result. `before-simple-convoy-paradox-simplification` branch had
+        ;; separate code to find
+        ;; `:army-cant-cut-support-for-attack-on-its-own-convoy`, which could be
+        ;; brought back if desired, but I removed it to simplify things.
         (-> stable-rs
             (update :voyage-map
                     #(into {} (map (fn [[attack-order voyage-status]]
