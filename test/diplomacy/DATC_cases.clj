@@ -315,11 +315,11 @@
    "D6"
    {:long-name "6.D.6. SUPPORT TO HOLD ON CONVOYING UNIT ALLOWED"
     :summary "A unit that is convoying, can receive a hold support."
-    :resolution-results-abbr {[:germany :army :ber :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:germany :army :ber :attack :swe] #{}
                               [:germany :fleet :bal :convoy :germany :army :ber :attack :swe] #{}
-                              [:germany :fleet :pru :support :germany :fleet :bal :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :lvn :attack :bal] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bot :support :russia :fleet :lvn :attack :bal] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:germany :fleet :pru :support :germany :fleet :bal :hold] #{}
+                              [:russia :fleet :lvn :attack :bal] #{[true [:germany :fleet :bal :convoy :germany :army :ber :attack :swe] :destination-occupied]}
+                              [:russia :fleet :bot :support :russia :fleet :lvn :attack :bal] #{}}
     :explanation "The Russian move from Livonia to the Baltic Sea fails. The convoy from Berlin to Sweden succeeds."}
    "D7"
    {:long-name "6.D.7. SUPPORT TO HOLD ON MOVING UNIT NOT ALLOWED"
@@ -336,9 +336,8 @@
     :summary "If a convoy fails because of disruption of the convoy or when the right convoy orders are not given, then the army to be convoyed can not receive support in  hold, since it still tried to move."
     :resolution-results-abbr {[:austria :fleet :ion :hold] #{}
                               [:austria :army :ser :support :austria :army :alb :attack :gre] #{}
-                              ;; TODO: do we want to try to do better report for failed convoys?
-                              [:austria :army :alb :attack :gre] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :army :gre :attack :nap] #{[false [:turkey :army :gre :attack :nap] :failed-to-leave-destination]}
+                              [:austria :army :alb :attack :gre] #{[false [:turkey :army :gre :attack :nap] :failed-to-leave-destination]}
+                              [:turkey :army :gre :attack :nap] #{:no-successful-convoy}
                               [:turkey :army :bul :support :turkey :army :gre :hold] #{}}
     :explanation "There was a possible convoy from Greece to Naples, before the orders were made public (via the Ionian Sea). This means that the order of Greece to Naples should never be treated as illegal order and be changed in a hold order able to receive hold support (see also issue VI.A). Therefore, the support in Bulgaria fails and the army in Greece is dislodged by the army in Albania."}
    "D9"
@@ -404,8 +403,8 @@
     :summary "It is allowed to convoy a foreign unit that dislodges your own unit is allowed."
     :resolution-results-abbr {[:england :army :lon :hold] #{}
                               [:england :fleet :nth :convoy :france :army :bel :attack :lon] #{}
-                              [:france :fleet :eng :support :france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:france :fleet :eng :support :france :army :bel :attack :lon] #{}
+                              [:france :army :bel :attack :lon] #{[false [:england :army :lon :hold] :destination-occupied]}}
     :explanation "The English army in London is dislodged by the French army coming from Belgium."}
    "D17"
    {:long-name "6.D.17. DISLODGEMENT CUTS SUPPORTS"
@@ -504,11 +503,11 @@
    "D27"
    {:long-name "6.D.27. FAILING CONVOY CAN BE SUPPORTED"
     :summary "Similar as the previous test case, but now with an unmatched convoy."
-    :resolution-results-abbr {[:england :fleet :swe :attack :bal] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :den :support :england :fleet :swe :attack :bal] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :fleet :swe :attack :bal] #{[true [:russia :fleet :bal :convoy :germany :army :ber :attack :lvn] :destination-occupied]}
+                              [:england :fleet :den :support :england :fleet :swe :attack :bal] #{}
                               [:germany :army :ber :hold] #{}
                               [:russia :fleet :bal :convoy :germany :army :ber :attack :lvn] #{}
-                              [:russia :fleet :pru :support :russia :fleet :bal :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:russia :fleet :pru :support :russia :fleet :bal :hold] #{}}
     :explanation "The convoy order in the Baltic Sea is unmatched and fails. However, the support of Prussia on the Baltic Sea is still valid and the fleet in the Baltic Sea is not dislodged."}
    ;; DECISION: Invalid orders are treated as holds that can be supported.
    "D28"
@@ -548,16 +547,18 @@
    "D31"
    {:long-name "6.D.31. A TRICKY IMPOSSIBLE SUPPORT"
     :summary "A support order can be impossible for complex reasons."
-    :resolution-results-abbr {[:austria :army :rum :attack :arm] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:turkey :fleet :bla :support :austria :army :rum :attack :arm] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:austria :army :rum :attack :arm] #{:no-successful-convoy}
+                              [:turkey :fleet :bla :support :austria :army :rum :attack :arm] #{}}
     :explanation "Although the army in Rumania can move to Armenia and the fleet in the Black Sea can also go to Armenia, the support is still not possible. The reason is that the only possible convoy is through the Black Sea and a fleet can not convoy and support at the same time. This is relevant for computer programs that show only the possible orders. In the list of possible orders, the support as given to the fleet in the Black Sea, should not be listed. Furthermore, if the fleet in the Black Sea gets a second order, then this may fail, because of double orders (although it can also be ruled differently, see issue 4.D.3). However, when the support order is considered \"illegal\" (see issue 4.E.1), then this impossible support must be ignored and the second order must be carried out. <i>I prefer that impossible orders are \"illegal\" and ignored. If there would be a second order for the fleet in the Black Sea, that order should be carried out.</i>"}
+   ;; We don't make any special effort to treat orders differently if they were
+   ;; impossible, so the german unit doesn't receive the hold support.
    "D32"
    {:long-name "6.D.32. A MISSING FLEET"
     :summary "The previous test cases contained an order that was impossible even when some other pieces on the board where changed. In this  test case, the order is impossible, but only for that situation."
-    :resolution-results-abbr {[:england :fleet :edi :support :england :army :lvp :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :army :lvp :attack :yor] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :lon :support :germany :army :yor :hold] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:germany :army :yor :attack :hol] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+    :resolution-results-abbr {[:england :fleet :edi :support :england :army :lvp :attack :yor] #{}
+                              [:england :army :lvp :attack :yor] #{[false [:germany :army :yor :attack :hol] :failed-to-leave-destination]}
+                              [:france :fleet :lon :support :germany :army :yor :hold] #{}
+                              [:germany :army :yor :attack :hol] #{:no-successful-convoy}}
     :explanation "The German order to Yorkshire can not be executed, because there is no fleet in the North Sea. In other situations (where there is a fleet in the North Sea), the exact same order would be possible. It should be determined whether this is \"illegal\"  (see issue 4.E.1) or not. If it is illegal, then the order should be ignored and the support of the French fleet in London succeeds. This means that the army in Yorkshire is not dislodged. <i>I prefer that impossible orders, even if it is only impossible for the current situation, are \"illegal\" and ignored. The army in Yorkshire is not dislodged.</i>"}
    "D33"
    {:long-name "6.D.33. UNWANTED SUPPORT ALLOWED"
@@ -698,7 +699,8 @@
     :resolution-results-abbr {[:england :fleet :nth :attack :den] #{[true [:germany :fleet :den :attack :hel] :failed-to-leave-destination]}
                               [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
-                              [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]}
+                              [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]
+                                                                    [false [:england :fleet :nth :attack :den] :failed-to-leave-destination]}
                               [:germany :fleet :den :attack :hel] #{[true [:germany :fleet :hel :attack :nth] :failed-to-leave-destination]}
                               [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
                               [:russia :fleet :nwy :attack :nth] #{[true [:germany :fleet :hel :attack :nth] :attacked-same-destination]
@@ -1376,6 +1378,8 @@
     "A2"
     "A3"
     "A4"
+    "A5"
+    "A7"
     "A8"
     "A9"
     "A10"
@@ -1407,7 +1411,9 @@
     "D3"
     "D4"
     "D5"
+    "D6"
     "D7"
+    "D8"
     "D9"
     "D10"
     "D11"
@@ -1415,6 +1421,8 @@
     "D13"
     "D14"
     "D15"
+    "D16"
+
     "D17"
     "D18"
     "D19"
@@ -1425,9 +1433,12 @@
     "D24"
     "D25"
     "D26"
+    "D27"
     "D28"
     "D29"
     "D30"
+    "D31"
+    "D32"
     "D33"
     "D34"
 
@@ -1440,6 +1451,7 @@
     "E7"
     "E8"
     "E9"
+    "E10"
     "E12"
     "E13"
     "E14"
