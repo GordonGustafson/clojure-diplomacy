@@ -57,6 +57,16 @@
       #{location}
       (first colocation-sets-for-location))))
 
+(defn-spec colocated-edge-accessible-to?
+  [::dt/dmap ::dt/location ::dt/location ::dt/unit-type] boolean?)
+(defn colocated-edge-accessible-to?
+  "Whether these is an edge accessible to `unit-type` from a location colocated
+  with `from` to a location colocated with `to`."
+  [diplomacy-map from to unit-type]
+  (some true? (for [co-from (colocation-set-for-location diplomacy-map from)
+                    co-to (colocation-set-for-location diplomacy-map to)]
+                (edge-accessible-to? diplomacy-map co-from co-to unit-type))))
+
 (defn-spec supply-center? [::dt/dmap ::dt/location] boolean?)
 (defn supply-center?
   [diplomacy-map location]

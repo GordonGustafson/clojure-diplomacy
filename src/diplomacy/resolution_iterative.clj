@@ -695,7 +695,7 @@
 (defn convoy-path-exists?-helper
   [dmap start-loc end-loc convoy-locations path-length-so-far-is-zero?]
   (cond
-    (and (maps/edge-accessible-to? dmap start-loc end-loc :fleet)
+    (and (maps/colocated-edge-accessible-to? dmap start-loc end-loc :fleet)
          (not path-length-so-far-is-zero?))
     true
     (empty? convoy-locations)
@@ -703,7 +703,7 @@
     :else
     ;; TODO this is very inefficient on large inputs
     (->> convoy-locations
-         (filter #(maps/edge-accessible-to? dmap start-loc % :fleet))
+         (filter #(maps/colocated-edge-accessible-to? dmap start-loc % :fleet))
          (some (fn [next-convoy]
                  (convoy-path-exists?-helper
                   dmap
