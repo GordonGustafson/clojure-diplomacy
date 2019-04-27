@@ -441,6 +441,7 @@
         conflicts (get conflict-map last-attack)
         conflict-states (get-conflict-states rs last-attack)]
     (if (and (orders/attack? last-attack)
+             (= (arrival-status rs last-attack) :succeeded)
              (= (order-status rs last-attack) :pending)
              (some (partial = :failed-to-leave-destination)
                    conflict-states)
