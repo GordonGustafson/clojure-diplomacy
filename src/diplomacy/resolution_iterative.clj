@@ -556,9 +556,9 @@
                              :would-dislodge-own-unit? true)]
     original-update))
 
-(defn-spec forbid-effect-on-dislodgers-province
+(defn-spec forbid-effect-on-dislodgers-province-helper
   [::resolution-state ::conflict-state-update] (s/nilable ::conflict-state-update))
-(defn forbid-effect-on-dislodgers-province
+(defn forbid-effect-on-dislodgers-province-helper
   "Mark `interferer` as not interfering if `interferer` should have no effect on
   `order` by the `no-effect-on-dislodgers-province` rule. If we don't have
   enough information to tell yet, return `nil`."
@@ -586,6 +586,18 @@
         nil)
       original-update)))
 
+(defn-spec forbid-effects-on-dislodgers-provinces
+  [::resolution-state ::conflict-state-updates] ::conflict-state-updates)
+(defn forbid-effects-on-dislodgers-provinces
+  "For each conflict state update, mark each `interferer` as not interfering if
+  the `interferer` should have no effect on the `order` by the
+  `no-effect-on-dislodgers-province` rule. If we don't have enough information
+  to tell yet, remove the conflict state update from the list."
+  [rs conflict-state-updates]
+  (->> conflict-state-updates
+       (map (partial forbid-effect-on-dislodgers-province-helper rs))
+       (filter some?)))
+
 (defn-spec evaluate-attack-conflict
   [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::conflict-state-updates)
@@ -599,7 +611,6 @@
       (= rule :failed-to-leave-destination)
       (->> (evaluate-attack-failed-to-leave rs attack bouncer)
            (map forbid-self-dislodgment)
-           (map (partial forbid-effect-on-dislodgers-province rs))
            (filter some?))
 
       (or (contains? #{:swapped-places :destination-occupied} rule)
@@ -608,8 +619,7 @@
       (->> (evaluate-attack-battle rs attack bouncer rule
                                    {:assume-beleaguered-garrison-leaves false})
            (map forbid-self-dislodgment)
-           (map (partial forbid-effect-on-dislodgers-province rs))
-           (filter some?))
+           (forbid-effects-on-dislodgers-provinces rs))
 
       (and (= rule :attacked-same-destination)
            (= (arrival-status rs bouncer) :failed))
