@@ -1366,6 +1366,22 @@
     :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :yor :attack :nwy] #{}
                               [:england :army :yor :attack :nwy] #{}}
     :explanation ""}
+   "Z15"
+   {:long-name "Z15. ATTACK 'FOLLOWING' A CONVOY"
+    :summary ""
+    :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :yor :attack :nwy] #{}
+                              [:england :army :yor :attack :nwy] #{}
+                              [:england :army :wal :attack :yor] #{}}
+    :explanation ""}
+   "Z16"
+   {:long-name "Z16. CONVOYED ATTACK FAILS TO LEAVE DESTINATION"
+    :summary ""
+    :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :yor :attack :nwy] #{}
+                              [:england :army :yor :attack :nwy] #{:no-successful-convoy}
+                              [:england :army :wal :attack :yor] #{[true [:england :army :yor :attack :nwy] :failed-to-leave-destination]}
+                              [:russia :fleet :nrg :attack :nth] #{[false [:england :fleet :nth :convoy :england :army :yor :attack :nwy] :destination-occupied]}
+                              [:russia :fleet :ska :support :russia :fleet :nrg :attack :nth] #{}}
+    :explanation ""}
    })
 
 ;; This whitelist was originally added to allow running
@@ -1494,6 +1510,8 @@
     "Z12"
     "Z13"
     "Z14"
+    "Z15"
+    "Z16"
     })
 
 (defn test-complete?
