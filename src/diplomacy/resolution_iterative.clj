@@ -545,7 +545,7 @@
   (if (and (= (:country order) (:country interferer))
            (s/valid? ::dt/judgment conflict-state)
            (contains? #{:destination-occupied
-                        :swapped-places-without-convoy
+                        :swapped-places
                         :failed-to-leave-destination}
                       ;; Don't forget the structure of
                       ;; `::dt/attack-conflict-situation`!!
@@ -602,7 +602,7 @@
            (map (partial forbid-effect-on-dislodgers-province rs))
            (filter some?))
 
-      (or (contains? #{:swapped-places-without-convoy :destination-occupied} rule)
+      (or (contains? #{:swapped-places :destination-occupied} rule)
           (and (= rule :attacked-same-destination)
                (= (arrival-status rs bouncer) :succeeded)))
       (->> (evaluate-attack-battle rs attack bouncer rule
@@ -831,10 +831,10 @@
        (->> (attacks-to dmap location-to-order-map destination)
             (filter #(not= order %))
             (map #(-> [order % :attacked-same-destination])))
-       (map #(-> [order % :swapped-places-without-convoy])
+       (map #(-> [order % :swapped-places])
             (attacks-from-to dmap location-to-order-map destination location))
        (->> (attacks-from dmap location-to-order-map destination)
-            ;; Exclude `:swapped-places-without-convoy` conflicts
+            ;; Exclude `:swapped-places` conflicts
             (filter #(not (maps/locations-colocated?
                            dmap (:destination %) location)))
             (map #(-> [order % :failed-to-leave-destination])))))

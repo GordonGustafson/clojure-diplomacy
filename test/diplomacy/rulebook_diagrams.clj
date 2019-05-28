@@ -8,8 +8,8 @@
    5 {[:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :pru] :failed-to-leave-destination]}
       [:germany :army :ber :attack :pru] #{[true [::russia :army :pru :hold] :destination-occupied]}
       [::russia :army :pru :hold] #{}}
-   6 {[:germany :fleet :ber :attack :pru] #{[true [:russia :army :pru :attack :ber] :swapped-places-without-convoy]}
-      [:russia :army :pru :attack :ber] #{[true [:germany :fleet :ber :attack :pru] :swapped-places-without-convoy]}}
+   6 {[:germany :fleet :ber :attack :pru] #{[true [:russia :army :pru :attack :ber] :swapped-places]}
+      [:russia :army :pru :attack :ber] #{[true [:germany :fleet :ber :attack :pru] :swapped-places]}}
    7 {[:england :army :hol :attack :bel] #{}
       [:england :fleet :bel :attack :nth] #{}
       [:france :fleet :nth :attack :hol] #{}}
@@ -33,15 +33,15 @@
        [:germany :army :ber :support :germany :army :mun :attack :sil] #{}
        [:russia :army :war :attack :sil] #{[true [:germany :army :mun :attack :sil] :attacked-same-destination]}
        [:russia :army :pru :support :russia :army :war :attack :sil] #{}}
-   13 {[:turkey :army :bul :attack :rum] #{[true [:russia :army :rum :attack :bul] :swapped-places-without-convoy]
+   13 {[:turkey :army :bul :attack :rum] #{[true [:russia :army :rum :attack :bul] :swapped-places]
                                            [true [:russia :army :sev :attack :rum] :attacked-same-destination]}
-       [:russia :army :rum :attack :bul] #{[false [:turkey :army :bul :attack :rum] :swapped-places-without-convoy]}
+       [:russia :army :rum :attack :bul] #{[false [:turkey :army :bul :attack :rum] :swapped-places]}
        [:russia :army :ser :support :russia :army :rum :attack :bul] #{}
        [:russia :army :sev :attack :rum] #{[false [:turkey :army :bul :attack :rum] :no-effect-on-dislodgers-province]}}
-   14 {[:turkey :army :bul :attack :rum] #{[true [:russia :army :rum :attack :bul] :swapped-places-without-convoy]
+   14 {[:turkey :army :bul :attack :rum] #{[true [:russia :army :rum :attack :bul] :swapped-places]
                                            [false [:russia :army :sev :attack :rum] :attacked-same-destination]}
        [:turkey :fleet :bla :support :turkey :army :bul :attack :rum] #{}
-       [:russia :army :rum :attack :bul] #{[false [:turkey :army :bul :attack :rum] :swapped-places-without-convoy]}
+       [:russia :army :rum :attack :bul] #{[false [:turkey :army :bul :attack :rum] :swapped-places]}
        [:russia :army :gre :support :russia :army :rum :attack :bul] #{}
        [:russia :army :ser :support :russia :army :rum :attack :bul] #{}
        [:russia :army :sev :attack :rum] #{[false [:turkey :army :bul :attack :rum] :no-effect-on-dislodgers-province]}}

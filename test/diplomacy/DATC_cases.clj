@@ -196,8 +196,8 @@
    "B13"
    {:long-name "6.B.13. COASTAL CRAWL NOT ALLOWED"
     :summary "If a fleet is leaving a sector from a certain coast while in the opposite direction another fleet is moving to another coast of the sector, it is still a head to head battle. This has been decided in the great revision of the 1961 rules that resulted in the 1971 rules."
-    :resolution-results-abbr {[:turkey :fleet :bul-sc :attack :con] #{[true [:turkey :fleet :con :attack :bul-ec] :swapped-places-without-convoy]}
-                              [:turkey :fleet :con :attack :bul-ec] #{[true [:turkey :fleet :bul-sc :attack :con] :swapped-places-without-convoy]}}
+    :resolution-results-abbr {[:turkey :fleet :bul-sc :attack :con] #{[true [:turkey :fleet :con :attack :bul-ec] :swapped-places]}
+                              [:turkey :fleet :con :attack :bul-ec] #{[true [:turkey :fleet :bul-sc :attack :con] :swapped-places]}}
     :explanation "Both moves fail."}
    "C1"
    {:long-name "6.C.1. THREE ARMY CIRCULAR MOVEMENT"
@@ -585,10 +585,10 @@
    "E1"
    {:long-name "6.E.1. DISLODGED UNIT HAS NO EFFECT ON ATTACKERS AREA"
     :summary "An army can follow."
-    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[false [:russia :army :pru :attack :ber] :swapped-places-without-convoy]}
+    :resolution-results-abbr {[:germany :army :ber :attack :pru] #{[false [:russia :army :pru :attack :ber] :swapped-places]}
                               [:germany :fleet :kie :attack :ber] #{[false [:russia :army :pru :attack :ber] :attacked-same-destination]}
                               [:germany :army :sil :support :germany :army :ber :attack :pru] #{}
-                              [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :attack :pru] :swapped-places-without-convoy]
+                              [:russia :army :pru :attack :ber] #{[true [:germany :army :ber :attack :pru] :swapped-places]
                                                                   [true [:germany :fleet :kie :attack :ber] :attacked-same-destination]}}
     :explanation "The army in Kiel will move to Berlin."}
    "E2"
@@ -597,25 +597,25 @@
     ;; `:would-dislodge-own-unit?` is false here because the supporting army is
     ;; unwilling to have its support used for dislodging the friendly Fleet.
     ;; TODO: Make this less confusing?
-    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[true [:germany :fleet :kie :attack :ber] :swapped-places-without-convoy]}
-                              [:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places-without-convoy]}
+    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[true [:germany :fleet :kie :attack :ber] :swapped-places]}
+                              [:germany :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places]}
                               [:germany :army :mun :support :germany :army :ber :attack :kie] #{}}
     :explanation "No unit will move."}
    "E3"
    {:long-name "6.E.3. NO HELP IN DISLODGING OWN UNIT"
     :summary "To help a foreign power to dislodge own unit in head to head battle is not possible."
-    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[true [:england :fleet :kie :attack :ber] :swapped-places-without-convoy]}
+    :resolution-results-abbr {[:germany :army :ber :attack :kie] #{[true [:england :fleet :kie :attack :ber] :swapped-places]}
                               [:germany :army :mun :support :england :fleet :kie :attack :ber] #{}
-                              [:england :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places-without-convoy]}}
+                              [:england :fleet :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places]}}
     :explanation "No unit will move."}
    "E4"
    {:long-name "6.E.4. NON-DISLODGED LOSER HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is not dislodged, it has still effect on the area of the attacker."
     :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[true [:england :fleet :nrg :attack :nth] :attacked-same-destination]
-                                                                    [false [:france :fleet :nth :attack :hol] :swapped-places-without-convoy]}
+                                                                    [false [:france :fleet :nth :attack :hol] :swapped-places]}
                               [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{}
                               [:germany :fleet :ska :support :germany :fleet :hol :attack :nth] #{}
-                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places-without-convoy]
+                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places]
                                                                    [true [:austria :army :ruh :attack :hol] :attacked-same-destination]}
                               [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{}
                               [:england :fleet :edi :support :england :fleet :nrg :attack :nth] #{}
@@ -630,10 +630,10 @@
    {:long-name "6.E.5. LOSER DISLODGED BY ANOTHER ARMY HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is dislodged by a unit not part of the head to head battle, the loser has still effect on the place of the winner of the head to head battle."
     :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[true [:england :fleet :nrg :attack :nth] :attacked-same-destination]
-                                                                    [false [:france :fleet :nth :attack :hol] :swapped-places-without-convoy]}
+                                                                    [false [:france :fleet :nth :attack :hol] :swapped-places]}
                               [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{}
                               [:germany :fleet :ska :support :germany :fleet :hol :attack :nth] #{}
-                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places-without-convoy]
+                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places]
                                                                    [true [:austria :army :ruh :attack :hol] :attacked-same-destination]}
                               [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{}
                               [:england :fleet :edi :support :england :fleet :nrg :attack :nth] #{}
@@ -649,9 +649,9 @@
    "E6"
    {:long-name "6.E.6. NOT DISLODGE BECAUSE OF OWN SUPPORT HAS STILL EFFECT"
     :summary "If in an unbalanced head to head battle the loser is not dislodged because the winner had help of a unit of the loser, the loser has still effect on the area of the winner."
-    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[true [:france :fleet :nth :attack :hol] :swapped-places-without-convoy]}
+    :resolution-results-abbr {[:germany :fleet :hol :attack :nth] #{[true [:france :fleet :nth :attack :hol] :swapped-places]}
                               [:germany :fleet :hel :support :germany :fleet :hol :attack :nth] #{}
-                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places-without-convoy]
+                              [:france :fleet :nth :attack :hol] #{[true [:germany :fleet :hol :attack :nth] :swapped-places]
                                                                    [true [:austria :army :ruh :attack :hol] :attacked-same-destination]}
                               [:france :fleet :bel :support :france :fleet :nth :attack :hol] #{}
                               [:france :fleet :eng :support :germany :fleet :hol :attack :nth] #{}
@@ -674,13 +674,13 @@
    "E8"
    {:long-name "6.E.8. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON AND HEAD TO HEAD BATTLE"
     :summary "Similar to the previous test case, but now the beleaguered fleet is also engaged in a head to head battle."
-    :resolution-results-abbr {[:england :fleet :nth :attack :nwy] #{[true [:russia :fleet :nwy :attack :nth] :swapped-places-without-convoy]}
+    :resolution-results-abbr {[:england :fleet :nth :attack :nwy] #{[true [:russia :fleet :nwy :attack :nth] :swapped-places]}
                               [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
                               [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]
                                                                     [false [:england :fleet :nth :attack :nwy] :failed-to-leave-destination]}
                               [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
-                              [:russia :fleet :nwy :attack :nth] #{[false [:england :fleet :nth :attack :nwy] :swapped-places-without-convoy]
+                              [:russia :fleet :nwy :attack :nth] #{[false [:england :fleet :nth :attack :nwy] :swapped-places]
                                                                    [true [:germany :fleet :hel :attack :nth] :attacked-same-destination]}}
     :explanation "Again, none of the fleets move."}
    "E9"
@@ -759,11 +759,11 @@
     :resolution-results-abbr {[:england :fleet :hol :support :england :army :ruh :attack :kie] #{}
                               [:england :army :ruh :attack :kie] #{[true [:germany :army :ber :attack :kie] :attacked-same-destination]
                                                                    [false [:france :army :kie :attack :ber] :failed-to-leave-destination]}
-                              [:france :army :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places-without-convoy]
+                              [:france :army :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places]
                                                                   [false [:russia :army :pru :attack :ber] :attacked-same-destination]}
                               [:france :army :mun :support :france :army :kie :attack :ber] #{}
                               [:france :army :sil :support :france :army :kie :attack :ber] #{}
-                              [:germany :army :ber :attack :kie] #{[true [:france :army :kie :attack :ber] :swapped-places-without-convoy]
+                              [:germany :army :ber :attack :kie] #{[true [:france :army :kie :attack :ber] :swapped-places]
                                                                    [false [:england :army :ruh :attack :kie] :attacked-same-destination]}
                               [:germany :fleet :den :support :germany :army :ber :attack :kie] #{}
                               [:germany :fleet :hel :support :germany :army :ber :attack :kie] #{}
@@ -1385,8 +1385,8 @@
    "Z17"
    {:long-name "Z17. SWAP PLACES WITHOUT CONVOY"
     :summary ""
-    :resolution-results-abbr {[:england :army :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places-without-convoy]}
-                              [:germany :army :ber :attack :kie] #{[true [:england :army :kie :attack :ber] :swapped-places-without-convoy]}}
+    :resolution-results-abbr {[:england :army :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places]}
+                              [:germany :army :ber :attack :kie] #{[true [:england :army :kie :attack :ber] :swapped-places]}}
     :explanation ""}
    })
 

@@ -120,7 +120,7 @@
 (s/def ::attack-conflict-rule
   #{:destination-occupied
     :attacked-same-destination
-    :swapped-places-without-convoy
+    :swapped-places
     :failed-to-leave-destination
     :no-effect-on-dislodgers-province})
 ;; Beleaguered garrison that changed the outcome of one of the attacks on its

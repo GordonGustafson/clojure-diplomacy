@@ -299,12 +299,12 @@
 (deftest test-forbid-self-dislodgment
   (let [self-dislodgment-cases [
                                 [italy-ven-tyr italy-tyr-hold :destination-occupied]
-                                [italy-ven-tyr italy-tyr-ven :swapped-places-without-convoy]
+                                [italy-ven-tyr italy-tyr-ven :swapped-places]
                                 [italy-ven-tyr italy-tyr-boh :failed-to-leave-destination]
                                 ]
         no-self-dislodgment-cases [
                                    [italy-ven-tyr russia-tyr-hold :destination-occupied]
-                                   [italy-ven-tyr austria-tyr-ven :swapped-places-without-convoy]
+                                   [italy-ven-tyr austria-tyr-ven :swapped-places]
                                    [italy-ven-tyr turkey-tyr-boh :failed-to-leave-destination]
                                    [italy-ven-tyr italy-mun-tyr :attacked-same-destination]
                                    [italy-ven-tyr germany-mun-tyr :attacked-same-destination]

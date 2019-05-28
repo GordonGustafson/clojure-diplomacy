@@ -60,7 +60,7 @@
                                          [true [:russia :army :gal :attack :bud] :attacked-same-destination]}
     [:austria :army :bud :attack :ser] #{}
     [:austria :fleet :gre :hold] #{}
-    [:england :army :nwy :attack :stp] #{[true [:russia :army :stp :attack :nwy] :swapped-places-without-convoy]}
+    [:england :army :nwy :attack :stp] #{[true [:russia :army :stp :attack :nwy] :swapped-places]}
     ;; backed up
     [:england :fleet :nth :attack :nwy] #{[true [:england :army :nwy :attack :stp] :failed-to-leave-destination]
                                           ;; TODO: if the unit was backed up,
@@ -86,7 +86,7 @@
     [:russia :army :ukr :support :russia :fleet :rum :hold] #{}
     [:russia :army :gal :attack :bud] #{[true [:austria :army :vie :attack :bud] :attacked-same-destination]
                                         [true [:austria :army :tri :attack :bud] :attacked-same-destination]}
-    [:russia :army :stp :attack :nwy] #{[true [:england :army :nwy :attack :stp] :swapped-places-without-convoy]
+    [:russia :army :stp :attack :nwy] #{[true [:england :army :nwy :attack :stp] :swapped-places]
                                         [false [:england :fleet :nth :attack :nwy] :attacked-same-destination]}
     [:russia :army :sev :support :russia :fleet :rum :hold] #{}
     [:russia :fleet :swe :support :russia :army :stp :attack :nwy] #{}
@@ -101,7 +101,7 @@
     [:austria :army :tri :attack :bud] #{}
     [:austria :army :ser :support :turkey :army :bul :attack :rum] #{}
     [:austria :fleet :gre :hold] #{}
-    [:england :army :nwy :attack :stp] #{[false [:russia :army :stp :attack :nwy] :swapped-places-without-convoy]}
+    [:england :army :nwy :attack :stp] #{[false [:russia :army :stp :attack :nwy] :swapped-places]}
     [:england :fleet :bar :support :england :army :nwy :attack :stp] #{}
     [:england :fleet :nth :attack :nwy] #{[false [:russia :army :stp :attack :nwy] :no-effect-on-dislodgers-province]}
     [:england :fleet :edi :attack :nth] #{}
@@ -119,7 +119,7 @@
     [:italy :army :pie :attack :mar] #{[true [:france :fleet :mar :support :france :army :spa :hold] :destination-occupied]}
     [:italy :fleet :wes :attack :naf] #{}
     [:italy :fleet :tyn :attack :gol] #{}
-    [:russia :army :stp :attack :nwy] #{[true [:england :army :nwy :attack :stp] :swapped-places-without-convoy]
+    [:russia :army :stp :attack :nwy] #{[true [:england :army :nwy :attack :stp] :swapped-places]
                                         [true [:england :fleet :nth :attack :nwy] :attacked-same-destination]}
     [:russia :fleet :swe :support :russia :army :stp :attack :nwy] #{[true [:germany :fleet :den :attack :swe] :attacked]}
     [:russia :fleet :rum :support :russia :army :sev :hold] #{[true [:turkey :army :bul :attack :rum] :attacked]}

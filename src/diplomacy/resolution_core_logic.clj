@@ -420,7 +420,7 @@
         (successful-supporterso attack attack-supporters)
         (successful-supporterso bouncer bouncer-supporters)
         ;; TODO: use :swapped-places-with-convoy when appropriate.
-        (== rule :swapped-places-without-convoy)
+        (== rule :swapped-places)
         (== beleaguered-garrison nil))]
 
      [(fresh [bouncer-from bouncer-to new-attacks-assumed-successful]
@@ -493,7 +493,7 @@
             (num-willing-to-dislodge attack-supporters beleaguered-garrison))
           (count bouncer-supporters))
 
-      #{:swapped-places-without-convoy
+      #{:swapped-places
         :destination-occupied}
       (<= (num-willing-to-dislodge attack-supporters bouncer)
           (count bouncer-supporters))
