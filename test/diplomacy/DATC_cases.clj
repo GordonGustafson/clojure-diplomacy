@@ -1382,6 +1382,12 @@
                               [:russia :fleet :nrg :attack :nth] #{[false [:england :fleet :nth :convoy :england :army :yor :attack :nwy] :destination-occupied]}
                               [:russia :fleet :ska :support :russia :fleet :nrg :attack :nth] #{}}
     :explanation ""}
+   "Z17"
+   {:long-name "Z17. SWAP PLACES WITHOUT CONVOY"
+    :summary ""
+    :resolution-results-abbr {[:england :army :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places-without-convoy]}
+                              [:germany :army :ber :attack :kie] #{[true [:england :army :kie :attack :ber] :swapped-places-without-convoy]}}
+    :explanation ""}
    })
 
 ;; This whitelist was originally added to allow running
@@ -1512,6 +1518,7 @@
     "Z14"
     "Z15"
     "Z16"
+    "Z17"
     })
 
 (defn test-complete?
