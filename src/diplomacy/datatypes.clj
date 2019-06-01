@@ -122,6 +122,7 @@
     :attacked-same-destination
     :swapped-places
     :failed-to-leave-destination
+    ;; Only used in `diplomacy.resolution-core-logic`
     :no-effect-on-dislodgers-province})
 ;; Beleaguered garrison that changed the outcome of one of the attacks on its
 ;; location due to one or more supporting orders of that attack being unwilling

@@ -607,27 +607,41 @@
     :failed [[attack bouncer [rule :no-conflict]]]
     :pending []
     :succeeded
-    (cond
-      (= rule :failed-to-leave-destination)
-      (->> (evaluate-attack-failed-to-leave rs attack bouncer)
-           (map forbid-self-dislodgment)
-           (filter some?))
+    (let [bouncer-arrival-status (arrival-status rs bouncer)]
+      (cond
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; :failed-to-leave-destination
 
-      (or (contains? #{:swapped-places :destination-occupied} rule)
-          (and (= rule :attacked-same-destination)
-               (= (arrival-status rs bouncer) :succeeded)))
-      (->> (evaluate-attack-battle rs attack bouncer rule
-                                   {:assume-beleaguered-garrison-leaves false})
-           (map forbid-self-dislodgment)
-           (forbid-effects-on-dislodgers-provinces rs))
+        ;; Try to evaluate `:failed-to-leave-destination` conflicts even if
+        ;; `bouncer`'s arrival status is still pending. This is to allow orders
+        ;; moving in a circle.
+        (= rule :failed-to-leave-destination)
+        (->> (evaluate-attack-failed-to-leave rs attack bouncer)
+             (map forbid-self-dislodgment)
+             (filter some?))
 
-      (and (= rule :attacked-same-destination)
-           (= (arrival-status rs bouncer) :failed))
-      [[attack bouncer [rule :no-conflict]]]
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bouncer arrival pending
 
-      (and (= rule :attacked-same-destination)
-           (= (arrival-status rs bouncer) :pending))
-      [])))
+        ;; TODO: For `:swapped-places`, is there ever a situation where we have
+        ;; to resolve this conflict before knowing whether `bouncer` arrives or
+        ;; not?
+        (and (contains? #{:attacked-same-destination :swapped-places} rule)
+             (= bouncer-arrival-status :pending))
+        []
+
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; :no-conflict
+
+        (and (= rule :attacked-same-destination)
+             (= bouncer-arrival-status :failed))
+        [[attack bouncer [rule :no-conflict]]]
+
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Battle!
+
+        :else
+        (->>
+         (evaluate-attack-battle rs attack bouncer rule
+                                 {:assume-beleaguered-garrison-leaves false})
+         (map forbid-self-dislodgment)
+         (forbid-effects-on-dislodgers-provinces rs))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         Resolving Supports ;;
