@@ -313,6 +313,15 @@
     :succeeded
     (get voyage-map attack-order)))
 
+(defn-spec arrives-by-convoy? [::resolution-state ::dt/attack-order] boolean?)
+(defn arrives-by-convoy?
+  [{:keys [dmap] :as rs}
+   {:keys [location destination] :as attack-order}]
+  ;; TODO: handle arriving to adjacent location by convoy
+  (and (orders/army? attack-order)
+       (= (arrival-status rs attack-order) :succeeded)
+       (not (maps/edge-accessible-to? dmap location destination :army))))
+
 (defn-spec order-status [::resolution-state ::dt/order]
   ::order-status)
 (defn order-status
@@ -632,6 +641,12 @@
 
         (and (= rule :attacked-same-destination)
              (= bouncer-arrival-status :failed))
+        [[attack bouncer [rule :no-conflict]]]
+
+        (and (= rule :swapped-places)
+             (= bouncer-arrival-status :succeeded)
+             (or (arrives-by-convoy? rs attack)
+                 (arrives-by-convoy? rs bouncer)))
         [[attack bouncer [rule :no-conflict]]]
 
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Battle!

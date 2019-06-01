@@ -1388,6 +1388,14 @@
     :resolution-results-abbr {[:england :army :kie :attack :ber] #{[true [:germany :army :ber :attack :kie] :swapped-places]}
                               [:germany :army :ber :attack :kie] #{[true [:england :army :kie :attack :ber] :swapped-places]}}
     :explanation ""}
+   "Z18"
+   {:long-name "Z18. NON-ADJACENT UNIT SWAP WITH TWO CONVOYs"
+    :summary ""
+    :resolution-results-abbr {[:england :army :lon :attack :bel] #{}
+                              [:england :fleet :nth :convoy :england :army :lon :attack :bel] #{}
+                              [:france :army :bel :attack :lon] #{}
+                              [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{}}
+    :explanation ""}
    })
 
 ;; This whitelist was originally added to allow running
@@ -1519,6 +1527,7 @@
     "Z15"
     "Z16"
     "Z17"
+    "Z18"
     })
 
 (defn test-complete?
