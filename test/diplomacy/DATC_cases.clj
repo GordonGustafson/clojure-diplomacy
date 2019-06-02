@@ -1019,9 +1019,9 @@
    "G1"
    {:long-name "6.G.1. TWO UNITS CAN SWAP PLACES BY CONVOY"
     :summary "The only way to swap two units, is by convoy."
-    :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :army :nwy :attack :swe] #{}
                               [:england :fleet :ska :convoy :england :army :nwy :attack :swe] #{}
-                              [:russia :army :swe :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:russia :army :swe :attack :nwy] #{}}
     :explanation "In most interpretation of the rules, the units in Norway and Sweden will be swapped. However, if explicit adjacent convoying is used (see issue 4.A.3), then it is just a head to head battle. <i>I prefer the 2000 rules, so the units are swapped.</i>"}
    "G2"
    {:long-name "6.G.2. KIDNAPPING AN ARMY"
@@ -1052,17 +1052,20 @@
    "G5"
    {:long-name "6.G.5. SWAPPING WITH INTENT"
     :summary "When one of the convoying fleets is of the same nationality of the convoyed army, the \"intent\" is to convoy."
-    :resolution-results-abbr {[:italy :army :rom :attack :apu] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:italy :army :rom :attack :apu] #{}
                               [:italy :fleet :tyn :convoy :turkey :army :apu :attack :rom] #{}
-                              [:turkey :army :apu :attack :rom] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:turkey :army :apu :attack :rom] #{}
                               [:turkey :fleet :ion :convoy :turkey :army :apu :attack :rom] #{}}
     :explanation "See issue 4.A.3. When the 1982/2000 rulebook is used (<i>which I prefer</i>), the convoy depends on the \"intent\". Since there is an own fleet in the  convoy, the intent is to convoy and the armies in Rome and  Apulia swap places.  For choices a, b and c of the issue there is also a convoy and the same swap takes place. When explicit adjacent convoying is used (DPTG, choice e), then the Turkish army did not receive an order to move by convoy. So, it is just a head to head battle and both the army in Rome and Apulia will not move."}
    "G6"
+   ;; DECISION: An army attack order will prefer arriving by convoy if its
+   ;; country gave an order to convoy that exact attack order, regardless of
+   ;; whether that convoy order is legal or used.
    {:long-name "6.G.6. SWAPPING WITH UNINTENDED INTENT"
     :summary "The intent is questionable."
-    :resolution-results-abbr {[:england :army :lvp :attack :edi] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :army :lvp :attack :edi] #{}
                               [:england :fleet :eng :convoy :england :army :lvp :attack :edi] #{}
-                              [:germany :army :edi :attack :lvp] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:germany :army :edi :attack :lvp] #{}
                               [:france :fleet :iri :hold] #{}
                               [:france :fleet :nth :hold] #{}
                               [:russia :fleet :nrg :convoy :england :army :lvp :attack :edi] #{}
@@ -1072,8 +1075,8 @@
    {:long-name "6.G.7. SWAPPING WITH ILLEGAL INTENT"
     :summary "Can the intent made clear with an impossible order?"
     :resolution-results-abbr {[:england :fleet :ska :convoy :russia :army :swe :attack :nwy] #{}
-                              [:england :fleet :nwy :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :swe :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:england :fleet :nwy :attack :swe] #{}
+                              [:russia :army :swe :attack :nwy] #{}
                               [:russia :fleet :bot :convoy :russia :army :swe :attack :nwy] #{}}
     :explanation "See issue 4.A.3 and 4.E.1. If for issue 4.A.3 choice a, b or c has been taken, then the army in Sweden moves by convoy and swaps places with the fleet in Norway. However, if for issue 4.A.3 the 1982/2000 has been chosen (choice d), then the \"intent\" is important. The question is whether the fleet in the Gulf of Bothnia can express the intent. If the order for this fleet is considered illegal (see issue 4.E.1), then this order must be ignored and there is no intent to swap. In that case none of the units move. If explicit convoying is used (DPTG, choice e of issue 4.A.3) then the army in Sweden will take the land route and none of the units move. <i>I prefer the 1982/2000 rule and that any orders that can't be valid are illegal. So, the order of the fleet in the Gulf of Bothnia is ignored and can not show the intent. There is no convoy, so no unit will move.</i>"}
    "G8"
@@ -1086,10 +1089,10 @@
    "G9"
    {:long-name "6.G.9. SWAPPED OR DISLODGED?"
     :summary "The 1982 rulebook says that whether the move is over land or via convoy depends on the \"intent\" as shown by the totality of the orders written by the player governing the army (see issue 4.A.3). In this test case the English army in Norway will end in all cases in Sweden. But whether it is convoyed or not has effect on the Russian army. In case of convoy the Russian army ends in Norway and in case of a land route the Russian army is dislodged."
-    :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :army :nwy :attack :swe] #{}
                               [:england :fleet :ska :convoy :england :army :nwy :attack :swe] #{}
-                              [:england :fleet :fin :support :england :army :nwy :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :army :swe :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:england :fleet :fin :support :england :army :nwy :attack :swe] #{}
+                              [:russia :army :swe :attack :nwy] #{}}
     :explanation "See issue 4.A.3. For choice a, b and c the move of the army in Norway is by convoy and the armies in Norway and Sweden are swapped. If the 1982 rulebook is used with the clarification of the  2000 rulebook (choice d, <i>which I prefer</i>), the intent of the English player is to convoy, since it ordered the fleet in Skagerrak to convoy. Therefore, the armies in Norway and Sweden are swapped. When explicit adjacent convoying is used (DTPG, choice e), then the unit in Norway did not receive an order to move by convoy and the land route should be considered. The Russian army in Sweden is dislodged."}
    "G10"
    {:long-name "6.G.10. SWAPPED OR AN HEAD TO HEAD BATTLE?"
@@ -1115,10 +1118,10 @@
    "G12"
    {:long-name "6.G.12. SWAPPING TWO UNITS WITH TWO CONVOYS"
     :summary "Of course, two armies can also swap by when they are both convoyed."
-    :resolution-results-abbr {[:england :army :lvp :attack :edi] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :army :lvp :attack :edi] #{}
                               [:england :fleet :nat :convoy :england :army :lvp :attack :edi] #{}
                               [:england :fleet :nrg :convoy :england :army :lvp :attack :edi] #{}
-                              [:germany :army :edi :attack :lvp] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              [:germany :army :edi :attack :lvp] #{}
                               [:germany :fleet :nth :convoy :germany :army :edi :attack :lvp] #{}
                               [:germany :fleet :eng :convoy :germany :army :edi :attack :lvp] #{}
                               [:germany :fleet :iri :convoy :germany :army :edi :attack :lvp] #{}}
@@ -1510,6 +1513,13 @@
     "F22"
     "F23"
     "F24"
+
+    "G1"
+    "G5"
+    "G6"
+    "G7"
+    "G9"
+    "G12"
 
     "Z1"
     "Z2"

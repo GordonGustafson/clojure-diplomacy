@@ -313,15 +313,6 @@
     :succeeded
     (get voyage-map attack-order)))
 
-(defn-spec arrives-by-convoy? [::resolution-state ::dt/attack-order] boolean?)
-(defn arrives-by-convoy?
-  [{:keys [dmap] :as rs}
-   {:keys [location destination] :as attack-order}]
-  ;; TODO: handle arriving to adjacent location by convoy
-  (and (orders/army? attack-order)
-       (= (arrival-status rs attack-order) :succeeded)
-       (not (maps/edge-accessible-to? dmap location destination :army))))
-
 (defn-spec order-status [::resolution-state ::dt/order]
   ::order-status)
 (defn order-status
@@ -336,6 +327,31 @@
          conflict-states-to-order-status)
     ;; :pending or :failed
     (arrival-status rs order)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Determining whether an arrival was made by convoy ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; All code outside this section is *only* concerned with whether a unit arrived
+;; or not, ignoring whether it arrived by convoy or by land. This concept of
+;; 'arrival method' could certainly be handled 'deeper' in the resolution engine
+;; and included in `::resolution-state`, but that would be additional work for
+;; little meaningful benefit.
+
+(defn-spec arrives-via-convoy? [::resolution-state ::dt/attack-order] boolean?)
+(defn arrives-via-convoy?
+  "Whether `attack-order` is known to arrive using a convoy."
+  [{:keys [dmap convoy-map] :as rs}
+   {:keys [location destination] :as attack-order}]
+  (and (orders/army? attack-order)
+       ;; Call `evaluate-voyage` instead of checking `voyage-map` because
+       ;; `voyage-map` does not include convoys to adjacent locations.
+       (= (evaluate-voyage rs attack-order) :succeeded)
+       (or
+        (not (maps/edge-accessible-to? dmap location destination :army))
+        ;; If this is a convoy to an adjacent location, require that some sort
+        ;; of 'intent to convoy' was expressed.
+        (some #(= (:country %) (:country attack-order))
+              (get convoy-map attack-order [])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                        Determining Support ;;
@@ -645,8 +661,8 @@
 
         (and (= rule :swapped-places)
              (= bouncer-arrival-status :succeeded)
-             (or (arrives-by-convoy? rs attack)
-                 (arrives-by-convoy? rs bouncer)))
+             (or (arrives-via-convoy? rs attack)
+                 (arrives-via-convoy? rs bouncer)))
         [[attack bouncer [rule :no-conflict]]]
 
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Battle!
