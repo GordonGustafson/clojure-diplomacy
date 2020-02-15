@@ -1,36 +1,41 @@
-# diplomacy
+# Clojure Diplomacy
 
-FIXME: description
+An adjudicator for the game of [Diplomacy](https://en.wikipedia.org/wiki/Diplomacy_(game)).
+This program supports determining the set of outcomes of a set of diplomacy moves.
+Unlike other Diplomacy adjudicators, this project will provide explanations for why each order succeeded or failed, like so:
 
-## Installation
+INPUT:
+```
+Austria:
+A Serbia - Budapest
+A Vienna - Budapest
 
-Download from http://example.com/FIXME.
+Russia:
+A Galicia Supports A Serbia - Budapest
 
-## Usage
+Turkey:
+A Bulgaria - Serbia
+```
 
-FIXME: explanation
+OUTPUT:
+```
+Austria:
+A Serbia - Budapest = ADVANCES.         Non-interfering moves: A Vienna - Budapest attacked same destination.
+A Vienna - Budapest = DOES NOT ADVANCE. Interfering moves: A Serbia - Budapest attacked same destination.
 
-    $ java -jar diplomacy-0.1.0-standalone.jar [args]
+Russia:
+A Galicia Supports A Serbia - Budapest = SUPPORT GIVEN.
 
-## Options
+Turkey:
+A Bulgaria - Serbia. = ADVANCES.
+```
 
-FIXME: listing of options this app accepts.
+# TODOs
 
-## Examples
+**TODO**: pass all of the core [Diplomacy Adjudicator Test Cases](http://web.inter.nl.net/users/L.B.Kruijswijk/). Currently 106 out of 122 test cases are passing.
 
-...
+**TODO**: summarize design and implementation.
 
-### Bugs
+**TODO**: provide text-based wrapper that gives output like the above (currently this program only operates on Clojure data structures).
 
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
-
-## License
-
-Copyright © 2015 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+**TODO**: host test case viewer on the web.
