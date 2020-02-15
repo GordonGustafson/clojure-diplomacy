@@ -1003,14 +1003,10 @@
 ;;                                      Public Interface for Order Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec compute-resolution-results
+(defn-spec get-initial-resolution-state
   [::dt/orders ::dt/dmap]
-  ::dt/resolution-results
-  #(= (set (-> % :args :arg-1)) (set (-> % :ret (keys)))))
-(defn compute-resolution-results
-  "A map from each element of `orders` to the set of judgments that apply to it
-  (the orders that may interfere with it, whether they successfully interfered,
-  and the situation that determined that result)."
+  ::resolution-state)
+(defn get-initial-resolution-state
   [orders diplomacy-map]
   (let [location-to-order-map (make-location-to-order-map orders)
         all-conflicts (mapcat (partial get-all-potential-conflicts
@@ -1025,19 +1021,30 @@
                             (keys convoy-map)
                             (filter #(and (orders/attack? %)
                                           (not (contains? direct-arrival-set %)))
-                                    orders)))
-        initial-resolution-state
-        {:conflict-map conflict-map
-         :conflict-queue conflict-queue
-         :voyage-map (->> voyage-queue
-                          (map (fn [convoyed-order] [convoyed-order :pending]))
-                          (into {}))
-         :voyage-queue voyage-queue
-         :support-map (make-support-map location-to-order-map)
-         :convoy-map convoy-map
-         :direct-arrival-set direct-arrival-set
-         :location-to-order-map location-to-order-map
-         :dmap diplomacy-map}
+                                    orders)))]
+    {:conflict-map conflict-map
+     :conflict-queue conflict-queue
+     :voyage-map (->> voyage-queue
+                      (map (fn [convoyed-order] [convoyed-order :pending]))
+                      (into {}))
+     :voyage-queue voyage-queue
+     :support-map (make-support-map location-to-order-map)
+     :convoy-map convoy-map
+     :direct-arrival-set direct-arrival-set
+     :location-to-order-map location-to-order-map
+     :dmap diplomacy-map}))
+
+(defn-spec compute-resolution-results
+  [::dt/orders ::dt/dmap]
+  ::dt/resolution-results
+  #(= (set (-> % :args :arg-1)) (set (-> % :ret (keys)))))
+(defn compute-resolution-results
+  "A map from each element of `orders` to the set of judgments that apply to it
+  (the orders that may interfere with it, whether they successfully interfered,
+  and the situation that determined that result)."
+  [orders diplomacy-map]
+  (let [initial-resolution-state
+        (get-initial-resolution-state orders diplomacy-map)
         final-resolution-state
         (get-final-resolution-state initial-resolution-state)
         final-conflict-map (:conflict-map final-resolution-state)]
