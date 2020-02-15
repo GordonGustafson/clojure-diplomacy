@@ -1,4 +1,4 @@
-(ns diplomacy.resolution-iterative
+(ns diplomacy.resolution-iterative.all
   (:require [diplomacy.judgments :as j]
             [diplomacy.orders :as orders]
             [diplomacy.map-functions :as maps]

@@ -1,5 +1,5 @@
 (ns diplomacy.resolution-iterative-test
-  (:require [diplomacy.resolution-iterative :refer :all]
+  (:require [diplomacy.resolution-iterative.all :refer :all]
             [diplomacy.map-data :refer [classic-map]]
             [diplomacy.judgments :as j]
             [diplomacy.test-expansion :as te]
