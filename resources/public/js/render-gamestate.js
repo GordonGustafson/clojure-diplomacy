@@ -1,5 +1,8 @@
 "use strict";
 
+// Renders a set of diplomacy orders using SVG.
+
+
 // Returns the child of `parent` that should be used for inserting content
 // rendered via javascript, creating it if it doesn't exist. `parent` must be an
 // element in an SVG DOM.

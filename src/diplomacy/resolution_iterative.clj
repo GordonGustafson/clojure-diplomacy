@@ -8,6 +8,10 @@
             [clojure.spec.alpha :as s]))
 (require 'clojure.pprint)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                            Queue Functions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn queue?
   [collection]
   (instance? clojure.lang.PersistentQueue collection))
@@ -20,8 +24,14 @@
 ;;                                               Specs Internal to Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; The case that there is no conflict (a possibility not covered by
-;; `::dt/judgment`).
+;; An example use of `::no-conflict` is when there's a potential conflict of
+;; army 1 not leaving army 2's destination. If army 1 ends up successfully
+;; leaving army 2's destination, the result of the potential conflict between
+;; army 1 and army 2 is `[:failed-to-leave-destination :no-conflict]`.
+;;
+;; `::no-conflict` resolutions are filtered out from the result of
+;; `compute-resolution-results`, since `::dt/judgment` doesn't allow
+;; `::no-conflict` resolutions.
 (s/def ::no-conflict (s/tuple ::dt/conflict-rule
                               (partial = :no-conflict)))
 (s/def ::resolved-conflict-state (s/or :judgment-tag ::dt/judgment
@@ -57,7 +67,7 @@
 ;; Map from orders to the orders attempting to convoy them.
 (s/def ::convoy-map (s/map-of ::dt/attack-order ::dt/orders))
 
-;; Set of orders that do not need a convoy because they moving between adjacent
+;; Set of orders that do not need a convoy because they move between adjacent
 ;; locations (though they may still have a convoy).
 (s/def ::direct-arrival-set (s/and (s/coll-of ::dt/attack-order) set?))
 (s/def ::location-to-order-map (s/map-of ::dt/location ::dt/order))
@@ -90,7 +100,12 @@
 
 (defn-spec take-conflict-resolution-step [::resolution-state] ::resolution-state)
 (defn take-conflict-resolution-step
-  "Tries to resolve the next conflict in the conflict queue, if there is one."
+  "Tries to evaluate the first conflict in the conflict queue, if there is one.
+
+  If the first conflict in the queue can be evaluated, this function updates
+  `conflict-map` with the results, and removes any resolved conflicts from
+  `conflict-queue`. If the first conflict cannot be evaluated, it is moved to
+  the back of the queue."
   [{:keys [conflict-map conflict-queue
            location-to-order-map dmap]
     :as resolution-state}]
