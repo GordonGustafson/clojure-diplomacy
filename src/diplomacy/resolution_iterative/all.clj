@@ -1,5 +1,6 @@
 (ns diplomacy.resolution-iterative.all
-  (:require [diplomacy.judgments :as j]
+  (:require [diplomacy.resolution-iterative.datatypes :as r]
+            [diplomacy.judgments :as j]
             [diplomacy.orders :as orders]
             [diplomacy.map-functions :as maps]
             [diplomacy.settings]
@@ -21,84 +22,21 @@
   (conj (pop queue) (peek queue)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                               Specs Internal to Resolution ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; An example use of `::no-conflict` is when there's a potential conflict of
-;; army 1 not leaving army 2's destination. If army 1 ends up successfully
-;; leaving army 2's destination, the result of the potential conflict between
-;; army 1 and army 2 is `[:failed-to-leave-destination :no-conflict]`.
-;;
-;; `::no-conflict` resolutions are filtered out from the result of
-;; `compute-resolution-results`, since `::dt/judgment` doesn't allow
-;; `::no-conflict` resolutions.
-(s/def ::no-conflict (s/tuple ::dt/conflict-rule
-                              (partial = :no-conflict)))
-(s/def ::resolved-conflict-state (s/or :judgment-tag ::dt/judgment
-                                       :no-conflict-tag ::no-conflict))
-(s/def ::pending-conflict-state ::dt/conflict-rule)
-(s/def ::conflict-state (s/or :resolved-tag ::resolved-conflict-state
-                              :pending-tag ::pending-conflict-state))
-;; Whether an order is known to succeed, known to fail (due to being interefered
-;; with), or not known yet.
-(s/def ::order-status #{:succeeded :failed :pending})
-(s/def ::arrival-status #{:succeeded :failed :pending})
-;; At the moment `::judgment` also contains the interfering order, duplicating
-;; information between the key and value of the nested map. Fixing this isn't
-;; necessary.
-;;
-;; TBD: make this only contain resolved conflicts?
-(s/def ::conflict-map (s/map-of ::dt/order
-                                (s/map-of ::dt/order ::conflict-state)))
-(s/def ::conflict-state-update
-  (s/tuple ::dt/order ::dt/order ::conflict-state))
-(s/def ::conflict-state-updates (s/coll-of ::conflict-state-update))
-(s/def ::pending-conflict
-  (s/tuple ::dt/order ::dt/order ::pending-conflict-state))
-(s/def ::conflict-queue (s/and (s/coll-of ::pending-conflict) #_queue?))
-
-(s/def ::dislodgment-status #{:dislodged :not-dislodged :pending})
-(s/def ::voyage-status #{:succeeded :failed :pending})
-(s/def ::voyage-map (s/map-of ::dt/attack-order ::voyage-status))
-(s/def ::voyage-queue (s/and (s/coll-of ::dt/attack-order) #_queue?))
-
-;; Map from orders to the orders attempting to support them.
-(s/def ::support-map (s/map-of ::dt/order ::dt/orders))
-;; Map from orders to the orders attempting to convoy them.
-(s/def ::convoy-map (s/map-of ::dt/attack-order ::dt/orders))
-
-;; Set of orders that do not need a convoy because they move between adjacent
-;; locations (though they may still have a convoy).
-(s/def ::direct-arrival-set (s/and (s/coll-of ::dt/attack-order) set?))
-(s/def ::location-to-order-map (s/map-of ::dt/location ::dt/order))
-(s/def ::resolution-state
-  (s/keys :req-un [::conflict-map
-                   ::conflict-queue
-                   ::voyage-map
-                   ::voyage-queue
-                   ;; Fields that never change during resolution
-                   ::support-map
-                   ::convoy-map
-                   ::direct-arrival-set
-                   ::location-to-order-map
-                   ::dt/dmap]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              Resolution Control Flow - Conflict Resolution ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (declare evaluate-conflict apply-conflict-state-updates remove-conflicts)
 
-(defn-spec all-orders-resolved? [::resolution-state] boolean?)
+(defn-spec all-orders-resolved? [::r/resolution-state] boolean?)
 (defn all-orders-resolved? [{:keys [conflict-map voyage-map]}]
   (let [all-conflict-states
         (for [[order conflicting-orders-map] conflict-map
               [conflicting-order conflict-state] conflicting-orders-map]
           conflict-state)]
-    (and (every? (partial s/valid? ::resolved-conflict-state)
+    (and (every? (partial s/valid? ::r/resolved-conflict-state)
                  all-conflict-states)
          (every? #{:succeeded :failed} (vals voyage-map)))))
 
-(defn-spec take-conflict-resolution-step [::resolution-state] ::resolution-state)
+(defn-spec take-conflict-resolution-step [::r/resolution-state] ::r/resolution-state)
 (defn take-conflict-resolution-step
   "Tries to evaluate the first conflict in the conflict queue, if there is one.
 
@@ -132,7 +70,7 @@
                                   % conflict-state-updates))))))
 
 (defn-spec apply-conflict-state-updates
-  [::conflict-map ::conflict-state-updates] ::conflict-map)
+  [::r/conflict-map ::r/conflict-state-updates] ::r/conflict-map)
 (defn apply-conflict-state-updates
   "Applies the updates in `conflict-state-updates` to `conflict-map`,
   performing any necessary bookkeeping."
@@ -143,13 +81,13 @@
           conflict-state-updates))
 
 (defn-spec remove-conflict
-  [::conflict-queue ::conflict-state-update] ::conflict-queue)
+  [::r/conflict-queue ::r/conflict-state-update] ::r/conflict-queue)
 (defn remove-conflict
   "Removes the conflict in `conflict-state-update` from `conflict-queue`."
   [conflict-queue conflict-state-update]
   ;; Not necessary, but useful to check this invariant while we have it.
-  (assert (or (s/valid? ::resolved-conflict-state (nth conflict-state-update 2))
-              (s/valid? ::no-conflict (nth conflict-state-update 2)))
+  (assert (or (s/valid? ::r/resolved-conflict-state (nth conflict-state-update 2))
+              (s/valid? ::r/no-conflict (nth conflict-state-update 2)))
           (str conflict-state-update))
   (->> conflict-queue
        (filter (fn [queue-item]
@@ -158,7 +96,7 @@
        (into clojure.lang.PersistentQueue/EMPTY)))
 
 (defn-spec remove-conflicts
-  [::conflict-queue ::conflict-state-updates] ::conflict-queue)
+  [::r/conflict-queue ::r/conflict-state-updates] ::r/conflict-queue)
 (defn remove-conflicts
   "Removes all conflicts in `conflict-state-update` from `conflict-queue`."
   [conflict-queue conflict-state-updates]
@@ -172,7 +110,7 @@
 
 ;; NOTE: signature is very different from `apply-conflict-state-updates`
 (defn-spec apply-voyage-state-update
-  [::resolution-state ::dt/attack-order ::voyage-status] ::resolution-state)
+  [::r/resolution-state ::dt/attack-order ::r/voyage-status] ::r/resolution-state)
 (defn apply-voyage-state-update
   [resolution-state pending-voyage voyage-status]
   (-> resolution-state
@@ -183,7 +121,7 @@
       (update :voyage-map #(assoc % pending-voyage voyage-status))))
 
 (defn-spec take-voyage-resolution-step
-  [::resolution-state] ::resolution-state)
+  [::r/resolution-state] ::r/resolution-state)
 (defn take-voyage-resolution-step
   "Tries to resolve the next voyage in the voyage queue."
   [{:keys [voyage-map voyage-queue] :as resolution-state}]
@@ -209,7 +147,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec get-at-colocated-location
-  [::dt/dmap ::location-to-order-map ::dt/location]
+  [::dt/dmap ::r/location-to-order-map ::dt/location]
   (s/nilable ::dt/order))
 (defn get-at-colocated-location
   [dmap location-to-order-map location]
@@ -228,7 +166,7 @@
     ;; Returns `nil` if `orders-at-colocated-locations` is empty.
     (first orders-at-colocated-locations)))
 
-(defn-spec remains-at [::dt/dmap ::location-to-order-map ::dt/location]
+(defn-spec remains-at [::dt/dmap ::r/location-to-order-map ::dt/location]
   ::dt/orders)
 (defn remains-at
   "A sequence of the orders that attempt to hold, support, or convoy at
@@ -241,7 +179,7 @@
       [])
     []))
 
-(defn-spec attacks-to [::dt/dmap ::location-to-order-map ::dt/location]
+(defn-spec attacks-to [::dt/dmap ::r/location-to-order-map ::dt/location]
   ::dt/orders)
 (defn attacks-to
   ""
@@ -252,7 +190,7 @@
                      (maps/locations-colocated? dmap (:destination %) to)))))
 
 (defn-spec attacks-from-to
-  [::dt/dmap ::location-to-order-map ::dt/location ::dt/location]
+  [::dt/dmap ::r/location-to-order-map ::dt/location ::dt/location]
   ::dt/orders)
 (defn attacks-from-to
   ""
@@ -264,7 +202,7 @@
       [])
     []))
 
-(defn-spec attacks-from [::dt/dmap ::location-to-order-map ::dt/location]
+(defn-spec attacks-from [::dt/dmap ::r/location-to-order-map ::dt/location]
   ::dt/orders)
 (defn attacks-from
   ""
@@ -279,24 +217,24 @@
 ;;                                                  Determining Order Success ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec interfering-state? [::resolved-conflict-state] boolean?)
+(defn-spec interfering-state? [::r/resolved-conflict-state] boolean?)
 (defn interfering-state?
   "Whether `rcs` is a judgment where the interferer successfully interferes."
   [rcs]
   (cond
     (s/valid? ::dt/judgment rcs) (:interfered? rcs)
-    (s/valid? ::no-conflict rcs) false
+    (s/valid? ::r/no-conflict rcs) false
     :else (assert false
                   (str "interfering-state? passed invalid resolved-conflict-state: "
                        rcs))))
 
-(defn-spec pending-conflict-state? [::conflict-state] boolean?)
+(defn-spec pending-conflict-state? [::r/conflict-state] boolean?)
 (defn pending-conflict-state?
   [conflict-state]
-  (s/valid? ::pending-conflict-state conflict-state))
+  (s/valid? ::r/pending-conflict-state conflict-state))
 
-(defn-spec conflict-states-to-order-status [(s/coll-of ::conflict-state)]
-  ::order-status)
+(defn-spec conflict-states-to-order-status [(s/coll-of ::r/conflict-state)]
+  ::r/order-status)
 (defn conflict-states-to-order-status
   [conflict-states]
   (cond
@@ -310,8 +248,8 @@
     :succeeded
     :else (assert false "This code is unreachable")))
 
-(defn-spec get-conflict-states [::resolution-state ::dt/order]
-  (s/coll-of ::conflict-state))
+(defn-spec get-conflict-states [::r/resolution-state ::dt/order]
+  (s/coll-of ::r/conflict-state))
 (defn get-conflict-states
   [{:keys [conflict-map]} order]
   (let [order-conflict-map (get conflict-map order {})]
@@ -320,16 +258,16 @@
       []
       (vals order-conflict-map))))
 
-(defn-spec arrival-status [::resolution-state ::dt/attack-order]
-  ::arrival-status)
+(defn-spec arrival-status [::r/resolution-state ::dt/attack-order]
+  ::r/arrival-status)
 (defn arrival-status
   [{:keys [direct-arrival-set voyage-map]} attack-order]
   (if (contains? direct-arrival-set attack-order)
     :succeeded
     (get voyage-map attack-order)))
 
-(defn-spec order-status [::resolution-state ::dt/order]
-  ::order-status)
+(defn-spec order-status [::r/resolution-state ::dt/order]
+  ::r/order-status)
 (defn order-status
   "Whether `order` is known to succeed, known to fail, or doesn't have a known
   outcome in `resolution-state`."
@@ -349,10 +287,10 @@
 ;; All code outside this section is *only* concerned with whether a unit arrived
 ;; or not, ignoring whether it arrived by convoy or by land. This concept of
 ;; 'arrival method' could certainly be handled 'deeper' in the resolution engine
-;; and included in `::resolution-state`, but that would be additional work for
+;; and included in `::r/resolution-state`, but that would be additional work for
 ;; little meaningful benefit.
 
-(defn-spec arrives-via-convoy? [::resolution-state ::dt/attack-order] boolean?)
+(defn-spec arrives-via-convoy? [::r/resolution-state ::dt/attack-order] boolean?)
 (defn arrives-via-convoy?
   "Whether `attack-order` is known to arrive using a convoy."
   [{:keys [dmap convoy-map] :as rs}
@@ -372,15 +310,8 @@
 ;;                                                        Determining Support ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::support-type #{:offense
-                        :defense
-                        :offense-assume-beleaguered-garrison-leaves})
-(s/def ::willingness-to-support #{:yes
-                                  :no
-                                  :pending-beleaguered-garrison-leaving})
-
 (defn-spec willingness-to-support
-  [::resolution-state ::dt/support-order ::dt/order ::dt/order ::dt/conflict-rule ::support-type] ::willingness-to-support)
+  [::r/resolution-state ::dt/support-order ::dt/order ::dt/order ::dt/conflict-rule ::r/support-type] ::r/willingness-to-support)
 (defn willingness-to-support
   [{:keys [location-to-order-map] :as rs}
    supporting-order supported-order combatant rule support-type]
@@ -408,8 +339,8 @@
                   :pending-beleaguered-garrison-leaving))
               :no)))))))
 
-(defn-spec supporting-order-statuses [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
-  (s/map-of (s/or :tag1 ::order-status :tag2 #{:unwilling}) integer?))
+(defn-spec supporting-order-statuses [::r/resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::r/support-type]
+  (s/map-of (s/or :tag1 ::r/order-status :tag2 #{:unwilling}) integer?))
 (defn supporting-order-statuses
   [{:keys [support-map] :as rs} supported-order combatant rule support-type]
   (let [supporting-orders (get support-map supported-order [])
@@ -424,7 +355,7 @@
     (merge {:succeeded 0 :pending 0 :failed 0 :unwilling 0}
            support-counts)))
 
-(defn-spec max-possible-support [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
+(defn-spec max-possible-support [::r/resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::r/support-type]
   integer?)
 (defn max-possible-support
   [resolution-state order interferer rule support-type]
@@ -432,7 +363,7 @@
     (+ (:succeeded support-counts)
        (:pending support-counts))))
 
-(defn-spec guaranteed-support [::resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::support-type]
+(defn-spec guaranteed-support [::r/resolution-state ::dt/order ::dt/order ::dt/conflict-rule ::r/support-type]
   integer?)
 (defn guaranteed-support
   [resolution-state order interferer rule support-type]
@@ -443,13 +374,10 @@
 ;;                                                          Resolving Attacks ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::assume-beleaguered-garrison-leaves boolean?)
-(s/def ::battle-settings (s/keys :req-un [::assume-beleaguered-garrison-leaves]))
-
 (defn-spec evaluate-attack-battle
-  [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule
-   ::battle-settings]
-  ::conflict-state-updates)
+  [::r/resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule
+   ::r/battle-settings]
+  ::r/conflict-state-updates)
 (defn evaluate-attack-battle
   "Does not account for dislodging a unit from the same country."
   [rs attack bouncer rule {:keys [assume-beleaguered-garrison-leaves]}]
@@ -472,7 +400,7 @@
     [])))
 
 (defn-spec find-failed-to-leave-cycle-helper
-  [::resolution-state (s/coll-of ::dt/attack-order)]
+  [::r/resolution-state (s/coll-of ::dt/attack-order)]
   (s/coll-of ::dt/attack-order)
   #(or (empty? (:ret %)) (> (count (:ret %)) 2)))
 (defn find-failed-to-leave-cycle-helper
@@ -489,7 +417,7 @@
               (fn [[interferer conflict-state]]
                 (or (= conflict-state :failed-to-leave-destination)
                     (and
-                     (s/valid? ::resolved-conflict-state conflict-state)
+                     (s/valid? ::r/resolved-conflict-state conflict-state)
                      (not (:interfered? conflict-state)))
                     ;; Make sure resolution doesn't get into an infinite loop
                     ;; where this function is waiting on an attack that may
@@ -505,7 +433,7 @@
                        (some (fn [[o1 o2 hypothetical-conflict-state]]
                                (and (= o1 last-attack)
                                     (= o2 interferer)
-                                    (s/valid? ::resolved-conflict-state hypothetical-conflict-state)
+                                    (s/valid? ::r/resolved-conflict-state hypothetical-conflict-state)
                                     (not (:interfered? hypothetical-conflict-state))))
                              hypothetical-updates)))))
                     conflicts))
@@ -520,7 +448,7 @@
       [])))
 
 (defn-spec find-failed-to-leave-cycle
-  [::resolution-state ::dt/attack-order]
+  [::r/resolution-state ::dt/attack-order]
   (s/and (s/coll-of ::dt/attack-order)
          #(or (empty? %)
               (and (>= (count %) 4)
@@ -533,8 +461,8 @@
   (find-failed-to-leave-cycle-helper resolution-state [attack-order]))
 
 (defn-spec evaluate-attack-failed-to-leave
-  [::resolution-state ::dt/attack-order ::dt/attack-order]
-  ::conflict-state-updates)
+  [::r/resolution-state ::dt/attack-order ::dt/attack-order]
+  ::r/conflict-state-updates)
 (defn evaluate-attack-failed-to-leave
   "Does not account for dislodging a unit from the same country."
   [{:keys [conflict-map] :as rs} attack bouncer]
@@ -576,8 +504,8 @@
                                                  :interfered? true)]]
       :else [])))
 
-(defn-spec forbid-self-dislodgment [::conflict-state-update]
-  ::conflict-state-update)
+(defn-spec forbid-self-dislodgment [::r/conflict-state-update]
+  ::r/conflict-state-update)
 (defn forbid-self-dislodgment
   "If `order` dislodges `interferer` and they're from the same country, mark
   `order` as failed."
@@ -597,7 +525,7 @@
     original-update))
 
 (defn-spec forbid-effect-on-dislodgers-province-helper
-  [::resolution-state ::conflict-state-update] (s/nilable ::conflict-state-update))
+  [::r/resolution-state ::r/conflict-state-update] (s/nilable ::r/conflict-state-update))
 (defn forbid-effect-on-dislodgers-province-helper
   "Mark `interferer` as not interfering if `interferer` should have no effect on
   `order` by the `no-effect-on-dislodgers-province` rule. If we don't have
@@ -627,7 +555,7 @@
       original-update)))
 
 (defn-spec forbid-effects-on-dislodgers-provinces
-  [::resolution-state ::conflict-state-updates] ::conflict-state-updates)
+  [::r/resolution-state ::r/conflict-state-updates] ::r/conflict-state-updates)
 (defn forbid-effects-on-dislodgers-provinces
   "For each conflict state update, mark each `interferer` as not interfering if
   the `interferer` should have no effect on the `order` by the
@@ -639,8 +567,8 @@
        (filter some?)))
 
 (defn-spec evaluate-attack-conflict
-  [::resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
-  ::conflict-state-updates)
+  [::r/resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
+  ::r/conflict-state-updates)
 (defn evaluate-attack-conflict
   [rs attack bouncer rule]
   (case (arrival-status rs attack)
@@ -695,9 +623,9 @@
 (declare convoy-path-exists? dislodgment-status)
 
 (defn-spec evaluate-support-conflict
-  [::resolution-state ::dt/support-order ::dt/attack-order
+  [::r/resolution-state ::dt/support-order ::dt/attack-order
    ::dt/support-conflict-rule]
-  ::conflict-state-updates)
+  ::r/conflict-state-updates)
 (defn evaluate-support-conflict
   [{:keys [location-to-order-map dmap convoy-map] :as rs}
    {:keys [assisted-order] :as support}
@@ -739,8 +667,8 @@
 ;;                                                     Resolving any conflict ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec evaluate-conflict [::resolution-state ::pending-conflict]
-  ::conflict-state-updates)
+(defn-spec evaluate-conflict [::r/resolution-state ::r/pending-conflict]
+  ::r/conflict-state-updates)
 (defn evaluate-conflict
   [{:keys [conflict-map] :as resolution-state}
    [order-a order-b rule]]
@@ -793,8 +721,8 @@
                               (into #{}))]
     (convoy-path-exists?-helper dmap start-loc end-loc convoy-locations true)))
 
-(defn-spec dislodgment-status [::resolution-state ::dt/convoy-order]
-  ::dislodgment-status)
+(defn-spec dislodgment-status [::r/resolution-state ::dt/convoy-order]
+  ::r/dislodgment-status)
 (defn dislodgment-status
   [{:keys [dmap location-to-order-map] :as resolution-state}
    {:keys [location] :as convoy-order}]
@@ -809,16 +737,16 @@
       (every? #(= :failed %) attacking-order-statuses)
       :not-dislodged)))
 
-(defn-spec convoying-order-statuses [::resolution-state ::dt/attack-order]
-  (s/map-of ::dislodgment-status (s/coll-of ::dt/convoy-order)))
+(defn-spec convoying-order-statuses [::r/resolution-state ::dt/attack-order]
+  (s/map-of ::r/dislodgment-status (s/coll-of ::dt/convoy-order)))
 (defn convoying-order-statuses
   [{:keys [convoy-map] :as rs}
    attack-order]
   (let [attempted-convoys (get convoy-map attack-order [])]
     (group-by #(dislodgment-status rs %) attempted-convoys)))
 
-(defn-spec evaluate-voyage [::resolution-state ::dt/attack-order]
-  ::voyage-status)
+(defn-spec evaluate-voyage [::r/resolution-state ::dt/attack-order]
+  ::r/voyage-status)
 (defn evaluate-voyage
   [{:keys [dmap convoy-map] :as rs}
    {:keys [location destination] :as attack-order}]
@@ -846,19 +774,19 @@
   (let [f-results (iterate f initial)]
     (reduce #(if (= %1 %2) (reduced %2) %2) f-results)))
 
-(defn-spec try-resolve-every-voyage [::resolution-state] ::resolution-state)
+(defn-spec try-resolve-every-voyage [::r/resolution-state] ::r/resolution-state)
 (defn try-resolve-every-voyage
   [{:keys [voyage-queue] :as rs}]
   (nth (iterate take-voyage-resolution-step rs)
        (count voyage-queue)))
 
-(defn-spec try-resolve-every-conflict [::resolution-state] ::resolution-state)
+(defn-spec try-resolve-every-conflict [::r/resolution-state] ::r/resolution-state)
 (defn try-resolve-every-conflict
   [{:keys [conflict-queue] :as rs}]
   (nth (iterate take-conflict-resolution-step rs)
        (count conflict-queue)))
 
-(defn-spec get-final-resolution-state [::resolution-state] ::resolution-state)
+(defn-spec get-final-resolution-state [::r/resolution-state] ::r/resolution-state)
 (defn get-final-resolution-state
   [resolution-state]
   (let [stable-rs
@@ -886,8 +814,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn-spec get-all-potential-conflicts
-  [::dt/dmap ::location-to-order-map ::dt/order]
-  (s/coll-of ::pending-conflict))
+  [::dt/dmap ::r/location-to-order-map ::dt/order]
+  (s/coll-of ::r/pending-conflict))
 (defn get-all-potential-conflicts
   [dmap location-to-order-map {:keys [location order-type] :as order}]
   (case order-type
@@ -935,7 +863,7 @@
 ;; This does not take a diplomacy map because we currently require locations in
 ;; support orders to match exactly (a support order using the wrong colocated
 ;; location does not give support).
-(defn-spec make-support-map [::location-to-order-map] ::support-map)
+(defn-spec make-support-map [::r/location-to-order-map] ::r/support-map)
 (defn make-support-map
   [location-to-order-map]
   (let [orders (vals location-to-order-map)
@@ -960,7 +888,7 @@
 
 ;; TODO: reduce duplication between `make-support-map` and `make-convoy-map`
 ;; if desired.
-(defn-spec make-convoy-map [::location-to-order-map] ::convoy-map)
+(defn-spec make-convoy-map [::r/location-to-order-map] ::r/convoy-map)
 (defn make-convoy-map
   [location-to-order-map]
   (let [orders (vals location-to-order-map)
@@ -982,7 +910,7 @@
             {}
             convoy-pairs)))
 
-(defn-spec make-direct-arrival-set [::dt/dmap ::dt/orders] ::direct-arrival-set)
+(defn-spec make-direct-arrival-set [::dt/dmap ::dt/orders] ::r/direct-arrival-set)
 (defn make-direct-arrival-set
   [dmap orders]
   (->> orders
@@ -992,7 +920,7 @@
           (maps/edge-accessible-to? dmap location destination unit-type)))
        (into #{})))
 
-(defn-spec make-location-to-order-map [::dt/orders] ::location-to-order-map)
+(defn-spec make-location-to-order-map [::dt/orders] ::r/location-to-order-map)
 (defn make-location-to-order-map
   [orders]
   (->> orders
@@ -1005,7 +933,7 @@
 
 (defn-spec get-initial-resolution-state
   [::dt/orders ::dt/dmap]
-  ::resolution-state)
+  ::r/resolution-state)
 (defn get-initial-resolution-state
   [orders diplomacy-map]
   (let [location-to-order-map (make-location-to-order-map orders)
@@ -1057,7 +985,7 @@
      ;; those judgments already contain the conflicting order.
      (->> final-conflict-map
           (map (fn [[order conflicting-orders-map]]
-                 (let [judgments (filter #(not (s/valid? ::no-conflict %))
+                 (let [judgments (filter #(not (s/valid? ::r/no-conflict %))
                                          (vals conflicting-orders-map))]
                    [order judgments])))
           (into {}))
