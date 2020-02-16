@@ -58,7 +58,7 @@
       (first colocation-sets-for-location))))
 
 (defn-spec colocated-edge-accessible-to?
-  [::dt/dmap ::dt/location ::dt/location ::dt/unit-type] boolean?)
+  [::dt/dmap ::dt/location ::dt/location ::dt/unit-type] any?)
 (defn colocated-edge-accessible-to?
   "Whether these is an edge accessible to `unit-type` from a location colocated
   with `from` to a location colocated with `to`."
