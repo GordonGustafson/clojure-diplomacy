@@ -1,5 +1,7 @@
 (ns diplomacy.resolution-iterative.all
   (:require [diplomacy.resolution-iterative.datatypes :as r]
+            [diplomacy.resolution-iterative.map-util :as map-util]
+            [diplomacy.resolution-iterative.init :as init]
             [diplomacy.judgments :as j]
             [diplomacy.orders :as orders]
             [diplomacy.map-functions :as maps]
@@ -141,77 +143,6 @@
         (clojure.pprint/pprint [pending-voyage voyage-status-update]))
       (apply-voyage-state-update
        resolution-state pending-voyage voyage-status-update))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                              Map Utilities ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn-spec get-at-colocated-location
-  [::dt/dmap ::r/location-to-order-map ::dt/location]
-  (s/nilable ::dt/order))
-(defn get-at-colocated-location
-  [dmap location-to-order-map location]
-  (let [colocated-locations (maps/colocation-set-for-location dmap location)
-        orders-at-colocated-locations
-        ;; RESUME HERE: check whether `(get _ 0 _)` is doing the right thing
-        ;; if this is a set then it may always be returning nil
-        (->> colocated-locations
-             (map location-to-order-map)
-             (filter (complement nil?)))
-        ;; Technically this shouldn't be an assert since it indicates a problem
-        ;; with the game state being resolved rather than the resolution code
-        ;; itself, but I feel safer keeping it until we no longer want the
-        ;; invariant on game states.
-        _ (assert (<= (count orders-at-colocated-locations) 1))]
-    ;; Returns `nil` if `orders-at-colocated-locations` is empty.
-    (first orders-at-colocated-locations)))
-
-(defn-spec remains-at [::dt/dmap ::r/location-to-order-map ::dt/location]
-  ::dt/orders)
-(defn remains-at
-  "A sequence of the orders that attempt to hold, support, or convoy at
-  `location`. The sequence will have 0 or 1 elements."
-  [dmap location-to-order-map location]
-  (if-let [order (get-at-colocated-location
-                  dmap location-to-order-map location)]
-    (if (contains? #{:hold :support :convoy} (:order-type order))
-      [order]
-      [])
-    []))
-
-(defn-spec attacks-to [::dt/dmap ::r/location-to-order-map ::dt/location]
-  ::dt/orders)
-(defn attacks-to
-  ""
-  [dmap location-to-order-map to]
-  (->> location-to-order-map
-       (vals)
-       (filter #(and (orders/attack? %)
-                     (maps/locations-colocated? dmap (:destination %) to)))))
-
-(defn-spec attacks-from-to
-  [::dt/dmap ::r/location-to-order-map ::dt/location ::dt/location]
-  ::dt/orders)
-(defn attacks-from-to
-  ""
-  [dmap location-to-order-map from to]
-  (if-let [order (get-at-colocated-location dmap location-to-order-map from)]
-    (if (and (orders/attack? order)
-             (maps/locations-colocated? dmap (:destination order) to))
-      [order]
-      [])
-    []))
-
-(defn-spec attacks-from [::dt/dmap ::r/location-to-order-map ::dt/location]
-  ::dt/orders)
-(defn attacks-from
-  ""
-  [dmap location-to-order-map from]
-  (if-let [order (get-at-colocated-location dmap location-to-order-map from)]
-    (if (orders/attack? order)
-      [order]
-      [])
-    []))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                  Determining Order Success ;;
@@ -726,7 +657,7 @@
   [{:keys [dmap location-to-order-map] :as resolution-state}
    {:keys [location] :as convoy-order}]
   (let [attacking-order-statuses
-        (->> (attacks-to dmap location-to-order-map location)
+        (->> (map-util/attacks-to dmap location-to-order-map location)
              (map #(order-status resolution-state %)))]
     (cond
       (some #(= :succeeded %) attacking-order-statuses)
@@ -812,155 +743,6 @@
 ;;                                             Utilities for Public Interface ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec get-all-potential-conflicts
-  [::dt/dmap ::r/location-to-order-map ::dt/order]
-  (s/coll-of ::r/pending-conflict))
-(defn get-all-potential-conflicts
-  [dmap location-to-order-map {:keys [location order-type] :as order}]
-  (case order-type
-    :hold []
-    :convoy []
-    :attack
-    (let [destination (:destination order)]
-      (concat
-       (map #(-> [order % :destination-occupied])
-            (remains-at dmap location-to-order-map destination))
-       (->> (attacks-to dmap location-to-order-map destination)
-            (filter #(not= order %))
-            (map #(-> [order % :attacked-same-destination])))
-       (map #(-> [order % :swapped-places])
-            (attacks-from-to dmap location-to-order-map destination location))
-       (->> (attacks-from dmap location-to-order-map destination)
-            ;; Exclude `:swapped-places` conflicts
-            (filter #(not (maps/locations-colocated?
-                           dmap (:destination %) location)))
-            (map #(-> [order % :failed-to-leave-destination])))))
-    :support
-    (map (fn [interferer]
-           (let [assisted-order (:assisted-order order)]
-             (if (and (orders/attack? assisted-order)
-                      (= (:destination assisted-order)
-                         (:location interferer)))
-               [order interferer :attacked-from-supported-location]
-               [order interferer :attacked])))
-         (attacks-to dmap location-to-order-map location))))
-
-(defn-spec supported-order-matches? [::dt/order ::dt/order] boolean?)
-(defn supported-order-matches?
-  "Whether supporting `assisted-order` would give support for `order-given`.
-  This requires some logic because supporting a hold can also indicate
-  supporting a unit that's supporting or convoying."
-  [assisted-order order-given]
-  (if (orders/attack? order-given)
-    (= assisted-order order-given)
-    (and (orders/hold? assisted-order)
-         (= (:location assisted-order)
-            (:location order-given))
-         (= (orders/get-unit assisted-order)
-            (orders/get-unit order-given)))))
-
-;; This does not take a diplomacy map because we currently require locations in
-;; support orders to match exactly (a support order using the wrong colocated
-;; location does not give support).
-(defn-spec make-support-map [::r/location-to-order-map] ::r/support-map)
-(defn make-support-map
-  [location-to-order-map]
-  (let [orders (vals location-to-order-map)
-        support-orders (filter orders/support? orders)
-        support-pairs
-        (mapcat
-         (fn [{:keys [assisted-order] :as support-order}]
-           (let [order-at-assisted-location (location-to-order-map
-                                             (:location assisted-order))]
-             (if (and (not (nil? order-at-assisted-location))
-                      (supported-order-matches? assisted-order
-                                                order-at-assisted-location))
-               [[order-at-assisted-location support-order]]
-               [])))
-         support-orders)]
-    (reduce (fn [support-map [supported-order supporting-order]]
-              (if (contains? support-map supported-order)
-                (update support-map supported-order #(conj % supporting-order))
-                (assoc support-map supported-order [supporting-order])))
-            {}
-            support-pairs)))
-
-;; TODO: reduce duplication between `make-support-map` and `make-convoy-map`
-;; if desired.
-(defn-spec make-convoy-map [::r/location-to-order-map] ::r/convoy-map)
-(defn make-convoy-map
-  [location-to-order-map]
-  (let [orders (vals location-to-order-map)
-        convoy-orders (filter orders/convoy? orders)
-        convoy-pairs
-        (mapcat
-         (fn [{:keys [assisted-order] :as convoy-order}]
-           (let [order-at-assisted-location (location-to-order-map
-                                             (:location assisted-order))]
-             (if (and (not (nil? order-at-assisted-location))
-                      (= assisted-order order-at-assisted-location))
-               [[order-at-assisted-location convoy-order]]
-               [])))
-         convoy-orders)]
-    (reduce (fn [convoy-map [convoyed-order convoying-order]]
-              (if (contains? convoy-map convoyed-order)
-                (update convoy-map convoyed-order #(conj % convoying-order))
-                (assoc convoy-map convoyed-order [convoying-order])))
-            {}
-            convoy-pairs)))
-
-(defn-spec make-direct-arrival-set [::dt/dmap ::dt/orders] ::r/direct-arrival-set)
-(defn make-direct-arrival-set
-  [dmap orders]
-  (->> orders
-       (filter orders/attack?)
-       (filter
-        (fn [{:keys [location destination unit-type] :as order}]
-          (maps/edge-accessible-to? dmap location destination unit-type)))
-       (into #{})))
-
-(defn-spec make-location-to-order-map [::dt/orders] ::r/location-to-order-map)
-(defn make-location-to-order-map
-  [orders]
-  (->> orders
-       (map (juxt :location identity))
-       (into {})))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                      Public Interface for Order Resolution ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn-spec get-initial-resolution-state
-  [::dt/orders ::dt/dmap]
-  ::r/resolution-state)
-(defn get-initial-resolution-state
-  [orders diplomacy-map]
-  (let [location-to-order-map (make-location-to-order-map orders)
-        all-conflicts (mapcat (partial get-all-potential-conflicts
-                                       diplomacy-map location-to-order-map)
-                              orders)
-        conflict-queue (into clojure.lang.PersistentQueue/EMPTY all-conflicts)
-        conflict-map (apply-conflict-state-updates {} all-conflicts)
-        convoy-map (make-convoy-map location-to-order-map)
-        direct-arrival-set (make-direct-arrival-set diplomacy-map orders)
-        voyage-queue (into clojure.lang.PersistentQueue/EMPTY
-                           (concat
-                            (keys convoy-map)
-                            (filter #(and (orders/attack? %)
-                                          (not (contains? direct-arrival-set %)))
-                                    orders)))]
-    {:conflict-map conflict-map
-     :conflict-queue conflict-queue
-     :voyage-map (->> voyage-queue
-                      (map (fn [convoyed-order] [convoyed-order :pending]))
-                      (into {}))
-     :voyage-queue voyage-queue
-     :support-map (make-support-map location-to-order-map)
-     :convoy-map convoy-map
-     :direct-arrival-set direct-arrival-set
-     :location-to-order-map location-to-order-map
-     :dmap diplomacy-map}))
-
 (defn-spec compute-resolution-results
   [::dt/orders ::dt/dmap]
   ::dt/resolution-results
@@ -971,7 +753,7 @@
   and the situation that determined that result)."
   [orders diplomacy-map]
   (let [initial-resolution-state
-        (get-initial-resolution-state orders diplomacy-map)
+        (init/get-initial-resolution-state orders diplomacy-map)
         final-resolution-state
         (get-final-resolution-state initial-resolution-state)
         final-conflict-map (:conflict-map final-resolution-state)]
