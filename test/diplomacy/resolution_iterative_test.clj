@@ -1,5 +1,5 @@
 (ns diplomacy.resolution-iterative-test
-  (:require [diplomacy.resolution-iterative.all :refer :all]
+  (:require [diplomacy.resolution-iterative.evaluate-conflict :refer :all]
             [diplomacy.resolution-iterative.map-util :refer :all]
             [diplomacy.resolution-iterative.init :refer :all]
             [diplomacy.resolution-iterative.evaluate-util :refer :all]

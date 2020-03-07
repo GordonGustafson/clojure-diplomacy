@@ -2,7 +2,7 @@
   (:require [diplomacy.order-validation :as order-validation]
             ;; CHANGE RESOLUTION ENGINE BY CHANGING THIS IMPORT
             ;; [diplomacy.resolution-core-logic :as resolution]
-            [diplomacy.resolution-iterative.all :as resolution]
+            [diplomacy.resolution-iterative.compute-resolution :as resolution]
             [diplomacy.post-resolution :as post-resolution]
             [diplomacy.datatypes :as dt]
             [diplomacy.util :refer [defn-spec]]
