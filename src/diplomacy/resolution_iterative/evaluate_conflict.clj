@@ -188,12 +188,13 @@
 ;;                                                          Resolving Attacks ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn-spec evaluate-attack-battle
+(defn-spec evaluate-battle-by-strength
   [::r/resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule
    ::r/battle-settings]
   ::r/conflict-state-updates)
-(defn evaluate-attack-battle
-  "Does not account for dislodging a unit from the same country."
+(defn evaluate-battle-by-strength
+  "Does not account for dislodging a unit from the same country, or the 'forbid
+  effect on dislodger's province' rule."
   [rs attack bouncer rule {:keys [assume-beleaguered-garrison-leaves]}]
   (let [offensive-support-type (if assume-beleaguered-garrison-leaves
                                  :offense-assume-beleaguered-garrison-leaves
@@ -240,8 +241,8 @@
                     (and
                      (= conflict-state :attacked-same-destination)
                      (let [hypothetical-updates
-                           (evaluate-attack-battle rs last-attack interferer :attacked-same-destination
-                                                   {:assume-beleaguered-garrison-leaves true})]
+                           (evaluate-battle-by-strength rs last-attack interferer :attacked-same-destination
+                                                        {:assume-beleaguered-garrison-leaves true})]
                        (some (fn [[o1 o2 hypothetical-conflict-state]]
                                (and (= o1 last-attack)
                                     (= o2 interferer)
@@ -377,6 +378,17 @@
        (map (partial forbid-effect-on-dislodgers-province-helper rs))
        (filter some?)))
 
+(defn-spec evaluate-battle
+  [::r/resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule
+   ::r/battle-settings]
+  ::r/conflict-state-updates)
+(defn evaluate-battle
+  [rs attack bouncer rule battle-settings]
+  (->>
+   (evaluate-battle-by-strength rs attack bouncer rule battle-settings)
+   (map forbid-self-dislodgment)
+   (forbid-effects-on-dislodgers-provinces rs)))
+
 (defn-spec evaluate-attack-conflict
   [::r/resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::r/conflict-state-updates)
@@ -421,11 +433,8 @@
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Battle!
 
       :else
-      (->>
-       (evaluate-attack-battle rs attack bouncer rule
-                               {:assume-beleaguered-garrison-leaves false})
-       (map forbid-self-dislodgment)
-       (forbid-effects-on-dislodgers-provinces rs)))))
+      (evaluate-battle rs attack bouncer rule
+                       {:assume-beleaguered-garrison-leaves false}))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                         Resolving Supports ;;
