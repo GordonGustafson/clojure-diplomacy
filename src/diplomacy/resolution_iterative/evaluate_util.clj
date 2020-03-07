@@ -25,6 +25,15 @@
   [conflict-state]
   (s/valid? ::r/pending-conflict-state conflict-state))
 
+(defn-spec non-interfering-conflict-state? [::r/conflict-state] boolean?)
+(defn non-interfering-conflict-state?
+  [conflict-state]
+  (or
+   (s/valid? ::r/no-conflict conflict-state)
+   (and
+    (s/valid? ::dt/judgment conflict-state)
+    (not (:interfered? conflict-state)))))
+
 (defn-spec conflict-states-to-order-status [(s/coll-of ::r/conflict-state)]
   ::r/order-status)
 (defn conflict-states-to-order-status

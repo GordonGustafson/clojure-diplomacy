@@ -230,9 +230,7 @@
              (every?
               (fn [[interferer conflict-state]]
                 (or (= conflict-state :failed-to-leave-destination)
-                    (and
-                     (s/valid? ::r/resolved-conflict-state conflict-state)
-                     (not (:interfered? conflict-state)))
+                    (eval-util/non-interfering-conflict-state? conflict-state)
                     ;; Make sure resolution doesn't get into an infinite loop
                     ;; where this function is waiting on an attack that may
                     ;; break the cycle to resolve, but resolving that attack is
@@ -247,8 +245,7 @@
                        (some (fn [[o1 o2 hypothetical-conflict-state]]
                                (and (= o1 last-attack)
                                     (= o2 interferer)
-                                    (s/valid? ::r/resolved-conflict-state hypothetical-conflict-state)
-                                    (not (:interfered? hypothetical-conflict-state))))
+                                    (eval-util/non-interfering-conflict-state? hypothetical-conflict-state)))
                              hypothetical-updates)))))
                     conflicts))
       ;; Smallest possible cycle involves 3 distinct orders, and the return
