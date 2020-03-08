@@ -185,6 +185,77 @@
     (:succeeded support-counts)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Rules we apply by 'post-processing' results of other evaluation functions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; These functions take `::r/conflict-state-update`s computed by other functions
+;; and filter them to implement certain rules. This lets us centralize the logic
+;; for these rules in one place, so other evaluation functions have fewer rules
+;; to worry about.
+
+(defn-spec forbid-self-dislodgment [::r/conflict-state-update]
+  ::r/conflict-state-update)
+(defn forbid-self-dislodgment
+  "If `order` dislodges `interferer` and they're from the same country, mark
+  `order` as failed."
+  [[order interferer conflict-state :as original-update]]
+  (if (and (= (:country order) (:country interferer))
+           (s/valid? ::dt/judgment conflict-state)
+           (contains? #{:destination-occupied
+                        :swapped-places
+                        :failed-to-leave-destination}
+                      ;; Don't forget the structure of
+                      ;; `::dt/attack-conflict-situation`!!
+                      (get-in conflict-state [:conflict-situation :attack-conflict-rule]))
+           (not (:interfered? conflict-state)))
+    [order interferer (assoc conflict-state
+                             :interfered? true
+                             :would-dislodge-own-unit? true)]
+    original-update))
+
+(defn-spec forbid-effect-on-dislodgers-province-helper
+  [::r/resolution-state ::r/conflict-state-update] (s/nilable ::r/conflict-state-update))
+(defn forbid-effect-on-dislodgers-province-helper
+  "Mark `interferer` as not interfering if `interferer` should have no effect on
+  `order` by the `no-effect-on-dislodgers-province` rule. If we don't have
+  enough information to tell yet, return `nil`."
+  [{:keys [location-to-order-map] :as resolution-state}
+   [order interferer conflict-state :as original-update]]
+  (assert (s/valid? ::dt/attack-order order))
+  (let [potential-dislodger (location-to-order-map (:destination order))]
+    (if (and (some? potential-dislodger)
+             (s/valid? ::dt/judgment conflict-state)
+             (= (get-in conflict-state
+                        [:conflict-situation :attack-conflict-rule])
+                :attacked-same-destination)
+             (:interfered? conflict-state)
+             (orders/attack? potential-dislodger)
+             (= (:destination potential-dislodger) (:location interferer)))
+      (case (eval-util/order-status resolution-state potential-dislodger)
+        :succeeded
+        ;; I decided not to add any indication that the
+        ;; `:no-effect-on-dislodgers-province` rule is being used in order to
+        ;; proceed more quickly.
+        (assoc-in original-update [2 :interfered?] false)
+        :failed
+        original-update
+        :pending
+        nil)
+      original-update)))
+
+(defn-spec forbid-effects-on-dislodgers-provinces
+  [::r/resolution-state ::r/conflict-state-updates] ::r/conflict-state-updates)
+(defn forbid-effects-on-dislodgers-provinces
+  "For each conflict state update, mark each `interferer` as not interfering if
+  the `interferer` should have no effect on the `order` by the
+  `no-effect-on-dislodgers-province` rule. If we don't have enough information
+  to tell yet, remove the conflict state update from the list."
+  [rs conflict-state-updates]
+  (->> conflict-state-updates
+       (map (partial forbid-effect-on-dislodgers-province-helper rs))
+       (filter some?)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          Resolving Attacks ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -315,68 +386,6 @@
                                                  :attack-rule :failed-to-leave-destination
                                                  :interfered? true)]]
       :else [])))
-
-(defn-spec forbid-self-dislodgment [::r/conflict-state-update]
-  ::r/conflict-state-update)
-(defn forbid-self-dislodgment
-  "If `order` dislodges `interferer` and they're from the same country, mark
-  `order` as failed."
-  [[order interferer conflict-state :as original-update]]
-  (if (and (= (:country order) (:country interferer))
-           (s/valid? ::dt/judgment conflict-state)
-           (contains? #{:destination-occupied
-                        :swapped-places
-                        :failed-to-leave-destination}
-                      ;; Don't forget the structure of
-                      ;; `::dt/attack-conflict-situation`!!
-                      (get-in conflict-state [:conflict-situation :attack-conflict-rule]))
-           (not (:interfered? conflict-state)))
-    [order interferer (assoc conflict-state
-                             :interfered? true
-                             :would-dislodge-own-unit? true)]
-    original-update))
-
-(defn-spec forbid-effect-on-dislodgers-province-helper
-  [::r/resolution-state ::r/conflict-state-update] (s/nilable ::r/conflict-state-update))
-(defn forbid-effect-on-dislodgers-province-helper
-  "Mark `interferer` as not interfering if `interferer` should have no effect on
-  `order` by the `no-effect-on-dislodgers-province` rule. If we don't have
-  enough information to tell yet, return `nil`."
-  [{:keys [location-to-order-map] :as resolution-state}
-   [order interferer conflict-state :as original-update]]
-  (assert (s/valid? ::dt/attack-order order))
-  (let [potential-dislodger (location-to-order-map (:destination order))]
-    (if (and (some? potential-dislodger)
-             (s/valid? ::dt/judgment conflict-state)
-             (= (get-in conflict-state
-                        [:conflict-situation :attack-conflict-rule])
-                :attacked-same-destination)
-             (:interfered? conflict-state)
-             (orders/attack? potential-dislodger)
-             (= (:destination potential-dislodger) (:location interferer)))
-      (case (eval-util/order-status resolution-state potential-dislodger)
-        :succeeded
-        ;; I decided not to add any indication that the
-        ;; `:no-effect-on-dislodgers-province` rule is being used in order to
-        ;; proceed more quickly.
-        (assoc-in original-update [2 :interfered?] false)
-        :failed
-        original-update
-        :pending
-        nil)
-      original-update)))
-
-(defn-spec forbid-effects-on-dislodgers-provinces
-  [::r/resolution-state ::r/conflict-state-updates] ::r/conflict-state-updates)
-(defn forbid-effects-on-dislodgers-provinces
-  "For each conflict state update, mark each `interferer` as not interfering if
-  the `interferer` should have no effect on the `order` by the
-  `no-effect-on-dislodgers-province` rule. If we don't have enough information
-  to tell yet, remove the conflict state update from the list."
-  [rs conflict-state-updates]
-  (->> conflict-state-updates
-       (map (partial forbid-effect-on-dislodgers-province-helper rs))
-       (filter some?)))
 
 (defn-spec evaluate-battle
   [::r/resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule
