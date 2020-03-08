@@ -406,8 +406,7 @@
       ;; moving in a circle.
       (= rule :failed-to-leave-destination)
       (->> (evaluate-attack-failed-to-leave rs attack bouncer)
-           (map forbid-self-dislodgment)
-           (filter some?))
+           (map forbid-self-dislodgment))
 
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bouncer arrival pending
 
