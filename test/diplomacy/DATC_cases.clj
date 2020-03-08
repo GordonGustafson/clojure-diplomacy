@@ -659,23 +659,27 @@
                               [:austria :army :ruh :attack :hol] #{[true [:france :fleet :nth :attack :hol] :attacked-same-destination]
                                                                    [false [:germany :fleet :hol :attack :nth] :failed-to-leave-destination]}}
     :explanation "Although the German force from Holland to North Sea is one larger than the French force from North Sea to Holland, the French fleet in the North Sea is not dislodged, because one of the supports on the German movement is French. Therefore, the Austrian army in Ruhr will not move to Holland."}
+   ;; NOTE: In the official DATC E7 through E10, the english fleet is in York, not Edinburgh.
+   ;; I moved it to Edinburgh to make the diagrams produced by my diplomacy viewer easier to understand.
+   ;; (York, North Sea, and Norway being colinear makes some arrows overlap). This does not change
+   ;; the accuracy of the test.
    "E7"
    {:long-name "6.E.7. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
     :summary "An attempt to self dislodgement can be combined with a beleaguered garrison. Such self dislodgment is still not possible."
     :resolution-results-abbr {[:england :fleet :nth :hold] #{}
-                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
+                              [:england :fleet :edi :support :russia :fleet :nwy :attack :nth] #{}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
                               [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]
                                                                     [false [:england :fleet :nth :hold] :destination-occupied]}
                               [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
                               [:russia :fleet :nwy :attack :nth] #{[true [:germany :fleet :hel :attack :nth] :attacked-same-destination]
                                                                    [false [:england :fleet :nth :hold] :destination-occupied]}}
-    :explanation "Although the Russians beat the German attack (with the support of Yorkshire) and the two Russian fleets are enough to dislodge the fleet in the North Sea, the fleet in the North Sea is not dislodged, since it would not be dislodged if the English fleet in Yorkshire would not give support. According to the DPTG the fleet in the North Sea would be dislodged. The DPTG is incorrect in this case."}
+    :explanation "Although the Russians beat the German attack (with the support of Edinburgh) and the two Russian fleets are enough to dislodge the fleet in the North Sea, the fleet in the North Sea is not dislodged, since it would not be dislodged if the English fleet in Edinburgh would not give support. According to the DPTG the fleet in the North Sea would be dislodged. The DPTG is incorrect in this case."}
    "E8"
    {:long-name "6.E.8. NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON AND HEAD TO HEAD BATTLE"
     :summary "Similar to the previous test case, but now the beleaguered fleet is also engaged in a head to head battle."
     :resolution-results-abbr {[:england :fleet :nth :attack :nwy] #{[true [:russia :fleet :nwy :attack :nth] :swapped-places]}
-                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
+                              [:england :fleet :edi :support :russia :fleet :nwy :attack :nth] #{}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
                               [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]
                                                                     [false [:england :fleet :nth :attack :nwy] :failed-to-leave-destination]}
@@ -687,7 +691,7 @@
    {:long-name "6.E.9. ALMOST SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
     :summary "Similar to the previous test case, but now the beleaguered fleet is moving away."
     :resolution-results-abbr {[:england :fleet :nth :attack :nrg] #{}
-                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
+                              [:england :fleet :edi :support :russia :fleet :nwy :attack :nth] #{}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
                               [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]}
                               [:russia :fleet :ska :support :russia :fleet :nwy :attack :nth] #{}
@@ -697,7 +701,7 @@
    {:long-name "6.E.10. ALMOST CIRCULAR MOVEMENT WITH NO SELF DISLODGEMENT WITH BELEAGUERED GARRISON"
     :summary "Similar to the previous test case, but now the beleaguered fleet is in circular movement with the weaker attacker. So, the circular movement fails."
     :resolution-results-abbr {[:england :fleet :nth :attack :den] #{[true [:germany :fleet :den :attack :hel] :failed-to-leave-destination]}
-                              [:england :fleet :yor :support :russia :fleet :nwy :attack :nth] #{}
+                              [:england :fleet :edi :support :russia :fleet :nwy :attack :nth] #{}
                               [:germany :fleet :hol :support :germany :fleet :hel :attack :nth] #{}
                               [:germany :fleet :hel :attack :nth] #{[true [:russia :fleet :nwy :attack :nth] :attacked-same-destination]
                                                                     [false [:england :fleet :nth :attack :den] :failed-to-leave-destination]}
