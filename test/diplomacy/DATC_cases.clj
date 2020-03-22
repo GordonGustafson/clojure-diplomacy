@@ -1104,14 +1104,14 @@
    "G10"
    {:long-name "6.G.10. SWAPPED OR AN HEAD TO HEAD BATTLE?"
     :summary "Can a dislodged unit have effect on the attackers area, when the attacker moved by convoy?"
-    :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :den :support :england :army :nwy :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:england :fleet :fin :support :england :army :nwy :attack :swe] #{[:interfered? [:russia :army :naf :hold] :rule]}
+    :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[false [:russia :army :swe :attack :nwy] :failed-to-leave-destination]}
+                              [:england :fleet :den :support :england :army :nwy :attack :swe] #{}
+                              [:england :fleet :fin :support :england :army :nwy :attack :swe] #{}
                               [:germany :fleet :ska :convoy :england :army :nwy :attack :swe] #{}
-                              [:russia :army :swe :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:russia :fleet :bar :support :russia :army :swe :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :nrg :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}
-                              [:france :fleet :nth :support :france :fleet :nrg :attack :nwy] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:russia :army :swe :attack :nwy] #{[true [:france :fleet :nrg :attack :nwy] :attacked-same-destination]}
+                              [:russia :fleet :bar :support :russia :army :swe :attack :nwy] #{}
+                              [:france :fleet :nrg :attack :nwy] #{[true [:russia :army :swe :attack :nwy] :attacked-same-destination]}
+                              [:france :fleet :nth :support :france :fleet :nrg :attack :nwy] #{}}
     :explanation "Since England ordered the army in Norway to move explicitly via convoy and the army in Sweden is moving in opposite direction, only the convoyed route should be considered regardless of the rulebook used. It is clear that the army in Norway will dislodge the Russian army in Sweden. Since  the strength of three is in all cases the strongest force. The army in Sweden will not advance to Norway, because it can not beat the force in the Norwegian Sea. It will be dislodged by the army from Norway. The more interesting question is whether French fleet in the Norwegian Sea is bounced by the Russian army from Sweden.  This depends on the interpretation of issue 4.A.7. If the rulebook is taken literally (choice a), then a dislodged unit can not bounce a unit in the area where the attacker came from. This would mean that the move of the fleet in the Norwegian Sea succeeds However, if choice b is taken (<i>which I prefer</i>), then a bounce is still possible, when there is no head to head battle. So, the  fleet in the Norwegian Sea will fail to move."}
    "G11"
    {:long-name "6.G.11. A CONVOY TO AN ADJACENT PLACE WITH A PARADOX"
@@ -1406,6 +1406,18 @@
                               [:france :army :bel :attack :lon] #{}
                               [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{}}
     :explanation ""}
+   "Z19"
+   {:long-name "G10, but with an english convoy to avoid need for explicit 'via convoy'"
+    :summary "Can a dislodged unit have effect on the attackers area, when the attacker moved by convoy?"
+    :resolution-results-abbr {[:england :army :nwy :attack :swe] #{[false [:russia :army :swe :attack :nwy] :failed-to-leave-destination]}
+                              [:england :fleet :den :support :england :army :nwy :attack :swe] #{}
+                              [:england :fleet :fin :support :england :army :nwy :attack :swe] #{}
+                              [:england :fleet :ska :convoy :england :army :nwy :attack :swe] #{}
+                              [:russia :army :swe :attack :nwy] #{[true [:france :fleet :nrg :attack :nwy] :attacked-same-destination]}
+                              [:russia :fleet :bar :support :russia :army :swe :attack :nwy] #{}
+                              [:france :fleet :nrg :attack :nwy] #{[true [:russia :army :swe :attack :nwy] :attacked-same-destination]}
+                              [:france :fleet :nth :support :france :fleet :nrg :attack :nwy] #{}}
+    :explanation "Since England ordered the army in Norway to move explicitly via convoy and the army in Sweden is moving in opposite direction, only the convoyed route should be considered regardless of the rulebook used. It is clear that the army in Norway will dislodge the Russian army in Sweden. Since  the strength of three is in all cases the strongest force. The army in Sweden will not advance to Norway, because it can not beat the force in the Norwegian Sea. It will be dislodged by the army from Norway. The more interesting question is whether French fleet in the Norwegian Sea is bounced by the Russian army from Sweden.  This depends on the interpretation of issue 4.A.7. If the rulebook is taken literally (choice a), then a dislodged unit can not bounce a unit in the area where the attacker came from. This would mean that the move of the fleet in the Norwegian Sea succeeds However, if choice b is taken (<i>which I prefer</i>), then a bounce is still possible, when there is no head to head battle. So, the  fleet in the Norwegian Sea will fail to move."}
    })
 
 ;; This whitelist was originally added to allow running
@@ -1546,6 +1558,7 @@
     "Z16"
     "Z17"
     "Z18"
+    "Z19"
     })
 
 (defn test-complete?

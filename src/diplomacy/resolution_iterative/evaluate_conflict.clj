@@ -218,7 +218,7 @@
   "Mark `interferer` as not interfering if `interferer` should have no effect on
   `order` by the `no-effect-on-dislodgers-province` rule. If we don't have
   enough information to tell yet, return `nil`."
-  [{:keys [location-to-order-map] :as resolution-state}
+  [{:keys [location-to-order-map conflict-map] :as resolution-state}
    [order interferer conflict-state :as original-update]]
   (assert (s/valid? ::dt/attack-order order))
   (let [potential-dislodger (location-to-order-map (:destination order))]
@@ -231,15 +231,22 @@
              (orders/attack? potential-dislodger)
              (= (:destination potential-dislodger) (:location interferer)))
       (case (eval-util/order-status resolution-state potential-dislodger)
-        :succeeded
-        ;; I decided not to add any indication that the
-        ;; `:no-effect-on-dislodgers-province` rule is being used in order to
-        ;; proceed more quickly.
-        (assoc-in original-update [2 :interfered?] false)
         :failed
         original-update
         :pending
-        nil)
+        nil
+        :succeeded
+        ;; DECISION: if `potential-dislodger` and `interferer` swapped using a convoy
+        ;; (giving them a no-conflict resolution) we do *not* trigger the "no
+        ;; effect on dislodger's province" rule. See test case G10.
+        (if (= :swapped-places
+               (get-in conflict-map [potential-dislodger interferer
+                                     :conflict-situation :attack-conflict-rule]))
+          ;; I decided not to add any indication that the
+          ;; `:no-effect-on-dislodgers-province` rule is being used in order to
+          ;; proceed more quickly.
+          (assoc-in original-update [2 :interfered?] false)
+          original-update))
       original-update)))
 
 (defn-spec forbid-effects-on-dislodgers-provinces
