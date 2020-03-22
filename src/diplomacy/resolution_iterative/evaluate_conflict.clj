@@ -254,7 +254,6 @@
        (map (partial forbid-effect-on-dislodgers-province-helper rs))
        (filter some?)))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          Resolving Attacks ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -343,11 +342,32 @@
   [resolution-state attack-order]
   (find-failed-to-leave-cycle-helper resolution-state [attack-order]))
 
+(defn-spec evaluate-known-failed-to-leave-battle
+  [::r/resolution-state ::dt/attack-order ::dt/attack-order]
+  ::r/conflict-state-updates)
+(defn evaluate-known-failed-to-leave-battle
+  "Assumes that `attack` arrived and that `bouncer` failed to leave attack's
+  destination.
+
+  Does not let `attack` dislodge `bouncer` if they are from the same country."
+  [rs attack bouncer]
+  (let [raw-result
+        (cond
+          (pos? (guaranteed-support rs attack bouncer :failed-to-leave-destination :offense))
+          [[attack bouncer (j/create-attack-judgment :interferer bouncer
+                                                     :attack-rule :failed-to-leave-destination
+                                                     :interfered? false)]]
+          (zero? (max-possible-support rs attack bouncer :failed-to-leave-destination :offense))
+          [[attack bouncer (j/create-attack-judgment :interferer bouncer
+                                                     :attack-rule :failed-to-leave-destination
+                                                     :interfered? true)]]
+          :else [])]
+    (map forbid-self-dislodgment raw-result)))
+
 (defn-spec evaluate-attack-failed-to-leave
   [::r/resolution-state ::dt/attack-order ::dt/attack-order]
   ::r/conflict-state-updates)
 (defn evaluate-attack-failed-to-leave
-  "Does not account for dislodging a unit from the same country."
   [{:keys [conflict-map] :as rs} attack bouncer]
   (case (eval-util/order-status rs bouncer)
     :succeeded [[attack bouncer [:failed-to-leave-destination :no-conflict]]]
@@ -376,16 +396,7 @@
                                                                                   :attack-rule :attacked-same-destination
                                                                                   :interfered? false)]]))))))
     :failed
-    (cond
-      (pos? (guaranteed-support rs attack bouncer :failed-to-leave-destination :offense))
-      [[attack bouncer (j/create-attack-judgment :interferer bouncer
-                                                 :attack-rule :failed-to-leave-destination
-                                                 :interfered? false)]]
-      (zero? (max-possible-support rs attack bouncer :failed-to-leave-destination :offense))
-      [[attack bouncer (j/create-attack-judgment :interferer bouncer
-                                                 :attack-rule :failed-to-leave-destination
-                                                 :interfered? true)]]
-      :else [])))
+    (evaluate-known-failed-to-leave-battle rs attack bouncer)))
 
 (defn-spec evaluate-battle
   [::r/resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule
@@ -414,8 +425,7 @@
       ;; `bouncer`'s arrival status is still pending. This is to allow orders
       ;; moving in a circle.
       (= rule :failed-to-leave-destination)
-      (->> (evaluate-attack-failed-to-leave rs attack bouncer)
-           (map forbid-self-dislodgment))
+      (evaluate-attack-failed-to-leave rs attack bouncer)
 
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bouncer arrival pending
 
