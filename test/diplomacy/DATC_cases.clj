@@ -257,9 +257,12 @@
    {:long-name "6.C.6. TWO ARMIES WITH TWO CONVOYS"
     :summary "Two armies can swap places even when they are not adjacent."
     :resolution-results-abbr {[:england :fleet :nth :convoy :england :army :lon :attack :bel] #{}
-                              [:england :army :lon :attack :bel] #{[:interfered? [:russia :army :naf :hold] :rule]}
+                              ;; TODO: provide better explanation for the rule being used
+                              ;; (swapping places when at least one unit uses a convoy is allowed).
+                              ;; Currently we classify this as `:no-conflict`, so no rule is emitted.
+                              [:england :army :lon :attack :bel] #{}
                               [:france :fleet :eng :convoy :france :army :bel :attack :lon] #{}
-                              [:france :army :bel :attack :lon] #{[:interfered? [:russia :army :naf :hold] :rule]}}
+                              [:france :army :bel :attack :lon] #{}}
     :explanation "Both convoys should succeed."}
    "C7"
    {:long-name "6.C.7. DISRUPTED UNIT SWAP"
@@ -1442,6 +1445,7 @@
     "C3"
     "C4"
     "C5"
+    "C6"
 
     "D1"
     "D2"

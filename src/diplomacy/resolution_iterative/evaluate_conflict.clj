@@ -409,11 +409,44 @@
    (map forbid-self-dislodgment)
    (forbid-effects-on-dislodgers-provinces rs)))
 
+(defn-spec evaluate-swapped-places
+  [::r/resolution-state ::dt/attack-order ::dt/attack-order]
+  ::r/conflict-state-updates)
+(defn evaluate-swapped-places
+  [{:keys [conflict-map] :as rs} attack bouncer]
+  (case (eval-util/arrival-status rs bouncer)
+    ;; TODO: is it correct to change the rule to :failed-to-leave-destination here?
+    ;; TODO: write test case to assert that bouncer can't get support if it failed to leave.
+    :failed (evaluate-attack-failed-to-leave rs attack bouncer)
+    :pending []
+    :succeeded
+    (if (and (not (arrives-via-convoy? rs attack))
+             (not (arrives-via-convoy? rs bouncer)))
+      (evaluate-battle rs attack bouncer :swapped-places
+                       {:assume-beleaguered-garrison-leaves false})
+      ;; Both attack and bouncer arrive, and at least one of them arrives by
+      ;; convoy. We can only say there is no conflict if bouncer has no
+      ;; other conflicts that could make it fail to leave attack's
+      ;; destination.
+      (let [bouncer-order-status-ignoring-swapping-places
+            (->> bouncer
+                 (eval-util/get-conflict-states rs)
+                 (filter (partial not= :swapped-places))
+                 eval-util/conflict-states-to-order-status)]
+        (case bouncer-order-status-ignoring-swapping-places
+          ;; TODO: indicate that they swapped places using a convoy?
+          :succeeded [[attack bouncer [:swapped-places :no-conflict]]]
+          :pending []
+          :failed
+          ;; TODO: is it correct to change the rule to
+          ;; :failed-to-leave-destination here?
+          (evaluate-attack-failed-to-leave rs attack bouncer))))))
+
 (defn-spec evaluate-attack-conflict
   [::r/resolution-state ::dt/attack-order ::dt/order ::dt/attack-conflict-rule]
   ::r/conflict-state-updates)
 (defn evaluate-attack-conflict
-  [rs attack bouncer rule]
+  [{:keys [conflict-map] :as rs} attack bouncer rule]
   (case (eval-util/arrival-status rs attack)
     :failed [[attack bouncer [rule :no-conflict]]]
     :pending []
@@ -442,12 +475,10 @@
            (= (eval-util/arrival-status rs bouncer) :failed))
       [[attack bouncer [rule :no-conflict]]]
 
-      (and (= rule :swapped-places)
-           (= (eval-util/arrival-status rs bouncer) :succeeded)
-           (or (arrives-via-convoy? rs attack)
-               (arrives-via-convoy? rs bouncer)))
-      [[attack bouncer [rule :no-conflict]]]
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; :swapped-places
 
+      (= rule :swapped-places)
+      (evaluate-swapped-places rs attack bouncer)
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Battle!
 
       :else
